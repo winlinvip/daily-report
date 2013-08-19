@@ -1,0 +1,953 @@
+<!-- 查看日报，分年度/季度/月度/当天进行汇总 -->
+<html>
+<head>
+    <meta http-equiv="contenttent-Type" contenttent="text/html; charset=utf-8" />
+    <title>DailyReport</title>
+    <style type="text/css">
+    body{
+        font-size: 12px;
+    }
+    div.coll_item{
+        clear:both;
+    }
+    div.item{
+        float: left;
+    }
+    div.title0{
+        font-size: 14px;
+        font-weight: bold;
+        padding: 3;
+        background-color: #36E636;
+    }
+    div.copy_right{
+        font-size: 14px;
+        font-weight: bold;
+        padding: 3;
+        background-color: #FFF;
+        text-align: center;
+    }
+    div.title1{
+        font-size: 14px;
+        font-weight: bold;
+        padding: 3;
+        color: #fff;
+        background-color: #3636FF;
+    }
+    div.cnt_left{
+        float: left;
+        background-color: #F6F6F6;
+    }
+    div.cnt_right{
+        float: left;
+        background-color: #E6E6E6;
+    }
+    div.item_title{
+        font-size: 13px;
+        font-weight: bold;
+        padding: 3;
+    }
+    div.summary_product{
+        float: left;
+    }
+    div.summary_product_text{
+        float: left;
+        font-size: 14px;
+    }
+    div.user_title{
+        font-size: 14px;
+        font-weight: bold;
+        padding: 5;
+        background-color: #3636FF;
+        text-align: center;
+        color: #fff;
+    }
+    div.user_text{
+        background-color: #E6E6E6;
+    }
+    div.user_text_content{
+        padding: 3;
+        font-size: 12px;
+        overflow: auto;
+    }
+    div.user_text_para{
+        font-size: 12px;
+    }
+    
+    div.coll_item{
+        width: 1500px;
+    }
+    div.item{
+        width: 750px;
+    }
+    div.cnt_left,div.cnt_right{
+        width: 375px;
+        height: 250px;
+    }
+    div.user_text{
+        width: 750px;
+        height: 250px;
+    }
+    div.user_text_content{
+        width: 745px;
+        height: 245px;
+    }
+    </style>
+</head>
+<body>
+    <div>
+        <div id="log" class="log"></div>
+        <div>
+            查询日期：<input id="write_time" type="text" size="10"/>
+            <input id="view" value="查询" type="button"/>
+            <input id="submit" value="返回" type="button"/>
+        </div>
+    </div>
+    <div id="report">
+        <div class="coll_item">
+            <div class="item">
+                <div class="title0">年度汇总</div>
+                <div>
+                    <div class="cnt_left">
+                        <div class="item_title">产品汇总</div>
+                        <div>
+                            <div id="year_product" class="summary_product"></div>
+                            <div id="year_product_text" class="summary_product_text"></div>
+                        </div>
+                    </div>
+                    <div class="cnt_right">
+                        <div class="item_title">类型汇总</div>
+                        <div>
+                            <div id="year_type" class="summary_product"></div>
+                            <div id="year_type_text" class="summary_product_text"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="item">
+                <div class="title1">季度汇总</div>
+                <div>
+                    <div class="cnt_left">
+                        <div class="item_title">产品汇总</div>
+                        <div>
+                            <div id="quarter_product" class="summary_product"></div>
+                            <div id="quarter_product_text" class="summary_product_text"></div>
+                        </div>
+                    </div>
+                    <div class="cnt_right">
+                        <div class="item_title">类型汇总</div>
+                        <div>
+                            <div id="quarter_type" class="summary_product"></div>
+                            <div id="quarter_type_text" class="summary_product_text"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="coll_item">
+            <div class="item">
+                <div class="title0">月度汇总</div>
+                <div>
+                    <div class="cnt_left">
+                        <div class="item_title">产品汇总</div>
+                        <div>
+                            <div id="month_product" class="summary_product"></div>
+                            <div id="month_product_text" class="summary_product_text"></div>
+                        </div>
+                    </div>
+                    <div class="cnt_right">
+                        <div class="item_title">类型汇总</div>
+                        <div>
+                            <div id="month_type" class="summary_product"></div>
+                            <div id="month_type_text" class="summary_product_text"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="item">
+                <div class="title1" id="day_summary">当天汇总</div>
+                <div>
+                    <div class="cnt_left">
+                        <div class="item_title">产品汇总</div>
+                        <div>
+                            <div id="day_product" class="summary_product"></div>
+                            <div id="day_product_text" class="summary_product_text"></div>
+                        </div>
+                    </div>
+                    <div class="cnt_right">
+                        <div class="item_title">类型汇总</div>
+                        <div>
+                            <div id="day_type" class="summary_product"></div>
+                            <div id="day_type_text" class="summary_product_text"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="coll_item">
+            <div class="title0" id="day_detail">当天详细</div>
+            <div id="day_detail_items">
+            </div>
+        </div>
+        <div class="coll_item">
+            <div class="copy_right">
+            CopyRight&copy;OpenSourceDailyReport, 2013.
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript" src="jquery"></script>
+    <script type="text/javascript" src="raphael"></script>
+    <script type="text/javascript">
+        // http://raphaeljs.com/pie.html
+        // http://raphaeljs.com/pie.js
+        Raphael.fn.pieChart = function (hsb_start, cx, cy, r, values, labels, stroke) {
+            var paper = this,
+                rad = Math.PI / 180,
+                chart = this.set();
+            function sector(cx, cy, r, startAngle, endAngle, params) {
+                var x1 = cx + r * Math.cos(-startAngle * rad),
+                    x2 = cx + r * Math.cos(-endAngle * rad),
+                    y1 = cy + r * Math.sin(-startAngle * rad),
+                    y2 = cy + r * Math.sin(-endAngle * rad);
+                return paper.path(["M", cx, cy, "L", x1, y1, "A", r, r, 0, +(endAngle - startAngle > 180), 0, x2, y2, "z"]).attr(params);
+            }
+            var angle = 0,
+                total = 0,
+                start = hsb_start,
+                process = function (j) {
+                    var value = values[j],
+                        angleplus = 360 * value / total,
+                        popangle = angle + (angleplus / 2),
+                        color = Raphael.hsb(start, .75, 1),
+                        ms = 500,
+                        delta = -50,
+                        bcolor = Raphael.hsb(start, 1, 1),
+                        p = sector(cx, cy, r, angle, angle + angleplus, {fill: "90-" + bcolor + "-" + color, stroke: stroke, "stroke-width": 2}),
+                        label = labels[j] + '\n' + value + '%',
+                        label_color = Raphael.hsb(start, 1, 0.5),
+                        txt = paper.text(cx + (r + delta) * Math.cos(-popangle * rad), cy + (r + delta) * Math.sin(-popangle * rad), label).attr({fill: label_color, stroke: "none", opacity: 1, "font-size": "12px"});
+                    p.mouseover(function () {
+                        p.stop().animate({transform: "s1.1 1.1 " + cx + " " + cy}, ms, "elastic");
+                        txt.stop().animate({opacity: 1}, ms, "elastic");
+                    }).mouseout(function () {
+                        p.stop().animate({transform: ""}, ms, "elastic");
+                        txt.stop().animate({opacity: 1}, ms);
+                    });
+                    angle += angleplus;
+                    chart.push(p);
+                    chart.push(txt);
+                    start += .1;
+                };
+            for (var i = 0, ii = values.length; i < ii; i++) {
+                total += values[i];
+            }
+            for (i = 0; i < ii; i++) {
+                process(i);
+            }
+            return chart;
+        };
+    </script>
+    <script type="text/javascript">
+        function error(msg){
+            $("#log").html('<font color="red">' + msg + '</font>');
+        }
+        function trace(msg){
+            $("#log").html('<font color="#33AA33">' + msg + '</font>');
+            //console.log(msg);
+        }
+        function parseDate(date){
+            return date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate();
+        }
+        
+        // main function 
+        $(function(){
+            $("div").ajaxError(function(){
+                error("ajax请求错误");
+            });
+            
+            $("#view").click(function(){
+                show_report();
+            });
+            
+            $("#submit").click(function(){
+                window.location.href = "/";
+            });
+            
+            $("#write_time").attr("value", parseDate(new Date()));
+            
+            trace("正在查询日报");
+            show_report();
+        });
+        
+        function show_report(){
+            // convert date string to date object.
+            // for example, "2013-8-18" to "Sun Aug 18 2013 00:00:00 GMT+0800 (中国标准时间)"
+            var date = new Date();
+            date.setTime(Date.parse($("#write_time").val()));
+            //trace(date.toString());
+            
+            // query the report data.
+            query_report_basic(date);
+        }
+        
+        var data = {};
+        function query_report_basic(date){
+            data = {};
+            
+            // save the query date.
+            data.date = date;
+            // the reports data.
+            data.reports = {};
+            
+            // query basic info, users/products/work_types.
+            trace("请求users数据");
+            $.getJSON("/users", function(users){
+                data.users = users;
+                data.users_kv = {};
+                for(var i = 0; i < users.length; i++){
+                    data.users_kv[users[i].id] = users[i].value;
+                }
+                
+                trace("请求products数据");
+                $.getJSON("/products", function(products){
+                    data.products = products;
+                    data.products_kv = {};
+                    for(var i = 0; i < products.length; i++){
+                        data.products_kv[products[i].id] = products[i].value;
+                    }
+                    
+                    trace("请求work_types数据");
+                    $.getJSON("/work_types", function(work_types){
+                        data.work_types = work_types;
+                        data.work_types_kv = {};
+                        for(var i = 0; i < work_types.length; i++){
+                            data.work_types_kv[work_types[i].id] = work_types[i].value;
+                        }
+                        
+                        setTimeout(query_report_user_detail, 0);
+                    });
+                });
+            });
+        }
+        function query_report_user_detail(){
+            trace("请求日期" + parseDate(data.date) + "的日报数据");
+            
+            data.reports.user_data = [];
+            var responsed_count = 0;
+            for(var i = 0; i < data.users.length; i++){
+                var url = "/reports?summary=0&"+"start_time=" + parseDate(data.date) + "&end_time=" + parseDate(data.date) + "&user_id=" + data.users[i].id;
+                trace("请求用户" + data.users[i].value + "在" + parseDate(data.date) + "的数据");
+                $.getJSON(url, function(user_data){
+                    if(user_data.length > 0){
+                        data.reports.user_data.push(user_data);
+                    }
+                    // if all data requested, request other messages.
+                    if(++responsed_count == data.users.length){
+                        setTimeout(query_report_day_product_summary, 0);
+                    }
+                });
+            }
+        }
+        function query_report_day_product_summary(){
+            trace("请求当天日报product汇总数据");
+            
+            var start_time = parseDate(data.date);
+            var end_time = parseDate(data.date);
+            
+            trace("请求当天日报product汇总数据" + "，" + start_time + "至" + end_time);
+            
+            data.reports.day_product_data = [];
+            var responsed_count = 0;
+            for(var i = 0; i < data.products.length; i++){
+                var url = "/reports?summary=1&"+"start_time=" + start_time + "&end_time=" + end_time + "&product_id=" + data.products[i].id;
+                trace("请求产品'" + data.products[i].value + "'的当天汇总数据");
+                $.getJSON(url, function(response_data){
+                    if(response_data.work_hours != null){
+                        data.reports.day_product_data.push(response_data);
+                    }
+                    // if all data requested, request other messages.
+                    if(++responsed_count == data.products.length){
+                        setTimeout(query_report_day_type_summary, 0);
+                    }
+                });
+            }
+        }
+        function query_report_day_type_summary(){
+            trace("请求当天日报type汇总数据");
+            
+            var start_time = parseDate(data.date);
+            var end_time = parseDate(data.date);
+            
+            trace("请求当天日报type汇总数据" + "，" + start_time + "至" + end_time);
+            
+            data.reports.day_type_data = [];
+            var responsed_count = 0;
+            for(var i = 0; i < data.work_types.length; i++){
+                var url = "/reports?summary=1&"+"start_time=" + start_time + "&end_time=" + end_time + "&type_id=" + data.work_types[i].id;
+                trace("请求工作类型'" + data.work_types[i].value + "'的当天汇总数据");
+                $.getJSON(url, function(response_data){
+                    if(response_data.work_hours != null){
+                        data.reports.day_type_data.push(response_data);
+                    }
+                    // if all data requested, request other messages.
+                    if(++responsed_count == data.work_types.length){
+                        setTimeout(query_report_month_product_summary, 0);
+                    }
+                });
+            }
+        }
+        function query_report_month_product_summary(){
+            trace("请求月度日报product汇总数据");
+            
+            var date_copy = new Date();
+            date_copy.setTime(data.date.getTime());
+            
+            date_copy.setDate(1);
+            var start_time = parseDate(date_copy);
+            
+            date_copy.setMonth(date_copy.getMonth() + 1);
+            date_copy.setDate(date_copy.getDate() - 1);
+            var end_time = parseDate(date_copy);
+            
+            trace("请求月度日报product汇总数据" + "，" + start_time + "至" + end_time);
+            
+            data.reports.month_product_data = [];
+            var responsed_count = 0;
+            for(var i = 0; i < data.products.length; i++){
+                var url = "/reports?summary=1&"+"start_time=" + start_time + "&end_time=" + end_time + "&product_id=" + data.products[i].id;
+                trace("请求产品'" + data.products[i].value + "'的月度汇总数据");
+                $.getJSON(url, function(response_data){
+                    if(response_data.work_hours != null){
+                        data.reports.month_product_data.push(response_data);
+                    }
+                    // if all data requested, request other messages.
+                    if(++responsed_count == data.products.length){
+                        setTimeout(query_report_month_type_summary, 0);
+                    }
+                });
+            }
+        }
+        function query_report_month_type_summary(){
+            trace("请求月度日报type汇总数据");
+            
+            var date_copy = new Date();
+            date_copy.setTime(data.date.getTime());
+            
+            date_copy.setDate(1);
+            var start_time = parseDate(date_copy);
+            
+            date_copy.setMonth(date_copy.getMonth() + 1);
+            date_copy.setDate(date_copy.getDate() - 1);
+            var end_time = parseDate(date_copy);
+            
+            trace("请求月度日报type汇总数据" + "，" + start_time + "至" + end_time);
+            
+            data.reports.month_type_data = [];
+            var responsed_count = 0;
+            for(var i = 0; i < data.work_types.length; i++){
+                var url = "/reports?summary=1&"+"start_time=" + start_time + "&end_time=" + end_time + "&type_id=" + data.work_types[i].id;
+                trace("请求工作类型'" + data.work_types[i].value + "'的月度汇总数据");
+                $.getJSON(url, function(response_data){
+                    if(response_data.work_hours != null){
+                        data.reports.month_type_data.push(response_data);
+                    }
+                    // if all data requested, request other messages.
+                    if(++responsed_count == data.work_types.length){
+                        setTimeout(query_report_quarter_product_summary, 0);
+                    }
+                });
+            }
+        }
+        function query_report_quarter_product_summary(){
+            trace("请求季度日报product汇总数据");
+            
+            var date_copy = new Date();
+            date_copy.setTime(data.date.getTime());
+            
+            date_copy.setDate(1);
+            date_copy.setMonth(parseInt(date_copy.getMonth() / 3) * 3);
+            var start_time = parseDate(date_copy);
+            
+            date_copy.setMonth(parseInt(date_copy.getMonth() / 3 + 1) * 3);
+            date_copy.setDate(date_copy.getDate() - 1);
+            var end_time = parseDate(date_copy);
+            
+            trace("请求季度日报product汇总数据" + "，" + start_time + "至" + end_time);
+            
+            data.reports.quarter_product_data = [];
+            var responsed_count = 0;
+            for(var i = 0; i < data.products.length; i++){
+                var url = "/reports?summary=1&"+"start_time=" + start_time + "&end_time=" + end_time + "&product_id=" + data.products[i].id;
+                trace("请求产品'" + data.products[i].value + "'的季度汇总数据");
+                $.getJSON(url, function(response_data){
+                    if(response_data.work_hours != null){
+                        data.reports.quarter_product_data.push(response_data);
+                    }
+                    // if all data requested, request other messages.
+                    if(++responsed_count == data.products.length){
+                        setTimeout(query_report_quarter_type_summary, 0);
+                    }
+                });
+            }
+        }
+        function query_report_quarter_type_summary(){
+            trace("请求季度日报type汇总数据");
+            
+            var date_copy = new Date();
+            date_copy.setTime(data.date.getTime());
+            
+            date_copy.setDate(1);
+            date_copy.setMonth(parseInt(date_copy.getMonth() / 3) * 3);
+            var start_time = parseDate(date_copy);
+            
+            date_copy.setMonth(parseInt(date_copy.getMonth() / 3 + 1) * 3);
+            date_copy.setDate(date_copy.getDate() - 1);
+            var end_time = parseDate(date_copy);
+            
+            trace("请求季度日报type汇总数据" + "，" + start_time + "至" + end_time);
+            
+            data.reports.quarter_type_data = [];
+            var responsed_count = 0;
+            for(var i = 0; i < data.work_types.length; i++){
+                var url = "/reports?summary=1&"+"start_time=" + start_time + "&end_time=" + end_time + "&type_id=" + data.work_types[i].id;
+                trace("请求工作类型'" + data.work_types[i].value + "'的季度汇总数据");
+                $.getJSON(url, function(response_data){
+                    if(response_data.work_hours != null){
+                        data.reports.quarter_type_data.push(response_data);
+                    }
+                    // if all data requested, request other messages.
+                    if(++responsed_count == data.work_types.length){
+                        setTimeout(query_report_year_product_summary, 0);
+                    }
+                });
+            }
+        }
+        function query_report_year_product_summary(){
+            trace("请求年度日报product汇总数据");
+            
+            var date_copy = new Date();
+            date_copy.setTime(data.date.getTime());
+            
+            date_copy.setMonth(0);
+            date_copy.setDate(1);
+            var start_time = parseDate(date_copy);
+            
+            date_copy.setFullYear(date_copy.getFullYear() + 1);
+            date_copy.setDate(date_copy.getDate() - 1);
+            var end_time = parseDate(date_copy);
+            
+            trace("请求年度日报product汇总数据" + "，" + start_time + "至" + end_time);
+            
+            data.reports.year_product_data = [];
+            var responsed_count = 0;
+            for(var i = 0; i < data.products.length; i++){
+                var url = "/reports?summary=1&"+"start_time=" + start_time + "&end_time=" + end_time + "&product_id=" + data.products[i].id;
+                trace("请求产品'" + data.products[i].value + "'的年度汇总数据");
+                $.getJSON(url, function(response_data){
+                    if(response_data.work_hours != null){
+                        data.reports.year_product_data.push(response_data);
+                    }
+                    // if all data requested, request other messages.
+                    if(++responsed_count == data.products.length){
+                        setTimeout(query_report_year_type_summary, 0);
+                    }
+                });
+            }
+        }
+        function query_report_year_type_summary(){
+            trace("请求年度日报type汇总数据");
+            
+            var date_copy = new Date();
+            date_copy.setTime(data.date.getTime());
+            
+            date_copy.setMonth(0);
+            date_copy.setDate(1);
+            var start_time = parseDate(date_copy);
+            
+            date_copy.setFullYear(date_copy.getFullYear() + 1);
+            date_copy.setDate(date_copy.getDate() - 1);
+            var end_time = parseDate(date_copy);
+            
+            trace("请求年度日报type汇总数据" + "，" + start_time + "至" + end_time);
+            
+            data.reports.year_type_data = [];
+            var responsed_count = 0;
+            for(var i = 0; i < data.work_types.length; i++){
+                var url = "/reports?summary=1&"+"start_time=" + start_time + "&end_time=" + end_time + "&type_id=" + data.work_types[i].id;
+                trace("请求工作类型'" + data.work_types[i].value + "'的年度汇总数据");
+                $.getJSON(url, function(response_data){
+                    if(response_data.work_hours != null){
+                        data.reports.year_type_data.push(response_data);
+                    }
+                    // if all data requested, request other messages.
+                    if(++responsed_count == data.work_types.length){
+                        setTimeout(render_report, 0);
+                    }
+                });
+            }
+        }
+        
+        function render_year_product(){
+            $("#year_product").empty();
+            $("#year_product_text").empty();
+            if(data.reports.year_product_data.length > 0){
+                var values = [];
+                var labels = [];
+                var total_value = 0;
+                for(var i = 0; i < data.reports.year_product_data.length; i++){
+                    labels.push(data.products_kv[data.reports.year_product_data[i].product_id]);
+                    total_value += parseInt(data.reports.year_product_data[i].work_hours);
+                }
+                for(var i = 0; i < data.reports.year_product_data.length; i++){
+                    var percent = parseInt(data.reports.year_product_data[i].work_hours) * 1000 / total_value;
+                    percent = parseInt(percent) / 10;
+                    values.push(percent);
+                }
+                Raphael("year_product", 220, 220).pieChart(0.1/*hsb_start*/, 110, 110, 100, values, labels, "#fff");
+                
+                for(var i = 0; i < values.length; i++){
+                    $("#year_product_text").append(labels[i] + ": " + values[i] + "%<br/>");
+                }
+            }
+            else{
+                $("#year_product").text("没有数据");
+            }
+        }
+        function render_year_type(){
+            $("#year_type").empty();
+            $("#year_type_text").empty();
+            if(data.reports.year_type_data.length > 0){
+                var values = [];
+                var labels = [];
+                var total_value = 0;
+                for(var i = 0; i < data.reports.year_type_data.length; i++){
+                    labels.push(data.work_types_kv[data.reports.year_type_data[i].type_id]);
+                    total_value += parseInt(data.reports.year_type_data[i].work_hours);
+                }
+                for(var i = 0; i < data.reports.year_type_data.length; i++){
+                    var percent = parseInt(data.reports.year_type_data[i].work_hours) * 1000 / total_value;
+                    percent = parseInt(percent) / 10;
+                    values.push(percent);
+                }
+                Raphael("year_type", 220, 220).pieChart(0.15/*hsb_start*/, 110, 110, 100, values, labels, "#fff");
+                
+                for(var i = 0; i < values.length; i++){
+                    $("#year_type_text").append(labels[i] + ": " + values[i] + "%<br/>");
+                }
+            }
+            else{
+                $("#year_type").text("没有数据");
+            }
+        }
+        function render_quarter_product(){
+            $("#quarter_product").empty();
+            $("#quarter_product_text").empty();
+            if(data.reports.quarter_product_data.length > 0){
+                var values = [];
+                var labels = [];
+                var total_value = 0;
+                for(var i = 0; i < data.reports.quarter_product_data.length; i++){
+                    labels.push(data.products_kv[data.reports.quarter_product_data[i].product_id]);
+                    total_value += parseInt(data.reports.quarter_product_data[i].work_hours);
+                }
+                for(var i = 0; i < data.reports.quarter_product_data.length; i++){
+                    var percent = parseInt(data.reports.quarter_product_data[i].work_hours) * 1000 / total_value;
+                    percent = parseInt(percent) / 10;
+                    values.push(percent);
+                }
+                Raphael("quarter_product", 220, 220).pieChart(0.2/*hsb_start*/, 110, 110, 100, values, labels, "#fff");
+                
+                for(var i = 0; i < values.length; i++){
+                    $("#quarter_product_text").append(labels[i] + ": " + values[i] + "%<br/>");
+                }
+            }
+            else{
+                $("#quarter_product").text("没有数据");
+            }
+        }
+        function render_quarter_type(){
+            $("#quarter_type").empty();
+            $("#quarter_type_text").empty();
+            if(data.reports.quarter_type_data.length > 0){
+                var values = [];
+                var labels = [];
+                var total_value = 0;
+                for(var i = 0; i < data.reports.quarter_type_data.length; i++){
+                    labels.push(data.work_types_kv[data.reports.quarter_type_data[i].type_id]);
+                    total_value += parseInt(data.reports.quarter_type_data[i].work_hours);
+                }
+                for(var i = 0; i < data.reports.quarter_type_data.length; i++){
+                    var percent = parseInt(data.reports.quarter_type_data[i].work_hours) * 1000 / total_value;
+                    percent = parseInt(percent) / 10;
+                    values.push(percent);
+                }
+                Raphael("quarter_type", 220, 220).pieChart(0.25/*hsb_start*/, 110, 110, 100, values, labels, "#fff");
+                
+                for(var i = 0; i < values.length; i++){
+                    $("#quarter_type_text").append(labels[i] + ": " + values[i] + "%<br/>");
+                }
+            }
+            else{
+                $("#quarter_type").text("没有数据");
+            }
+        }
+        function render_month_product(){
+            $("#month_product").empty();
+            $("#month_product_text").empty();
+            if(data.reports.month_product_data.length > 0){
+                var values = [];
+                var labels = [];
+                var total_value = 0;
+                for(var i = 0; i < data.reports.month_product_data.length; i++){
+                    labels.push(data.products_kv[data.reports.month_product_data[i].product_id]);
+                    total_value += parseInt(data.reports.month_product_data[i].work_hours);
+                }
+                for(var i = 0; i < data.reports.month_product_data.length; i++){
+                    var percent = parseInt(data.reports.month_product_data[i].work_hours) * 1000 / total_value;
+                    percent = parseInt(percent) / 10;
+                    values.push(percent);
+                }
+                Raphael("month_product", 220, 220).pieChart(0.3/*hsb_start*/, 110, 110, 100, values, labels, "#fff");
+                
+                for(var i = 0; i < values.length; i++){
+                    $("#month_product_text").append(labels[i] + ": " + values[i] + "%<br/>");
+                }
+            }
+            else{
+                $("#month_product").text("没有数据");
+            }
+        }
+        function render_month_type(){
+            $("#month_type").empty();
+            $("#month_type_text").empty();
+            if(data.reports.month_type_data.length > 0){
+                var values = [];
+                var labels = [];
+                var total_value = 0;
+                for(var i = 0; i < data.reports.month_type_data.length; i++){
+                    labels.push(data.work_types_kv[data.reports.month_type_data[i].type_id]);
+                    total_value += parseInt(data.reports.month_type_data[i].work_hours);
+                }
+                for(var i = 0; i < data.reports.month_type_data.length; i++){
+                    var percent = parseInt(data.reports.month_type_data[i].work_hours) * 1000 / total_value;
+                    percent = parseInt(percent) / 10;
+                    values.push(percent);
+                }
+                Raphael("month_type", 220, 220).pieChart(0.35/*hsb_start*/, 110, 110, 100, values, labels, "#fff");
+                
+                for(var i = 0; i < values.length; i++){
+                    $("#month_type_text").append(labels[i] + ": " + values[i] + "%<br/>");
+                }
+            }
+            else{
+                $("#month_type").text("没有数据");
+            }
+        }
+        function render_day_product(){
+            $("#day_product").empty();
+            $("#day_product_text").empty();
+            if(data.reports.day_product_data.length > 0){
+                var values = [];
+                var labels = [];
+                var total_value = 0;
+                for(var i = 0; i < data.reports.day_product_data.length; i++){
+                    labels.push(data.products_kv[data.reports.day_product_data[i].product_id]);
+                    total_value += parseInt(data.reports.day_product_data[i].work_hours);
+                }
+                for(var i = 0; i < data.reports.day_product_data.length; i++){
+                    var percent = parseInt(data.reports.day_product_data[i].work_hours) * 1000 / total_value;
+                    percent = parseInt(percent) / 10;
+                    values.push(percent);
+                }
+                Raphael("day_product", 220, 220).pieChart(0.4/*hsb_start*/, 110, 110, 100, values, labels, "#fff");
+                
+                for(var i = 0; i < values.length; i++){
+                    $("#day_product_text").append(labels[i] + ": " + values[i] + "%<br/>");
+                }
+            }
+            else{
+                $("#day_product").text("没有数据");
+            }
+        }
+        function render_day_type(){
+            $("#day_type").empty();
+            $("#day_type_text").empty();
+            if(data.reports.day_type_data.length > 0){
+                var values = [];
+                var labels = [];
+                var total_value = 0;
+                for(var i = 0; i < data.reports.day_type_data.length; i++){
+                    labels.push(data.work_types_kv[data.reports.day_type_data[i].type_id]);
+                    total_value += parseInt(data.reports.day_type_data[i].work_hours);
+                }
+                for(var i = 0; i < data.reports.day_type_data.length; i++){
+                    var percent = parseInt(data.reports.day_type_data[i].work_hours) * 1000 / total_value;
+                    percent = parseInt(percent) / 10;
+                    values.push(percent);
+                }
+                Raphael("day_type", 220, 220).pieChart(0.45/*hsb_start*/, 110, 110, 100, values, labels, "#fff");
+                
+                for(var i = 0; i < values.length; i++){
+                    $("#day_type_text").append(labels[i] + ": " + values[i] + "%<br/>");
+                }
+            }
+            else{
+                $("#day_type").text("没有数据");
+            }
+        }
+        function render_day_detail(){
+            $("#day_detail_items").empty();
+            if(data.reports.user_data.length > 0){
+                for(var i = 0; i < data.reports.user_data.length; i++){
+                    var user_data = data.reports.user_data[i];
+                    
+                    if(user_data.length <= 0){
+                        continue;
+                    }
+                    
+                    render_user(user_data);
+                }
+            }
+            else{
+                $("#day_detail_items").text("没有数据");
+            }
+        }
+        function render_user(user_data){
+            var user_id = user_data[0].user_id;
+            
+            var template_user_html = 
+                '<div>'+
+                '    <div class="user_title" id="user_title">杨成立日报</div>'+
+                '</div>'+
+                '<div class="item">'+
+                '    <div class="user_text"><div id="user_text" class="user_text_content"></div></div>'+
+                '</div>'+
+                '<div class="item">'+
+                '    <div>'+
+                '        <div class="cnt_left">'+
+                '            <div class="item_title">产品汇总</div>'+
+                '            <div>'+
+                '               <div id="user_product'+user_id+'" class="summary_product"></div>'+
+                '               <div id="user_product_text'+user_id+'" class="summary_product_text"></div>'+
+                '            </div>'+
+                '        </div>'+
+                '        <div class="cnt_right">'+
+                '            <div class="item_title">类型汇总</div>'+
+                '            <div>'+
+                '                <div id="user_type'+user_id+'" class="summary_product"></div>'+
+                '                <div id="user_type_text'+user_id+'" class="summary_product_text"></div>'+
+                '            </div>'+
+                '        </div>'+
+                '    </div>'+
+                '</div>'+
+                '';
+                
+            var div = document.createElement("div");
+            $(div).html(template_user_html);
+            $("#day_detail_items").append(div);
+            
+            var user_name = data.users_kv[user_id];
+            var user_title_text = user_name + "-" + parseDate(data.date) + "-" + "日报";
+            $(div).find("#user_title").text(user_title_text);
+            
+            $(div).find("#user_text").append(user_title_text);
+            for(var i = 0; i < user_data.length; i++){
+                var o = user_data[i];
+                var redmine_url = "#"; // TODO: use redmine url link.
+                var url = '<a href="' + redmine_url + '">refs#' + o.bug_id + ':</a>';
+                var hour = o.work_hours + "小时";
+                var text = '<p class="user_text_para">' + (i+1) + "." + url + " " + hour + ", " + o.report_content + "</p>";
+                $(div).find("#user_text").append(text);
+            }
+            
+            if(1){
+                var total_value = 0;
+                var products_merged = {};
+                for(var i = 0; i < user_data.length; i++){
+                    var o = user_data[i];
+                    products_merged[data.products_kv[o.product_id]] = 0;
+                }
+                for(var i = 0; i < user_data.length; i++){
+                    var o = user_data[i];
+                    total_value += parseInt(o.work_hours);
+                    products_merged[data.products_kv[o.product_id]] += parseInt(o.work_hours);
+                }
+                
+                var values = [];
+                var labels = [];
+                for(var key in products_merged){
+                    labels.push(key);
+                    
+                    var percent = parseInt(products_merged[key]) * 1000 / total_value;
+                    percent = parseInt(percent) / 10;
+                    values.push(percent);
+                }
+                Raphael("user_product"+user_id, 220, 220).pieChart(0.5/*hsb_start*/, 110, 110, 100, values, labels, "#fff");
+                
+                for(var i = 0; i < values.length; i++){
+                    $("#user_product_text"+user_id).append(labels[i] + ": " + values[i] + "%<br/>");
+                }
+            }
+            
+            if(1){
+                var total_value = 0;
+                var types_merged = {};
+                for(var i = 0; i < user_data.length; i++){
+                    var o = user_data[i];
+                    types_merged[data.work_types_kv[o.type_id]] = 0;
+                }
+                for(var i = 0; i < user_data.length; i++){
+                    var o = user_data[i];
+                    total_value += parseInt(o.work_hours);
+                    types_merged[data.work_types_kv[o.type_id]] += parseInt(o.work_hours);
+                }
+                
+                var values = [];
+                var labels = [];
+                for(var key in types_merged){
+                    labels.push(key);
+                    
+                    var percent = parseInt(types_merged[key]) * 1000 / total_value;
+                    percent = parseInt(percent) / 10;
+                    values.push(percent);
+                }
+                Raphael("user_type"+user_id, 220, 220).pieChart(0.55/*hsb_start*/, 110, 110, 100, values, labels, "#fff");
+                
+                for(var i = 0; i < values.length; i++){
+                    $("#user_type_text"+user_id).append(labels[i] + ": " + values[i] + "%<br/>");
+                }
+            }
+        }
+        function render_report(){
+            //console.log(data);
+            
+            // year: product view.
+            render_year_product();
+            
+            // year: product view.
+            render_year_type();
+            
+            // quarter: product view.
+            render_quarter_product();
+            
+            // quarter: product view.
+            render_quarter_type();
+            
+            // month: product view.
+            render_month_product();
+            
+            // month: product view.
+            render_month_type();
+            
+            // day: product view.
+            render_day_product();
+            
+            // day: product view.
+            $("#day_summary").text(parseDate(data.date) + "汇总");
+            render_day_type();
+            
+            // day: detail view
+            $("#day_detail").text(parseDate(data.date) + "详细");
+            render_day_detail();
+        }
+    </script>
+</body>

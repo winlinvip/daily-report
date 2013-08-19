@@ -1,0 +1,261 @@
+<!-- 直接添加日报，不从数据库获取已存在的日报 -->
+<html>
+<head>
+    <meta http-equiv="contenttent-Type" contenttent="text/html; charset=utf-8" />
+    <title>DailyReport</title>
+    <style type="text/css">
+    body{
+        font-size: 12px;
+    }
+    div.log{
+        margin: 3;
+    }
+    div.main{
+        width:800px;
+    }
+    div.item{
+        margin-bottom: 5px;
+    }
+    div.title{
+        background-color:#36E636;
+        padding: 3 3 3 3;
+        font-size: 14px;
+        font-weight: bold;
+    }
+    div.content{
+        background-color:#F6F6F6;
+        margin-left: 20px;
+        padding: 1 3 3 3;
+    }
+    </style>
+</head>
+<body>
+    <div id="log" class="log"></div>
+    <div id="main" class="main">
+        <div class="item">
+            <div class="title">个人信息</div>
+            <div class="content">
+                我是：<select id="users"></select>
+                日期：<input id="write_time" type="text" size="10"/>
+            </div>
+        </div>
+    </div>
+    <div>
+        <input id="add_item" value="增加工作项" type="button"/>
+        <input id="view" value="查看日报" type="button"/>
+        <input id="submit" value="提交日报" type="button"/>
+    </div>
+    <script type="text/javascript" src="jquery"></script>
+    <script type="text/javascript" src="json2"></script>
+    <script type="text/javascript">
+        function error(msg){
+            $("#log").html('<font color="red">' + msg + '</font>');
+        }
+        function trace(msg){
+            $("#log").html('<font color="#33AA33">' + msg + '</font>');
+        }
+        function parseDate(date){
+            return date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate();
+        }
+        
+        // main function.
+        $(function(){
+            $("div").ajaxError(function(){
+                error("ajax请求错误");
+            });
+            
+            $("#add_item").click(function(){
+                append_new_work_item();
+            });
+            
+            $("#submit").click(function(){
+                submit_daily_report();
+            });
+            
+            $("#view").click(function(){
+                window.location.href = "view";
+            });
+            
+            initialize_page();
+        });
+        
+        function initialize_page(){
+            $("#users").html('<option value>-请选择填报人-</option>');
+            $.getJSON("/users", function(data){
+                for(var i = 0; i < data.length; i++){
+                    var user = data[i];
+                    
+                    var option = document.createElement("option");
+                    $(option).attr("value", user.id);
+                    $(option).text(user.value);
+                    
+                    $("#users").append(option);
+                }
+            });
+            
+            $("#write_time").attr("value", parseDate(new Date()));
+                
+            $("#main").find("#item").remove();
+            append_new_work_item();
+            
+            trace("个人信息加载成功，请填写日报");
+        }
+        
+        function append_new_work_item(){
+            var template_item_html = ''+
+                '<div id="item" class="item">'+
+                '    <div class="title">工作项</div>'+
+                '    <div id="content" class="content">'+
+                '        BugId：<input id="bug_id" type="text" size="5" value="" title="整数，例如Redmine中的IssueID"/>'+
+                '        <a href="javascript:;" id="retrieve_from_redmine">从Redmine获取信息</a><br/>'+
+                '        产品：<select id="product">'+
+                '        <option value="">-请选择产品分类-</option>'+
+                '        </select>'+
+                '        类型：<select id="work_type">'+
+                '        <option value="">-请选择工作分类-</option>'+
+                '        </select>'+
+                '        时长：<input id="time" type="text" size="1" value="" title="工作项所花时间"/>小时<br/>'+
+                '        内容：<br/><textarea id="work_content" rows="3" cols="80"></textarea>'+
+                '        <img id="remove_item" src="remove" title="删除工作项" align="right"/>'+
+                '        <img id="add_item" src="add" title="添加工作项" align="right"/>'+
+                '    </div> '+
+                '</div>'+
+            '';
+            
+            var obj = document.createElement("div");
+            obj.innerHTML = template_item_html;
+            $("#main").append(obj);
+            
+            $(obj).find("#add_item").click(function(){
+                append_new_work_item();
+            });
+            $(obj).find("#remove_item").click(function(){
+                $(this).parentsUntil("#main").remove();
+            });
+            
+            $(obj).find("#retrieve_from_redmine").click(function(){
+                var bug_id = $(this).parent().find("#bug_id").val();
+                // TODO: retrieve info from redmine by bug_id
+            });
+            
+            $.getJSON("/products", function(data){
+                for(var i = 0; i < data.length; i++){
+                    var product = data[i];
+                    
+                    var option = document.createElement("option");
+                    $(option).attr("value", product.id);
+                    $(option).text(product.value);
+                    
+                    $(obj).find("#product").append(option);
+                }
+            });
+            
+            $.getJSON("/work_types", function(data){
+                for(var i = 0; i < data.length; i++){
+                    var work_type = data[i];
+                    
+                    var option = document.createElement("option");
+                    $(option).attr("value", work_type.id);
+                    $(option).text(work_type.value);
+                    
+                    $(obj).find("#work_type").append(option);
+                }
+            });
+        }
+        
+        function prepare_data(req){
+            var is_ok = true;
+            
+            $("#main").find("#content").each(function(){
+                var item = {};
+                req.items.push(item);
+                
+                item.bug_id = $(this).find("#bug_id").val();
+                if(item.bug_id == ""){
+                    error("请输入BugId");
+                    $(this).find("#bug_id").focus();
+                    is_ok = false;
+                    return false;
+                }
+                
+                item.product = $(this).find("#product").val();
+                if(item.product == ""){
+                    error("请选择工作项所属的产品");
+                    $(this).find("#product").focus();
+                    is_ok = false;
+                    return false;
+                }
+                
+                item.work_type = $(this).find("#work_type").val();
+                if(item.work_type == ""){
+                    error("请选择工作项的类型");
+                    $(this).find("#work_type").focus();
+                    is_ok = false;
+                    return false;
+                }
+                
+                item.time = $(this).find("#time").val();
+                if(item.time == ""){
+                    error("请输入工作项所花的时间");
+                    $(this).find("#time").focus();
+                    is_ok = false;
+                    return false;
+                }
+                
+                item.content = $(this).find("#work_content").val();
+                if(item.content == ""){
+                    error("请输入工作项的内容");
+                    $(this).find("#work_content").focus();
+                    is_ok = false;
+                    return false;
+                }
+                
+                return is_ok;
+            });
+            
+            return is_ok;
+        }
+        function submit_daily_report(){
+            var req = {};
+            
+            req.user = $("#users").val();
+            if(req.user == ""){
+                error("请选择填报人");
+                $("#users").focus();
+                return;
+            }
+            
+            req.date = $("#write_time").val();
+            if(req.date == ""){
+                error("请输入填报日期，格式为：年-月-日");
+                $("#write_time").focus();
+                return;
+            }
+            
+            req.items = [];
+            if(!prepare_data(req)){
+                return;
+            }
+            
+            //console.log(req);
+            //console.log(JSON.stringify(req));
+            trace("提交数据到服务器...");
+            
+            $.ajax({
+                type: 'POST',
+                url: "/reports",
+                data: JSON.stringify(req),
+                success: function(){
+                    trace("日报填写成功");
+                    alert("日报填写成功");
+                    //initialize_page();
+                },
+                // if use application/x-www-form-urlencoded, the cherrypy get data from param POST(self, **data)
+                //contentType : "application/x-www-form-urlencoded"
+                // if use text/html, the cherrypy get data from cherrypy.request.body.read()
+                contentType : "text/html"
+            });
+        }
+    </script>
+</body>
+</html>
