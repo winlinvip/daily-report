@@ -95,6 +95,33 @@ class RESTUser(object):
     def OPTIONS(self):
         enable_crossdomain();
 
+def parse_config():
+    file = open("config.conf");
+    conf = file.read();
+    file.close();
+    return json.loads(conf);
+    
+import urllib;
+class RESTRedmine(object):
+    exposed = True;
+
+    def GET(self, issue_id):
+        enable_crossdomain();
+        # read config from file.
+        redmine_api_issues = parse_config()["redmine_api_issues"]
+        # proxy for redmine issues
+        # 1. must Enable the RESTful api: http://www.redmine.org/projects/redmine/wiki/Rest_api#Authentication
+        # 2. add a user, username="restful", password="restful", add to report user, which can access the issues.
+        api = "%s/%s.json"%(redmine_api_issues, issue_id);
+        trace(api);
+        url = urllib.urlopen(api);
+        data = url.read();
+        url.close();
+        return data;
+        
+    def OPTIONS(self):
+        enable_crossdomain();
+
 class RESTDailyReport(object):
     exposed = True;
     def query_summary(self, start_time="", end_time="", user_id="", product_id="", type_id=""):
@@ -174,30 +201,6 @@ class RESTDailyReport(object):
     def OPTIONS(self):
         enable_crossdomain();
 
-from conf import mail_server,mail_user,mail_password,mail_to
-class RESTSendMail(object):
-    exposed = True;
-    def POST(self):
-        enable_crossdomain();
-        content = cherrypy.request.body.read();
-        try:
-            send_mail(mail_to, "[daily-report]", content, mail_server, mail_user, mail_password);
-            return json.dumps({"error_code":0,"desc":"success"});
-        except Exception,e:
-            error(sys.exc_info());
-            return json.dumps({"error_code":1,"desc":"send mail error: %s"%e});
-        
-def send_mail(receiver, subject, content, smtp_server, username, password):
-    msg = MIMEText(content, _subtype='html', _charset='utf-8')
-    msg['Subject'] = Header(subject, 'utf-8')
-    msg['From'] = username;
-    msg['To'] = ";".join(receiver);
-    smtp = smtplib.SMTP()
-    smtp.connect(smtp_server)
-    smtp.login(username, password)
-    smtp.sendmail(username, receiver, msg.as_string())
-    smtp.quit();
-
 class StaticFile(object):
     exposed = True
     def __init__(self, filename):
@@ -234,11 +237,11 @@ class Root(object):
 
 root = Root();
 root.ui = UI();
+root.redmines = RESTRedmine();
 root.reports = RESTDailyReport();
 root.users = RESTUser();
 root.products = RESTProduct();
 root.work_types = RESTWorkType();
-root.sendmall = RESTSendMail();
 conf = {
     'global': {
         'server.socket_host': '0.0.0.0',

@@ -92,7 +92,7 @@
             initialize_page();
         });
         
-        function render_user_date(user_data, product_data, work_type_data){
+        function render_user_data(user_data, product_data, work_type_data){
             $("#main").empty();
             
             for(var i = 0; i < user_data.length; i++){
@@ -133,6 +133,7 @@
             append_new_work_item();
             trace("查询完毕，请填写日报");
         }
+        
         function retrieve_user_reports(user_id, user_name){
             var date = $("#write_time").val();
             if(date == ""){
@@ -151,7 +152,7 @@
                 
                 $.getJSON("/products", function(product_data){
                     $.getJSON("/work_types", function(work_type_data){
-                        render_user_date(user_data, product_data, work_type_data);
+                        render_user_data(user_data, product_data, work_type_data);
                     });
                 });
             });
@@ -212,8 +213,12 @@
             });
             
             $(obj).find("#retrieve_from_redmine").click(function(){
-                var bug_id = $(this).parent().find("#bug_id").val();
-                // TODO: retrieve info from redmine by bug_id
+                var content = $(this).parent();
+                var bug_id = content.find("#bug_id").val();
+                
+                $.getJSON("/redmines/"+bug_id, function(data){
+                    content.find("#work_content").text(data.issue.subject + "." + data.issue.status.name + ".");
+                });
             });
             
             return obj;
