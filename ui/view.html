@@ -580,6 +580,7 @@
                     }
                     // if all data requested, request other messages.
                     if(++responsed_count == data.work_types.length){
+                        trace("数据查询完毕，展示日报");
                         setTimeout(render_report, 0);
                     }
                 });

@@ -98,6 +98,7 @@ class RESTUser(object):
 def parse_config():
     file = open("config.conf");
     conf = file.read();
+    trace(conf);
     file.close();
     return json.loads(conf);
     
