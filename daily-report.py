@@ -38,7 +38,8 @@ def sql_exec(sql):
     cursor = None;
     try:
         trace("connect to mysql");
-        conn = MySQLdb.connect(host='localhost',user='root',passwd='test',db='os_daily_report',charset='utf8');
+        mysql_config = _config["mysql_config"];
+        conn = MySQLdb.connect(mysql_config["host"], mysql_config["user"], mysql_config["passwd"], mysql_config["db"], charset='utf8');
         cursor = conn.cursor();
         trace("execute sql: %s"%(sql));
         cursor.execute(sql);
@@ -131,7 +132,7 @@ class RESTRedmine(object):
     def GET(self, issue_id):
         enable_crossdomain();
         # read config from file.
-        redmine_api_issues = parse_config()["redmine_api_issues"]
+        redmine_api_issues = _config["redmine_api_issues"]
         # proxy for redmine issues
         # 1. must Enable the RESTful api: http://www.redmine.org/projects/redmine/wiki/Rest_api#Authentication
         # 2. add a user, username="restful", password="restful", add to report user, which can access the issues.
@@ -304,6 +305,16 @@ class Root(object):
     exposed = True;
     def GET(self):
         raise cherrypy.HTTPRedirect("ui");
+
+# global config.
+_config = parse_config();
+# generate js conf by config
+if(1):
+    js_config = _config["js_config"];
+    f = open("ui/conf.js", "w");
+    for js in js_config:
+        f.write("%s\n"%(js));
+    f.close();
 
 root = Root();
 root.ui = UI();
