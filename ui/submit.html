@@ -47,8 +47,9 @@
         <input id="view" value="查看日报" type="button"/>
         <input id="submit" value="提交日报" type="button"/>
     </div>
-    <script type="text/javascript" src="jquery"></script>
-    <script type="text/javascript" src="json2"></script>
+    <script type="text/javascript" src="jquery.js"></script>
+    <script type="text/javascript" src="json2.js"></script>
+    <script type="text/javascript" src="conf.js"></script>
     <script type="text/javascript">
         function error(msg){
             $("#log").html('<font color="red">' + msg + '</font>');
@@ -86,7 +87,7 @@
             });
             
             $("#view").click(function(){
-                window.location.href = "view";
+                window.location.href = "view.html";
             });
             
             initialize_page();
@@ -145,13 +146,13 @@
             trace("正在查询" + user_name + "在" + date + "的日报");
             
             var url = "/reports?summary=0&"+"start_time=" + date + "&end_time=" + date + "&user_id=" + user_id;
-            $.getJSON(url, function(user_data){
+            $.getJSON(get_service_url(url), function(user_data){
                 if(user_data.length <= 0){
                     trace("用户" + user_name + "在" + date + "没有提交过日报");
                 }
                 
-                $.getJSON("/products", function(product_data){
-                    $.getJSON("/work_types", function(work_type_data){
+                $.getJSON(get_service_url("/products"), function(product_data){
+                    $.getJSON(get_service_url("/work_types"), function(work_type_data){
                         render_user_data(user_data, product_data, work_type_data);
                     });
                 });
@@ -160,7 +161,7 @@
         
         function initialize_page(){
             $("#users").html('<option value>-请选择填报人-</option>');
-            $.getJSON("/users", function(data){
+            $.getJSON(get_service_url("/users"), function(data){
                 for(var i = 0; i < data.length; i++){
                     var user = data[i];
                     
@@ -220,7 +221,7 @@
                     return;
                 }
                 
-                $.getJSON("/redmines/"+bug_id, function(data){
+                $.getJSON(get_service_url("/redmines/"+bug_id), function(data){
                     content.find("#work_content").text(data.issue.subject + "." + data.issue.status.name + ".");
                 });
             });
@@ -230,7 +231,7 @@
         function append_new_work_item(){
             var obj = append_new_work_item_obj();
             
-            $.getJSON("/products", function(data){
+            $.getJSON(get_service_url("/products"), function(data){
                 for(var i = 0; i < data.length; i++){
                     var product = data[i];
                     
@@ -242,7 +243,7 @@
                 }
             });
             
-            $.getJSON("/work_types", function(data){
+            $.getJSON(get_service_url("/work_types"), function(data){
                 for(var i = 0; i < data.length; i++){
                     var work_type = data[i];
                     
@@ -335,7 +336,7 @@
             
             $.ajax({
                 type: 'POST',
-                url: "/reports",
+                url: get_service_url("/reports"),
                 data: JSON.stringify(req),
                 success: function(){
                     trace("日报填写成功");

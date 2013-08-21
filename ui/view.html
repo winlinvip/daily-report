@@ -197,9 +197,9 @@
             </div>
         </div>
     </div>
-    <script type="text/javascript" src="jquery"></script>
-    <script type="text/javascript" src="raphael"></script>
-    <script type="text/javascript" src="conf"></script>
+    <script type="text/javascript" src="jquery.js"></script>
+    <script type="text/javascript" src="raphael.js"></script>
+    <script type="text/javascript" src="conf.js"></script>
     <script type="text/javascript">
         // http://raphaeljs.com/pie.html
         // http://raphaeljs.com/pie.js
@@ -300,7 +300,7 @@
             });
             
             $("#submit").click(function(){
-                window.location.href = "submit";
+                window.location.href = "submit.html";
             });
             
             $("#yestoday").click(function(){
@@ -315,7 +315,7 @@
                 show_report();
             });
             
-            $.getJSON("/groups", function(data){
+            $.getJSON(get_service_url("/groups"), function(data){
                 for(var i = 0; i < data.length; i++){
                     var group = data[i];
                     
@@ -356,7 +356,7 @@
             
             // query basic info, users/products/work_types.
             trace("请求users数据");
-            $.getJSON("/users?group=" + data.group, function(users){
+            $.getJSON(get_service_url("/users?group=" + data.group), function(users){
                 data.users = users;
                 data.users_kv = {};
                 for(var i = 0; i < users.length; i++){
@@ -364,7 +364,7 @@
                 }
                 
                 trace("请求products数据");
-                $.getJSON("/products", function(products){
+                $.getJSON(get_service_url("/products"), function(products){
                     data.products = products;
                     data.products_kv = {};
                     for(var i = 0; i < products.length; i++){
@@ -372,7 +372,7 @@
                     }
                     
                     trace("请求work_types数据");
-                    $.getJSON("/work_types", function(work_types){
+                    $.getJSON(get_service_url("/work_types"), function(work_types){
                         data.work_types = work_types;
                         data.work_types_kv = {};
                         for(var i = 0; i < work_types.length; i++){
@@ -414,7 +414,7 @@
             for(var i = 0; i < data.users.length; i++){
                 var url = "/reports?summary=0"+"&group="+data.group+"&start_time=" + parseDate(data.date) + "&end_time=" + parseDate(data.date) + "&user_id=" + data.users[i].id;
                 trace("请求用户" + data.users[i].value + "在" + parseDate(data.date) + "的数据");
-                $.getJSON(url, function(user_data){
+                $.getJSON(get_service_url(url), function(user_data){
                     if(user_data.length > 0){
                         data.reports.user_data.push(user_data);
                     }
@@ -438,7 +438,7 @@
             for(var i = 0; i < data.products.length; i++){
                 var url = "/reports?summary=1"+"&group="+data.group+"&start_time=" + start_time + "&end_time=" + end_time + "&product_id=" + data.products[i].id;
                 trace("请求产品'" + data.products[i].value + "'的当天汇总数据");
-                $.getJSON(url, function(response_data){
+                $.getJSON(get_service_url(url), function(response_data){
                     if(response_data.work_hours != null){
                         data.reports.day_product_data.push(response_data);
                     }
@@ -462,7 +462,7 @@
             for(var i = 0; i < data.work_types.length; i++){
                 var url = "/reports?summary=1"+"&group="+data.group+"&start_time=" + start_time + "&end_time=" + end_time + "&type_id=" + data.work_types[i].id;
                 trace("请求工作类型'" + data.work_types[i].value + "'的当天汇总数据");
-                $.getJSON(url, function(response_data){
+                $.getJSON(get_service_url(url), function(response_data){
                     if(response_data.work_hours != null){
                         data.reports.day_type_data.push(response_data);
                     }
@@ -493,7 +493,7 @@
             for(var i = 0; i < data.products.length; i++){
                 var url = "/reports?summary=1"+"&group="+data.group+"&start_time=" + start_time + "&end_time=" + end_time + "&product_id=" + data.products[i].id;
                 trace("请求产品'" + data.products[i].value + "'的月度汇总数据");
-                $.getJSON(url, function(response_data){
+                $.getJSON(get_service_url(url), function(response_data){
                     if(response_data.work_hours != null){
                         data.reports.month_product_data.push(response_data);
                     }
@@ -524,7 +524,7 @@
             for(var i = 0; i < data.work_types.length; i++){
                 var url = "/reports?summary=1"+"&group="+data.group+"&start_time=" + start_time + "&end_time=" + end_time + "&type_id=" + data.work_types[i].id;
                 trace("请求工作类型'" + data.work_types[i].value + "'的月度汇总数据");
-                $.getJSON(url, function(response_data){
+                $.getJSON(get_service_url(url), function(response_data){
                     if(response_data.work_hours != null){
                         data.reports.month_type_data.push(response_data);
                     }
@@ -556,7 +556,7 @@
             for(var i = 0; i < data.products.length; i++){
                 var url = "/reports?summary=1"+"&group="+data.group+"&start_time=" + start_time + "&end_time=" + end_time + "&product_id=" + data.products[i].id;
                 trace("请求产品'" + data.products[i].value + "'的季度汇总数据");
-                $.getJSON(url, function(response_data){
+                $.getJSON(get_service_url(url), function(response_data){
                     if(response_data.work_hours != null){
                         data.reports.quarter_product_data.push(response_data);
                     }
@@ -588,7 +588,7 @@
             for(var i = 0; i < data.work_types.length; i++){
                 var url = "/reports?summary=1"+"&group="+data.group+"&start_time=" + start_time + "&end_time=" + end_time + "&type_id=" + data.work_types[i].id;
                 trace("请求工作类型'" + data.work_types[i].value + "'的季度汇总数据");
-                $.getJSON(url, function(response_data){
+                $.getJSON(get_service_url(url), function(response_data){
                     if(response_data.work_hours != null){
                         data.reports.quarter_type_data.push(response_data);
                     }
@@ -620,7 +620,7 @@
             for(var i = 0; i < data.products.length; i++){
                 var url = "/reports?summary=1"+"&group="+data.group+"&start_time=" + start_time + "&end_time=" + end_time + "&product_id=" + data.products[i].id;
                 trace("请求产品'" + data.products[i].value + "'的年度汇总数据");
-                $.getJSON(url, function(response_data){
+                $.getJSON(get_service_url(url), function(response_data){
                     if(response_data.work_hours != null){
                         data.reports.year_product_data.push(response_data);
                     }
@@ -652,7 +652,7 @@
             for(var i = 0; i < data.work_types.length; i++){
                 var url = "/reports?summary=1"+"&group="+data.group+"&start_time=" + start_time + "&end_time=" + end_time + "&type_id=" + data.work_types[i].id;
                 trace("请求工作类型'" + data.work_types[i].value + "'的年度汇总数据");
-                $.getJSON(url, function(response_data){
+                $.getJSON(get_service_url(url), function(response_data){
                     if(response_data.work_hours != null){
                         data.reports.year_type_data.push(response_data);
                     }

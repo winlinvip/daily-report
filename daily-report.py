@@ -296,7 +296,7 @@ class UI(object):
     def __getattr__(self, name):
         exts = ['', '.js', '.html', '.png'];
         for ext in exts:
-                file_name = os.path.join("ui", "%s%s"%(name, ext));
+                file_name = os.path.join("ui", "%s%s"%(name.replace(ext.replace(".", "_"), ""), ext));
                 if os.path.exists(file_name):
                         return StaticFile(file_name);
         return object.__getattr__(name);
@@ -309,7 +309,7 @@ class Root(object):
 # global config.
 _config = parse_config();
 # generate js conf by config
-if(1):
+if True:
     js_config = _config["js_config"];
     f = open("ui/conf.js", "w");
     for js in js_config:
