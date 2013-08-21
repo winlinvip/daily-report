@@ -100,6 +100,8 @@
             查询日期：<input id="write_time" type="text" size="10"/>
             <input id="view" value="查询" type="button"/>
             <input id="submit" value="返回" type="button"/>
+            <input id="yestoday" value="查询昨天" type="button"/>
+            <input id="today" value="查询今天" type="button"/>
         </div>
     </div>
     <div id="report">
@@ -201,6 +203,10 @@
         // http://raphaeljs.com/pie.html
         // http://raphaeljs.com/pie.js
         Raphael.fn.pieChart = function (hsb_start, cx, cy, r, values, labels, stroke) {
+            var stroke_width = 2;
+            var text_position_delta = -50;
+            var font_text_size = 12;
+            
             var paper = this,
                 rad = Math.PI / 180,
                 chart = this.set();
@@ -211,6 +217,20 @@
                     y2 = cy + r * Math.sin(-endAngle * rad);
                 return paper.path(["M", cx, cy, "L", x1, y1, "A", r, r, 0, +(endAngle - startAngle > 180), 0, x2, y2, "z"]).attr(params);
             }
+            
+            // draw bg fill when only 1 element
+            if(values.length == 1){
+                var circle = paper.circle(cx, cy, r);
+                color = Raphael.hsb(hsb_start, .75, 1),
+                circle.attr("fill", color);
+                circle.attr("stroke", stroke);
+                circle.attr("stroke-width", stroke_width);
+                
+                var label = labels[0] + '\n' + values[0] + '%';
+                circle.attr("title", label);
+            }
+            
+            // draw pie.
             var angle = 0,
                 total = 0,
                 start = hsb_start,
@@ -220,12 +240,14 @@
                         popangle = angle + (angleplus / 2),
                         color = Raphael.hsb(start, .75, 1),
                         ms = 500,
-                        delta = -50,
+                        delta = text_position_delta,
                         bcolor = Raphael.hsb(start, 1, 1),
-                        p = sector(cx, cy, r, angle, angle + angleplus, {fill: "90-" + bcolor + "-" + color, stroke: stroke, "stroke-width": 2}),
                         label = labels[j] + '\n' + value + '%',
+                        p = sector(cx, cy, r, angle, angle + angleplus, {fill: "90-" + bcolor + "-" + color, stroke: stroke, "stroke-width": stroke_width, "title": label}),
                         label_color = Raphael.hsb(start, 1, 0.5),
-                        txt = paper.text(cx + (r + delta) * Math.cos(-popangle * rad), cy + (r + delta) * Math.sin(-popangle * rad), label).attr({fill: label_color, stroke: "none", opacity: 1, "font-size": "12px"});
+                        txt_cx = cx + (r + delta) * Math.cos(-popangle * rad),
+                        txt_cy = cy + (r + delta) * Math.sin(-popangle * rad),
+                        txt = paper.text(txt_cx, txt_cy, label).attr({fill: label_color, stroke: "none", opacity: 1, "font-size": font_text_size, "title": label});
                     p.mouseover(function () {
                         p.stop().animate({transform: "s1.1 1.1 " + cx + " " + cy}, ms, "elastic");
                         txt.stop().animate({opacity: 1}, ms, "elastic");
@@ -258,6 +280,13 @@
         function parseDate(date){
             return date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate();
         }
+        function parseYestodayDate(date){
+            date.setDate(date.getDate() - 1);
+            var str = date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate();
+            date.setDate(date.getDate() + 1);
+            
+            return str;
+        }
         
         // main function 
         $(function(){
@@ -273,8 +302,19 @@
                 window.location.href = "submit";
             });
             
-            $("#write_time").attr("value", parseDate(new Date()));
+            $("#yestoday").click(function(){
+                $("#write_time").attr("value", parseYestodayDate(new Date()));
+                trace("正在查询日报");
+                show_report();
+            });
             
+            $("#today").click(function(){
+                $("#write_time").attr("value", parseDate(new Date()));
+                trace("正在查询日报");
+                show_report();
+            });
+            
+            $("#write_time").attr("value", parseYestodayDate(new Date()));
             trace("正在查询日报");
             show_report();
         });
@@ -588,16 +628,29 @@
             }
         }
         
+        // sort: big to small, desc
+        function work_hours_sort(a, b){
+            return b.work_hours - a.work_hours;
+        }
+        // sort: user id big to small, desc
+        function user_id_sort(a,b){
+            if(a.length > 0 && b.length > 0){
+                return b[0].user_id - a[0].user_id;
+            }
+            return 0;
+        }
+        
         function render_year_product(){
             $("#year_product").empty();
             $("#year_product_text").empty();
+            data.reports.year_product_data.sort(work_hours_sort);
             if(data.reports.year_product_data.length > 0){
                 var values = [];
                 var labels = [];
                 var total_value = 0;
                 for(var i = 0; i < data.reports.year_product_data.length; i++){
                     labels.push(data.products_kv[data.reports.year_product_data[i].product_id]);
-                    total_value += parseInt(data.reports.year_product_data[i].work_hours);
+                    total_value += data.reports.year_product_data[i].work_hours;
                 }
                 for(var i = 0; i < data.reports.year_product_data.length; i++){
                     var percent = data.reports.year_product_data[i].work_hours * 1000 / total_value;
@@ -617,13 +670,14 @@
         function render_year_type(){
             $("#year_type").empty();
             $("#year_type_text").empty();
+            data.reports.year_type_data.sort(work_hours_sort);
             if(data.reports.year_type_data.length > 0){
                 var values = [];
                 var labels = [];
                 var total_value = 0;
                 for(var i = 0; i < data.reports.year_type_data.length; i++){
                     labels.push(data.work_types_kv[data.reports.year_type_data[i].type_id]);
-                    total_value += parseInt(data.reports.year_type_data[i].work_hours);
+                    total_value += data.reports.year_type_data[i].work_hours;
                 }
                 for(var i = 0; i < data.reports.year_type_data.length; i++){
                     var percent = data.reports.year_type_data[i].work_hours * 1000 / total_value;
@@ -643,13 +697,14 @@
         function render_quarter_product(){
             $("#quarter_product").empty();
             $("#quarter_product_text").empty();
+            data.reports.quarter_product_data.sort(work_hours_sort);
             if(data.reports.quarter_product_data.length > 0){
                 var values = [];
                 var labels = [];
                 var total_value = 0;
                 for(var i = 0; i < data.reports.quarter_product_data.length; i++){
                     labels.push(data.products_kv[data.reports.quarter_product_data[i].product_id]);
-                    total_value += parseInt(data.reports.quarter_product_data[i].work_hours);
+                    total_value += data.reports.quarter_product_data[i].work_hours;
                 }
                 for(var i = 0; i < data.reports.quarter_product_data.length; i++){
                     var percent = data.reports.quarter_product_data[i].work_hours * 1000 / total_value;
@@ -669,13 +724,14 @@
         function render_quarter_type(){
             $("#quarter_type").empty();
             $("#quarter_type_text").empty();
+            data.reports.quarter_type_data.sort(work_hours_sort);
             if(data.reports.quarter_type_data.length > 0){
                 var values = [];
                 var labels = [];
                 var total_value = 0;
                 for(var i = 0; i < data.reports.quarter_type_data.length; i++){
                     labels.push(data.work_types_kv[data.reports.quarter_type_data[i].type_id]);
-                    total_value += parseInt(data.reports.quarter_type_data[i].work_hours);
+                    total_value += data.reports.quarter_type_data[i].work_hours;
                 }
                 for(var i = 0; i < data.reports.quarter_type_data.length; i++){
                     var percent = data.reports.quarter_type_data[i].work_hours * 1000 / total_value;
@@ -695,13 +751,14 @@
         function render_month_product(){
             $("#month_product").empty();
             $("#month_product_text").empty();
+            data.reports.month_product_data.sort(work_hours_sort);
             if(data.reports.month_product_data.length > 0){
                 var values = [];
                 var labels = [];
                 var total_value = 0;
                 for(var i = 0; i < data.reports.month_product_data.length; i++){
                     labels.push(data.products_kv[data.reports.month_product_data[i].product_id]);
-                    total_value += parseInt(data.reports.month_product_data[i].work_hours);
+                    total_value += data.reports.month_product_data[i].work_hours;
                 }
                 for(var i = 0; i < data.reports.month_product_data.length; i++){
                     var percent = data.reports.month_product_data[i].work_hours * 1000 / total_value;
@@ -721,13 +778,14 @@
         function render_month_type(){
             $("#month_type").empty();
             $("#month_type_text").empty();
+            data.reports.month_type_data.sort(work_hours_sort);
             if(data.reports.month_type_data.length > 0){
                 var values = [];
                 var labels = [];
                 var total_value = 0;
                 for(var i = 0; i < data.reports.month_type_data.length; i++){
                     labels.push(data.work_types_kv[data.reports.month_type_data[i].type_id]);
-                    total_value += parseInt(data.reports.month_type_data[i].work_hours);
+                    total_value += data.reports.month_type_data[i].work_hours;
                 }
                 for(var i = 0; i < data.reports.month_type_data.length; i++){
                     var percent = data.reports.month_type_data[i].work_hours * 1000 / total_value;
@@ -747,13 +805,14 @@
         function render_day_product(){
             $("#day_product").empty();
             $("#day_product_text").empty();
+            data.reports.day_product_data.sort(work_hours_sort);
             if(data.reports.day_product_data.length > 0){
                 var values = [];
                 var labels = [];
                 var total_value = 0;
                 for(var i = 0; i < data.reports.day_product_data.length; i++){
                     labels.push(data.products_kv[data.reports.day_product_data[i].product_id]);
-                    total_value += parseInt(data.reports.day_product_data[i].work_hours);
+                    total_value += data.reports.day_product_data[i].work_hours;
                 }
                 for(var i = 0; i < data.reports.day_product_data.length; i++){
                     var percent = data.reports.day_product_data[i].work_hours * 1000 / total_value;
@@ -773,13 +832,14 @@
         function render_day_type(){
             $("#day_type").empty();
             $("#day_type_text").empty();
+            data.reports.day_type_data.sort(work_hours_sort);
             if(data.reports.day_type_data.length > 0){
                 var values = [];
                 var labels = [];
                 var total_value = 0;
                 for(var i = 0; i < data.reports.day_type_data.length; i++){
                     labels.push(data.work_types_kv[data.reports.day_type_data[i].type_id]);
-                    total_value += parseInt(data.reports.day_type_data[i].work_hours);
+                    total_value += data.reports.day_type_data[i].work_hours;
                 }
                 for(var i = 0; i < data.reports.day_type_data.length; i++){
                     var percent = data.reports.day_type_data[i].work_hours * 1000 / total_value;
@@ -798,6 +858,7 @@
         }
         function render_day_detail(){
             $("#day_detail_items").empty();
+            data.reports.user_data.sort(user_id_sort);
             if(data.reports.user_data.length > 0){
                 for(var i = 0; i < data.reports.user_data.length; i++){
                     var user_data = data.reports.user_data[i];
@@ -873,15 +934,29 @@
                 }
                 for(var i = 0; i < user_data.length; i++){
                     var o = user_data[i];
-                    total_value += parseInt(o.work_hours);
+                    total_value += o.work_hours;
                     products_merged[data.products_kv[o.product_id]] += o.work_hours;
                 }
                 
+                // dump to object array for sort
+                var products_merged_object_array = [];
+                for(var key in products_merged){
+                    products_merged_object_array.push({name:key, work_hours:products_merged[key]});
+                }
+                products_merged_object_array.sort(work_hours_sort);
+                
+                // total time.
+                var text = '<p class="user_text_para">' + '总时间：' + total_value + '小时' + "</p>";
+                $(div).find("#user_text").append(text);
+                
                 var values = [];
                 var labels = [];
-                for(var key in products_merged){
+                for(var i = 0; i < products_merged_object_array.length; i++){
+                    var key = products_merged_object_array[i].name;
+                    var work_hours = products_merged_object_array[i].work_hours;
+                    
                     labels.push(key);
-                    var percent = products_merged[key] * 1000 / total_value;
+                    var percent = work_hours * 1000 / total_value;
                     percent = parseInt(percent) / 10.0;
                     values.push(percent);
                 }
@@ -901,16 +976,25 @@
                 }
                 for(var i = 0; i < user_data.length; i++){
                     var o = user_data[i];
-                    total_value += parseInt(o.work_hours);
-                    types_merged[data.work_types_kv[o.type_id]] += parseInt(o.work_hours);
+                    total_value += o.work_hours;
+                    types_merged[data.work_types_kv[o.type_id]] += o.work_hours;
                 }
+                
+                // dump to object array for sort
+                var types_merged_object_array = [];
+                for(var key in types_merged){
+                    types_merged_object_array.push({name:key, work_hours:types_merged[key]});
+                }
+                types_merged_object_array.sort(work_hours_sort);
                 
                 var values = [];
                 var labels = [];
-                for(var key in types_merged){
-                    labels.push(key);
+                for(var i = 0; i < types_merged_object_array.length; i++){
+                    var key = types_merged_object_array[i].name;
+                    var work_hours = types_merged_object_array[i].work_hours;
                     
-                    var percent = types_merged[key] * 1000 / total_value;
+                    labels.push(key);
+                    var percent = work_hours * 1000 / total_value;
                     percent = parseInt(percent) / 10.0;
                     values.push(percent);
                 }
