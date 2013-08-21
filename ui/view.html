@@ -669,11 +669,15 @@
             return b.work_hours - a.work_hours;
         }
         // sort: user id big to small, desc
-        function user_id_sort(a,b){
+        function user_id_sort(a, b){
             if(a.length > 0 && b.length > 0){
                 return b[0].user_id - a[0].user_id;
             }
             return 0;
+        }
+        // sort: user report id small to big, asc.
+        function report_sort(a, b){
+            return a.product_id - b.product_id;
         }
         
         function render_year_product(){
@@ -949,6 +953,7 @@
             $(div).find("#user_title").text(user_title_text);
             
             $(div).find("#user_text").append(user_title_text);
+            user_data.sort(report_sort);
             for(var i = 0; i < user_data.length; i++){
                 var o = user_data[i];
                 var redmine_url = "#";
