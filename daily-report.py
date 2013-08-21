@@ -296,9 +296,10 @@ class UI(object):
     def __getattr__(self, name):
         exts = ['', '.js', '.html', '.png'];
         for ext in exts:
-                file_name = os.path.join("ui", "%s%s"%(name.replace(ext.replace(".", "_"), ""), ext));
-                if os.path.exists(file_name):
-                        return StaticFile(file_name);
+            name_without_ext = name.replace(ext.replace(".", "_"), "");
+            file_name = os.path.join("ui", "%s%s"%(name_without_ext, ext));
+            if os.path.exists(file_name):
+                    return StaticFile(file_name);
         return object.__getattr__(name);
 
 class Root(object):
