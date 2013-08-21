@@ -36,3 +36,18 @@ create table dr_report(
     insert_date datetime not null,
     primary key (`report_id`) 
 ) auto_increment=400 default charset=utf8;
+
+drop table if exists dr_group;
+create table dr_group( 
+    group_id int(32) not null auto_increment, 
+    group_name varchar(100) not null,
+    primary key (`group_id`) 
+) auto_increment=500 default charset=utf8;
+
+drop table if exists dr_rs_group_user;
+create table dr_rs_group_user( 
+    rs_group_user_id int(32) not null auto_increment, 
+    group_id int(32) not null, 
+    user_id int(32) not null, 
+    primary key (`rs_group_user_id`) 
+) auto_increment=600 default charset=utf8;

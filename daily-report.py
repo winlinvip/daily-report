@@ -52,6 +52,21 @@ def enable_crossdomain():
     cherrypy.response.headers["Access-Control-Allow-Methods"] = "GET, POST, HEAD, PUT, DELETE";
     cherrypy.response.headers["Access-Control-Allow-Headers"] = "Cache-Control, X-Proxy-Authorization, X-Requested-With, Content-Type";
 
+class RESTGroup(object):
+    exposed = True;
+
+    def GET(self):
+        enable_crossdomain();
+        records = sql_exec("select group_id,group_name from dr_group");
+        ret = [];
+        for record in records:
+            ret.append({"id":record[0], "value":record[1]});
+        
+        return json.dumps(ret);
+        
+    def OPTIONS(self):
+        enable_crossdomain();
+
 class RESTProduct(object):
     exposed = True;
 
@@ -84,9 +99,16 @@ class RESTWorkType(object):
 class RESTUser(object):
     exposed = True;
 
-    def GET(self):
+    def GET(self, group=""):
         enable_crossdomain();
-        records = sql_exec("select user_id,user_name from dr_user");
+        
+        if group == "":
+            records = sql_exec("select user_id,user_name from dr_user");
+        else:
+            records = sql_exec("select u.user_id,u.user_name "
+                "from dr_user u,dr_group g,dr_rs_group_user rs "
+                "where rs.user_id = u.user_id and g.group_id = rs.group_id and g.group_id = %s"%(group));
+            
         ret = [];
         for record in records:
             ret.append({"id":record[0], "value":record[1]});
@@ -125,8 +147,12 @@ class RESTRedmine(object):
 
 class RESTDailyReport(object):
     exposed = True;
-    def query_summary(self, start_time="", end_time="", user_id="", product_id="", type_id=""):
-        sql = "select %s from %s where true"%("sum(work_hours)", "dr_report");
+    
+    '''
+    build the sql query conditions.
+    @return the builded sql.
+    '''
+    def build_sql_conditions(self, sql, start_time, end_time, user_id, product_id, type_id):
         if start_time != "":
             sql += " and dr_report.work_date>='%s'"%(start_time);
         if end_time!= "":
@@ -137,23 +163,25 @@ class RESTDailyReport(object):
             sql += " and dr_report.type_id=%s"%(type_id);
         if user_id != "":
             sql += " and dr_report.user_id=%s"%(user_id);
+        return sql;
+    
+    '''
+    query summary work hours, all users without group
+    '''
+    def query_summary(self, start_time="", end_time="", user_id="", product_id="", type_id=""):
+        sql = "select %s from %s where true"%("sum(work_hours)", "dr_report");
+        sql = self.build_sql_conditions(sql, start_time, end_time, user_id, product_id, type_id);
 
         records = sql_exec(sql);
         ret = {"user_id":user_id, "product_id":product_id, "type_id":type_id, "work_hours":records[0][0]};
         return json.dumps(ret);
         
+    '''
+    query detail info, all users without group
+    '''
     def query_detail(self, start_time="", end_time="", user_id="", product_id="", type_id=""):
         sql = "select %s from %s where true"%("report_id,product_id,user_id,type_id,bug_id,work_hours,report_content,work_date,insert_date", "dr_report");
-        if start_time != "":
-            sql += " and dr_report.work_date>='%s'"%(start_time);
-        if end_time!= "":
-            sql += " and dr_report.work_date<='%s'"%(end_time);
-        if product_id != "":
-            sql += " and dr_report.product_id=%s"%(product_id);
-        if type_id != "":
-            sql += " and dr_report.type_id=%s"%(type_id);
-        if user_id != "":
-            sql += " and dr_report.user_id=%s"%(user_id);
+        sql = self.build_sql_conditions(sql, start_time, end_time, user_id, product_id, type_id);
 
         records = sql_exec(sql);
         ret = [];
@@ -167,13 +195,54 @@ class RESTDailyReport(object):
         
         return json.dumps(ret);
         
-    def GET(self, start_time="", end_time="", summary="", user_id="", product_id="", type_id=""):
+    '''
+    query summary hours of specified group
+    '''
+    def query_summary_group(self, group, start_time="", end_time="", user_id="", product_id="", type_id=""):
+        sql = "select %s from %s where %s"%("sum(work_hours)", 
+            "dr_report,dr_user u,dr_group g,dr_rs_group_user rs",
+            "dr_report.user_id = rs.user_id and rs.user_id = u.user_id and g.group_id = rs.group_id and g.group_id = %s"%(group));
+        sql = self.build_sql_conditions(sql, start_time, end_time, user_id, product_id, type_id);
+
+        records = sql_exec(sql);
+        ret = {"user_id":user_id, "product_id":product_id, "type_id":type_id, "work_hours":records[0][0]};
+        return json.dumps(ret);
+        
+    '''
+    query detail info of specified group
+    '''
+    def query_detail_group(self, group, start_time="", end_time="", user_id="", product_id="", type_id=""):
+        sql = "select %s from %s where %s"%(
+            "report_id,product_id,u.user_id,type_id,bug_id,work_hours,report_content,work_date,insert_date", 
+            "dr_report,dr_user u,dr_group g,dr_rs_group_user rs",
+            "dr_report.user_id = rs.user_id and rs.user_id = u.user_id and g.group_id = rs.group_id and g.group_id = %s"%(group));
+        sql = self.build_sql_conditions(sql, start_time, end_time, user_id, product_id, type_id);
+
+        records = sql_exec(sql);
+        ret = [];
+        
+        for record in records:
+            ret.append({
+                "report_id":record[0], "product_id":record[1], "user_id":record[2], 
+                "type_id":record[3], "bug_id":record[4], "work_hours":record[5], 
+                "report_content":record[6], "work_date":str(record[7]), "insert_date":str(record[8])
+            });
+        
+        return json.dumps(ret);
+        
+    def GET(self, group="", start_time="", end_time="", summary="", user_id="", product_id="", type_id=""):
         enable_crossdomain();
         
-        if summary == "1":
-            return self.query_summary(start_time, end_time, user_id, product_id, type_id);
+        if group == "":
+            if summary == "1":
+                return self.query_summary(start_time, end_time, user_id, product_id, type_id);
+            else:
+                return self.query_detail(start_time, end_time, user_id, product_id, type_id);
         else:
-            return self.query_detail(start_time, end_time, user_id, product_id, type_id);
+            if summary == "1":
+                return self.query_summary_group(group, start_time, end_time, user_id, product_id, type_id);
+            else:
+                return self.query_detail_group(group, start_time, end_time, user_id, product_id, type_id);
 
     def POST(self):
         enable_crossdomain();
@@ -242,6 +311,7 @@ root.redmines = RESTRedmine();
 root.reports = RESTDailyReport();
 root.users = RESTUser();
 root.products = RESTProduct();
+root.groups = RESTGroup();
 root.work_types = RESTWorkType();
 conf = {
     'global': {
