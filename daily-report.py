@@ -183,6 +183,7 @@ class RESTDailyReport(object):
     def query_detail(self, start_time="", end_time="", user_id="", product_id="", type_id=""):
         sql = "select %s from %s where true"%("report_id,product_id,user_id,type_id,bug_id,work_hours,report_content,work_date,insert_date", "dr_report");
         sql = self.build_sql_conditions(sql, start_time, end_time, user_id, product_id, type_id);
+        sql = "%s %s"%(sql, "order by dr_report.report_id asc");
 
         records = sql_exec(sql);
         ret = [];
@@ -218,6 +219,7 @@ class RESTDailyReport(object):
             "dr_report,dr_user u,dr_group g,dr_rs_group_user rs",
             "dr_report.user_id = rs.user_id and rs.user_id = u.user_id and g.group_id = rs.group_id and g.group_id = %s"%(group));
         sql = self.build_sql_conditions(sql, start_time, end_time, user_id, product_id, type_id);
+        sql = "%s %s"%(sql, "order by dr_report.report_id asc");
 
         records = sql_exec(sql);
         ret = [];
@@ -257,15 +259,30 @@ class RESTDailyReport(object):
         
         user_id = sql_escape(req_json["user"]);
         work_date = sql_escape(req_json["date"]);
-        sql_exec("delete from dr_report where user_id=%s and work_date='%s'"%(user_id, work_date));
+        # remove the removed reports
+        exists_reports = [];
         for item in req_json["items"]:
+            report_id = sql_escape(item["report_id"]);
+            if report_id != "" and report_id != 0:
+                exists_reports.append(report_id);
+        if len(exists_reports) > 0:
+            sql_exec("delete from dr_report where user_id=%s and work_date='%s' and report_id not in (%s)"%(user_id, work_date, ",".join(exists_reports)));
+        else:
+            sql_exec("delete from dr_report where user_id=%s and work_date='%s'"%(user_id, work_date));
+        # update or insert new
+        for item in req_json["items"]:
+            report_id = sql_escape(item["report_id"]);
             product_id = sql_escape(item["product"]);
             type_id = sql_escape(item["work_type"]);
             bug_id = sql_escape(item["bug_id"]);
             report_content = sql_escape(item["content"]);
             work_hours = sql_escape(item["time"]);
-            ret = sql_exec("insert into dr_report (product_id, user_id, type_id, bug_id, work_hours, report_content, work_date, insert_date) values('%s', '%s', '%s', '%s', '%s', '%s', '%s', %s)"
-                    %(product_id, user_id, type_id, bug_id, work_hours, report_content, work_date, "now()"));
+            if report_id != "" and report_id != 0:
+                ret = sql_exec("update dr_report set product_id='%s', user_id='%s', type_id='%s', bug_id='%s', work_hours='%s', report_content='%s', work_date='%s' where report_id='%s'"
+                        %(product_id, user_id, type_id, bug_id, work_hours, report_content, work_date, report_id));
+            else:
+                ret = sql_exec("insert into dr_report (product_id, user_id, type_id, bug_id, work_hours, report_content, work_date, insert_date) values('%s', '%s', '%s', '%s', '%s', '%s', '%s', %s)"
+                        %(product_id, user_id, type_id, bug_id, work_hours, report_content, work_date, "now()"));
 
         return json.dumps({"error_code":0, "desc":"success"});
         

@@ -326,7 +326,7 @@
                 }
             });
             
-            $("#write_time").attr("value", parseYestodayDate(new Date()));
+            $("#write_time").attr("value", parseDate(new Date()));
             trace("正在查询日报");
             show_report();
         });
@@ -677,7 +677,7 @@
         }
         // sort: user report id small to big, asc.
         function report_sort(a, b){
-            return a.product_id - b.product_id;
+            return a.report_id - b.report_id;
         }
         
         function render_year_product(){
