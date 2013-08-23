@@ -288,13 +288,16 @@ class RESTDailyReport(object):
         
     def OPTIONS(self):
         enable_crossdomain();
+    
+# global consts.
+static_dir = os.path.abspath("static-dir");
 
 # global config.
 _config = parse_config();
 # generate js conf by config
 if True:
     js_config = _config["js_config"];
-    f = open("ui/conf.js", "w");
+    f = open(os.path.join(static_dir, "ui/conf.js"), "w");
     for js in js_config:
         f.write("%s\n"%(js));
     f.close();
@@ -318,7 +321,7 @@ conf = {
         'server.socket_port': 3001,
         # static files
         'tools.staticdir.on': True,
-        'tools.staticdir.dir': os.path.abspath('.'),
+        'tools.staticdir.dir': static_dir,
         'tools.staticdir.index': 'index.html',
         #'server.thread_pool': 1, # single thread server.
         'tools.encode.on': True,
