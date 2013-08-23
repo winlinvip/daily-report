@@ -104,7 +104,7 @@
             <input id="today" value="查询今天" type="button"/>
         </div>
     </div>
-    <div id="report">
+    <div id="report" style="display:none">
         <div class="coll_item">
             <div class="item">
                 <div class="title0">年度汇总</div>
@@ -327,11 +327,12 @@
             });
             
             $("#write_time").attr("value", parseDate(new Date()));
-            trace("正在查询日报");
-            show_report();
+            trace("请查询数据");
         });
         
         function show_report(){
+            $("#report").show();
+            
             // convert date string to date object.
             // for example, "2013-8-18" to "Sun Aug 18 2013 00:00:00 GMT+0800 (中国标准时间)"
             var date = new Date();

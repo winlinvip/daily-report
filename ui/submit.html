@@ -223,7 +223,8 @@
                 }
                 
                 $.getJSON(get_service_url("/redmines/"+bug_id), function(data){
-                    content.find("#work_content").text(data.issue.subject + "." + data.issue.status.name + ".");
+                    var report_content = data.issue.subject + "." + data.issue.status.name + ".";
+                    content.find("#work_content").val(report_content);
                 });
             });
             
