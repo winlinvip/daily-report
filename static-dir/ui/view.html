@@ -277,6 +277,13 @@
             $("#log").html('<font color="#33AA33">' + msg + '</font>');
             //console.log(msg);
         }
+        // @date_in_string ie. 2013-8-13
+        // @return Date object.
+        function parseToDate(date_in_string){
+            var date = new Date();
+            date.setTime(Date.parse(date_in_string));
+            return date;
+        }
         function parseDate(date){
             return date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate();
         }
@@ -335,8 +342,7 @@
             
             // convert date string to date object.
             // for example, "2013-8-18" to "Sun Aug 18 2013 00:00:00 GMT+0800 (中国标准时间)"
-            var date = new Date();
-            date.setTime(Date.parse($("#write_time").val()));
+            var date = parseToDate($("#write_time").val());
             //trace(date.toString());
             
             // query the report data.
@@ -680,6 +686,14 @@
         function report_sort(a, b){
             return a.report_id - b.report_id;
         }
+        // sort: user report insert_date small to big, asc.
+        function report_first_insert_sort(a, b){
+            return parseToDate(a.insert_date).getTime() - parseToDate(b.insert_date).getTime();
+        }
+        // sort: user report modify_date small to big, asc.
+        function report_modify_date_sort(a, b){
+            return parseToDate(b.modify_date).getTime() - parseToDate(a.modify_date).getTime();
+        }
         
         function render_year_product(){
             $("#year_product").empty();
@@ -987,8 +1001,13 @@
                 }
                 products_merged_object_array.sort(work_hours_sort);
                 
-                // total time.
-                var text = '<p class="user_text_para">' + '总时间：' + total_value + '小时' + "</p>";
+                // summaries
+                user_data.sort(report_first_insert_sort);
+                var first_insert = user_data[0].insert_date;
+                user_data.sort(report_modify_date_sort);
+                var last_modify = user_data[0].modify_date;
+                var text = '<p class="user_text_para">' + '总时间：' + total_value + '小时' 
+                    + ', 提交时间:' + first_insert + ', 最后更新:' + last_modify + '</p>';
                 $(div).find("#user_text").append(text);
                 
                 var values = [];

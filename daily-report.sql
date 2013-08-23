@@ -34,6 +34,7 @@ create table dr_report(
     report_content varchar(5000),
     work_date datetime not null,
     insert_date datetime not null,
+    modify_date datetime not null,
     primary key (`report_id`) 
 ) auto_increment=400 default charset=utf8;
 
