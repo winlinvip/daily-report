@@ -289,41 +289,6 @@ class RESTDailyReport(object):
     def OPTIONS(self):
         enable_crossdomain();
 
-class StaticFile(object):
-    exposed = True
-    def __init__(self, filename):
-        self.filename = filename;
-    def GET(self):
-        file = open(self.filename);
-        data = file.read();
-        file.close();
-        
-        # set the static file to right content type, to fix the warning for browser intrepreting the file.
-        if self.filename.endswith(".png"):
-            cherrypy.response.headers["Content-Type"] = "image/png";
-        elif self.filename.endswith(".js"):
-            cherrypy.response.headers["Content-Type"] = "application/javascript";
-        else:
-            cherrypy.response.headers["Content-Type"] = "text/html";
-            
-        return data;
-
-class UI(object):
-    exposed = True;
-    def __getattr__(self, name):
-        exts = ['', '.js', '.html', '.png'];
-        for ext in exts:
-            name_without_ext = name.replace(ext.replace(".", "_"), "");
-            file_name = os.path.join("ui", "%s%s"%(name_without_ext, ext));
-            if os.path.exists(file_name):
-                    return StaticFile(file_name);
-        return object.__getattr__(name);
-
-class Root(object):
-    exposed = True;
-    def GET(self):
-        raise cherrypy.HTTPRedirect("ui");
-
 # global config.
 _config = parse_config();
 # generate js conf by config
@@ -333,19 +298,28 @@ if True:
     for js in js_config:
         f.write("%s\n"%(js));
     f.close();
+    
+class Root(object):
+    exposed = True;
+    def GET(self):
+        raise cherrypy.HTTPRedirect("ui");
 
 root = Root();
-root.ui = UI();
 root.redmines = RESTRedmine();
 root.reports = RESTDailyReport();
 root.users = RESTUser();
 root.products = RESTProduct();
 root.groups = RESTGroup();
 root.work_types = RESTWorkType();
+
 conf = {
     'global': {
         'server.socket_host': '0.0.0.0',
         'server.socket_port': 3001,
+        # static files
+        'tools.staticdir.on': True,
+        'tools.staticdir.dir': os.path.abspath('.'),
+        'tools.staticdir.index': 'index.html',
         #'server.thread_pool': 1, # single thread server.
         'tools.encode.on': True,
         'tools.encode.encoding': 'utf-8',
