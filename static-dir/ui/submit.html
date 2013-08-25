@@ -221,6 +221,13 @@
                 append_new_work_item();
             });
             $(obj).find("#remove_item").click(function(){
+                var bug_id = $(this).parent().find("#report_id").val();
+                
+                // when delete exists report, confirm it.
+                if(bug_id != "" && !confirm("确认删除这条日报（提交日报后将从数据库永久删除）？")){
+                    return;
+                }
+                
                 $(this).parentsUntil("#main").remove();
             });
             
