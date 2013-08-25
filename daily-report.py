@@ -43,7 +43,9 @@ def sql_exec(sql):
         cursor = conn.cursor();
         trace("execute sql: %s"%(sql));
         cursor.execute(sql);
-        return cursor.fetchall();
+        ret = cursor.fetchall();
+        conn.commit();
+        return ret;
     finally:
         if cursor is not None: cursor.close();
         if conn is not None: conn.close();
@@ -118,8 +120,9 @@ class RESTUser(object):
     def OPTIONS(self):
         enable_crossdomain();
 
+config_file = "config.conf";
 def parse_config():
-    file = open("config.conf");
+    file = open(config_file);
     conf = file.read();
     trace(conf);
     file.close();
@@ -291,14 +294,22 @@ class RESTDailyReport(object):
         enable_crossdomain();
     
 # global consts.
-static_dir = os.path.abspath("static-dir");
+static_dir = None;
+
+# parse argv as base dir
+if len(sys.argv) > 1:
+    config_file = sys.argv[1];
 
 # global config.
 _config = parse_config();
 # generate js conf by config
 if True:
     js_config = _config["js_config"];
-    f = open(os.path.join(static_dir, "ui/conf.js"), "w");
+    # base_dir is set to the execute file dir.
+    base_dir = os.path.abspath(os.path.dirname(sys.argv[0]));
+    static_dir = os.path.join(os.path.abspath(base_dir), "static-dir");
+    trace("base_dir=%s, static_dir=%s"%(base_dir, static_dir));
+    f = open(os.path.join(static_dir, "ui", "conf.js"), "w");
     for js in js_config:
         f.write("%s\n"%(js));
     f.close();

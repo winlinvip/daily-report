@@ -106,18 +106,18 @@
     </div>
     <div id="report" style="display:none">
         <div class="coll_item">
-            <div class="item">
+            <div class="item" id="year_summary">
                 <div class="title0">年度汇总</div>
                 <div>
                     <div class="cnt_left">
-                        <div class="item_title">产品汇总</div>
+                        <div class="item_title"><span id="product_label">产品</span>汇总</div>
                         <div>
                             <div id="year_product" class="summary_product"></div>
                             <div id="year_product_text" class="summary_product_text"></div>
                         </div>
                     </div>
                     <div class="cnt_right">
-                        <div class="item_title">类型汇总</div>
+                        <div class="item_title"><span id="type_label">类型</span>汇总</div>
                         <div>
                             <div id="year_type" class="summary_product"></div>
                             <div id="year_type_text" class="summary_product_text"></div>
@@ -125,18 +125,18 @@
                     </div>
                 </div>
             </div>
-            <div class="item">
+            <div class="item" id="quarter_summary">
                 <div class="title1">季度汇总</div>
                 <div>
                     <div class="cnt_left">
-                        <div class="item_title">产品汇总</div>
+                        <div class="item_title"><span id="product_label">产品</span>汇总</div>
                         <div>
                             <div id="quarter_product" class="summary_product"></div>
                             <div id="quarter_product_text" class="summary_product_text"></div>
                         </div>
                     </div>
                     <div class="cnt_right">
-                        <div class="item_title">类型汇总</div>
+                        <div class="item_title"><span id="type_label">类型</span>汇总</div>
                         <div>
                             <div id="quarter_type" class="summary_product"></div>
                             <div id="quarter_type_text" class="summary_product_text"></div>
@@ -146,18 +146,18 @@
             </div>
         </div>
         <div class="coll_item">
-            <div class="item">
+            <div class="item" id="month_summary">
                 <div class="title0">月度汇总</div>
                 <div>
                     <div class="cnt_left">
-                        <div class="item_title">产品汇总</div>
+                        <div class="item_title"><span id="product_label">产品</span>汇总</div>
                         <div>
                             <div id="month_product" class="summary_product"></div>
                             <div id="month_product_text" class="summary_product_text"></div>
                         </div>
                     </div>
                     <div class="cnt_right">
-                        <div class="item_title">类型汇总</div>
+                        <div class="item_title"><span id="type_label">类型</span>汇总</div>
                         <div>
                             <div id="month_type" class="summary_product"></div>
                             <div id="month_type_text" class="summary_product_text"></div>
@@ -165,18 +165,18 @@
                     </div>
                 </div>
             </div>
-            <div class="item">
-                <div class="title1" id="day_summary">当天汇总</div>
+            <div class="item" id="day_summary">
+                <div class="title1" id="day_summary_title">当天汇总</div>
                 <div>
                     <div class="cnt_left">
-                        <div class="item_title">产品汇总</div>
+                        <div class="item_title"><span id="product_label">产品</span>汇总</div>
                         <div>
                             <div id="day_product" class="summary_product"></div>
                             <div id="day_product_text" class="summary_product_text"></div>
                         </div>
                     </div>
                     <div class="cnt_right">
-                        <div class="item_title">类型汇总</div>
+                        <div class="item_title"><span id="type_label">类型</span>汇总</div>
                         <div>
                             <div id="day_type" class="summary_product"></div>
                             <div id="day_type_text" class="summary_product_text"></div>
@@ -297,6 +297,8 @@
         
         // main function 
         $(function(){
+            initialize_page();
+            
             $("div").ajaxError(function(){
                 error("ajax请求错误");
             });
@@ -336,6 +338,17 @@
             $("#write_time").attr("value", parseDate(new Date()));
             trace("请查询数据");
         });
+        
+        function initialize_page(){
+            $("#year_summary").find("#product_label").text(get_product_label());
+            $("#year_summary").find("#type_label").text(get_type_label());
+            $("#quarter_summary").find("#product_label").text(get_product_label());
+            $("#quarter_summary").find("#type_label").text(get_type_label());
+            $("#month_summary").find("#product_label").text(get_product_label());
+            $("#month_summary").find("#type_label").text(get_type_label());
+            $("#day_summary").find("#product_label").text(get_product_label());
+            $("#day_summary").find("#type_label").text(get_type_label());
+        }
         
         function show_report(){
             $("#report").show();
@@ -942,14 +955,14 @@
                 '<div class="item">'+
                 '    <div>'+
                 '        <div class="cnt_left">'+
-                '            <div class="item_title">产品汇总</div>'+
+                '            <div class="item_title"><span id="product_label">产品</span>汇总</div>'+
                 '            <div>'+
                 '               <div id="user_product'+user_id+'" class="summary_product"></div>'+
                 '               <div id="user_product_text'+user_id+'" class="summary_product_text"></div>'+
                 '            </div>'+
                 '        </div>'+
                 '        <div class="cnt_right">'+
-                '            <div class="item_title">类型汇总</div>'+
+                '            <div class="item_title"><span id="type_label">类型</span>汇总</div>'+
                 '            <div>'+
                 '                <div id="user_type'+user_id+'" class="summary_product"></div>'+
                 '                <div id="user_type_text'+user_id+'" class="summary_product_text"></div>'+
@@ -962,6 +975,9 @@
             var div = document.createElement("div");
             $(div).html(template_user_html);
             $("#day_detail_items").append(div);
+            
+            $(div).find("#product_label").text(get_product_label());
+            $(div).find("#type_label").text(get_type_label());
             
             var user_name = data.users_kv[user_id];
             var user_title_text = user_name + "-" + parseDate(data.date) + "-" + "日报";
@@ -1091,7 +1107,7 @@
             render_day_product();
             
             // day: product view.
-            $("#day_summary").text(parseDate(data.date) + "汇总");
+            $("#day_summary_title").text(parseDate(data.date) + "汇总");
             render_day_type();
             
             // day: detail view

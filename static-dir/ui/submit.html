@@ -34,8 +34,8 @@
         <div class="item">
             <div class="title">个人信息</div>
             <div class="content">
-                我是：<select id="users"></select>
                 日期：<input id="write_time" type="text" size="10"/>
+                我是：<select id="users"></select>
             </div>
         </div>
     </div>
@@ -187,12 +187,12 @@
                 '    <div class="title">工作项</div>'+
                 '    <div id="content" class="content">'+
                 '        <input id="report_id" type="hidden" value=""></input>'+
-                '        BugId：<input id="bug_id" type="text" size="5" value="" title="整数，例如Redmine中的IssueID"/>'+
-                '        <a href="javascript:;" id="retrieve_from_redmine">从Redmine获取信息</a><br/>'+
-                '        产品：<select id="product">'+
+                '        <div id="bug_id_div">BugId：<input id="bug_id" type="text" size="5" value="" title="整数，例如Redmine中的IssueID"/>'+
+                '        <a href="javascript:;" id="retrieve_from_redmine">从Redmine获取信息</a></div>'+
+                '        <span id="product_label">产品</span>：<select id="product">'+
                 '        <option value="">-请选择产品分类-</option>'+
                 '        </select>'+
-                '        类型：<select id="work_type">'+
+                '        <span id="type_label">类型</span>：<select id="work_type">'+
                 '        <option value="">-请选择工作分类-</option>'+
                 '        </select>'+
                 '        时长：<input id="time" type="text" size="1" value="" title="工作项所花时间"/>小时<br/>'+
@@ -206,6 +206,16 @@
             var obj = document.createElement("div");
             obj.innerHTML = template_item_html;
             $("#main").append(obj);
+            
+            if(!enable_redmine_retieve()){
+                $(obj).find("#retrieve_from_redmine").hide();
+            }
+            if(!enable_bug_id()){
+                $(obj).find("#bug_id_div").hide();
+                $(obj).find("#bug_id").val(0);
+            }
+            $(obj).find("#product_label").text(get_product_label());
+            $(obj).find("#type_label").text(get_type_label());
             
             $(obj).find("#add_item").click(function(){
                 append_new_work_item();
