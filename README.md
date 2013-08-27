@@ -1,4 +1,4 @@
 daily-report
 ============
 
-open source daily report, support time statistic.
+open source daily report, support team time analysis.
