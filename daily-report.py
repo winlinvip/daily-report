@@ -21,23 +21,6 @@ reload(sys);
 exec("sys.setdefaultencoding('utf-8')");
 assert sys.getdefaultencoding().lower() == "utf-8";
 
-def write_log(level, msg):
-    global _config;
-    log = _config["log"];
-    # generate msg
-    time = str(datetime.datetime.now());
-    msg = "[%s][%s] %s"%(time, level, msg);
-    # write msg
-    if log["log_to_console"]:
-        print(msg);
-    if log["log_to_file"]:
-        log_file = log["log_file"];
-        f = open(log_file, "a+"); f.write("%s\n"%(msg)); f.close();
-def error(msg):
-    write_log("error", msg);
-def trace(msg):
-    write_log("trace", msg);
-
 def sql_escape(sql):
     return sql.replace("'", "\\'");
 def sql_exec(sql):
@@ -127,12 +110,6 @@ class RESTUser(object):
     def OPTIONS(self):
         enable_crossdomain();
 
-config_file = "config.conf";
-def parse_config():
-    file = open(config_file);
-    conf = file.read();
-    file.close();
-    return json.loads(conf);
     
 import urllib;
 class RESTRedmine(object):
@@ -303,11 +280,14 @@ class RESTDailyReport(object):
 static_dir = None;
 
 # parse argv as base dir
+config_file = "config.conf";
 if len(sys.argv) > 1:
     config_file = sys.argv[1];
 
 # global config.
-_config = parse_config();
+from utility import parse_config, initialize_log, error, trace;
+_config = parse_config(config_file);
+initialize_log(_config["log"]["log_to_console"], _config["log"]["log_to_file"], _config["log"]["log_file"]);
 trace(json.dumps(_config, indent=2));
 
 # generate js conf by config
