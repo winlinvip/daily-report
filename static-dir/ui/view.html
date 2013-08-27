@@ -312,13 +312,13 @@
             });
             
             $("#yestoday").click(function(){
-                $("#write_time").attr("value", parseYestodayDate(new Date()));
+                $("#write_time").val(parseYestodayDate(new Date()));
                 trace("正在查询日报");
                 show_report();
             });
             
             $("#today").click(function(){
-                $("#write_time").attr("value", parseDate(new Date()));
+                $("#write_time").val(parseDate(new Date()));
                 trace("正在查询日报");
                 show_report();
             });
@@ -328,16 +328,38 @@
                     var group = data[i];
                     
                     var option = document.createElement("option");
-                    $(option).attr("value", group.id);
+                    $(option).val(group.id);
                     $(option).text(group.value);
                     
                     $("#group").append(option);
                 }
             });
             
-            $("#write_time").attr("value", parseDate(new Date()));
+            $("#write_time").val(parseDate(new Date()));
             trace("请查询数据");
+            do_url_query();
         });
+        
+        function do_url_query(){
+            var query_string = String(window.location.search).split("?")[1];
+            if(query_string == undefined){
+                return;
+            }
+            
+            var queries = query_string.split("&");
+            var obj = {};
+            $(queries).each(function(){
+                var query = this.split("=");
+                obj[query[0]] = query[1];
+            });
+            
+            if(obj.date != undefined){
+                $("#write_time").val(obj.date);
+            }
+            if(obj.auto_query == 1){
+                show_report();
+            }
+        }
         
         function initialize_page(){
             $("#year_summary").find("#product_label").text(get_product_label());

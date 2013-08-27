@@ -67,72 +67,110 @@
             });
             
             $("#add_item").click(function(){
-                append_new_work_item();
+                on_click_add_work_item();
             });
             
             $("#submit").click(function(){
-                submit_daily_report();
+                on_click_submit_reports();
             });
             
             $("#users").change(function(){
-                var user_id = $(this).children("option:selected").val();
-                var user_name = $(this).children("option:selected").text();
-                if(user_id == ""){
-                    trace("请选择填报人");
-                    return;
-                }
-                
-                retrieve_user_reports(user_id, user_name);
+                on_users_change(this);
             });
             
             $("#view").click(function(){
-                window.location.href = "view.html";
+                on_click_view_reports();
             });
             
             initialize_page();
         });
         
-        function render_user_data(user_data, product_data, work_type_data){
-            $("#main").empty();
+        // global data.
+        var exists_user_data = [];
+        
+        function initialize_page(){
+            $("#users").html('<option value>-请选择填报人-</option>');
+            $.getJSON(get_service_url("/users"), function(data){
+                for(var i = 0; i < data.length; i++){
+                    var user = data[i];
+                    
+                    var option = document.createElement("option");
+                    $(option).val(user.id);
+                    $(option).text(user.value);
+                    
+                    $("#users").append(option);
+                }
+            });
             
-            for(var i = 0; i < user_data.length; i++){
-                var obj = append_new_work_item_obj();
+            $("#write_time").val(parseDate(new Date()));
                 
-                for(var j = 0; j < product_data.length; j++){
-                    var product = product_data[j];
-                    
-                    var option = document.createElement("option");
-                    $(option).attr("value", product.id);
-                    $(option).text(product.value);
-                    
-                    if(product.id == user_data[i].product_id){
-                        $(option).attr("selected", true);
-                    }
-                    
-                    $(obj).find("#product").append(option);
+            $("#main").find("#item").remove();
+            //append_new_work_item();
+            
+            trace("个人信息加载成功，请填写日报");
+        }
+        
+        function on_click_view_reports(){
+            if(!can_leave_this_page()){
+                trace("您修改了日报，但是还没有提交日报，离开页面会导致修改丢失，确定离开？");
+                
+                if(!confirm("您修改了日报，但是还没有提交日报，离开页面会导致修改丢失，确定离开？")){
+                    trace("继续修改和提交日报");
+                    return;
                 }
-                
-                for(var j = 0; j < work_type_data.length; j++){
-                    var work_type = work_type_data[j];
-                    
-                    var option = document.createElement("option");
-                    $(option).attr("value", work_type.id);
-                    $(option).text(work_type.value);
-                
-                    if(work_type.id == user_data[i].type_id){
-                        $(option).attr("selected", true);
-                    }
-                    
-                    $(obj).find("#work_type").append(option);
-                }
-                
-                $(obj).find("#bug_id").val(user_data[i].bug_id);
-                $(obj).find("#report_id").val(user_data[i].report_id);
-                $(obj).find("#time").val(user_data[i].work_hours);
-                $(obj).find("#work_content").val(user_data[i].report_content);
+                trace("放弃修改的日报");
             }
+            
+            trace("重定向到查看日报页面");
+            window.location.href = "view.html?date="+$("#write_time").val()+"&auto_query=1";
+        }
+        
+        function on_users_change(user_element){
+            var user_id = $(user_element).children("option:selected").val();
+            var user_name = $(user_element).children("option:selected").text();
+            if(user_id == ""){
+                trace("请选择填报人");
+                return;
+            }
+            
+            retrieve_user_reports(user_id, user_name);
+        }
+        
+        function on_click_submit_reports(){
+            submit_daily_report();
+        }
+        
+        function on_click_add_work_item(){
             append_new_work_item();
-            trace("查询完毕，请填写日报");
+        }
+        
+        function can_leave_this_page(){
+            var req = {};
+            req.items = [];
+            
+            // ignore error of prepare data
+            if(!prepare_submit_data(req.items, false, true)){
+                return false;
+            }
+            
+            // modified cannot leave.
+            if(exists_user_data.length != req.items.length){
+                return false;
+            }
+            
+            // compare each items.
+            for(var i = 0; i < exists_user_data.length; i++){
+                var o0 = exists_user_data[i];
+                var o1 = req.items[i];
+                
+                for(var key in o0){
+                    if(o0[key] != undefined && o1[key] != undefined && o0[key] != o1[key]){
+                        return false;
+                    }
+                }
+            }
+            
+            return true;
         }
         
         function retrieve_user_reports(user_id, user_name){
@@ -159,26 +197,77 @@
             });
         }
         
-        function initialize_page(){
-            $("#users").html('<option value>-请选择填报人-</option>');
-            $.getJSON(get_service_url("/users"), function(data){
-                for(var i = 0; i < data.length; i++){
-                    var user = data[i];
+        function render_user_data(user_data, product_data, work_type_data){
+            $("#main").empty();
+            
+            exists_user_data = user_data;
+            
+            for(var i = 0; i < user_data.length; i++){
+                var obj = append_new_work_item_obj();
+                
+                for(var j = 0; j < product_data.length; j++){
+                    var product = product_data[j];
                     
                     var option = document.createElement("option");
-                    $(option).attr("value", user.id);
-                    $(option).text(user.value);
+                    $(option).val(product.id);
+                    $(option).text(product.value);
                     
-                    $("#users").append(option);
+                    if(product.id == user_data[i].product_id){
+                        $(option).attr("selected", true);
+                    }
+                    
+                    $(obj).find("#product").append(option);
+                }
+                
+                for(var j = 0; j < work_type_data.length; j++){
+                    var work_type = work_type_data[j];
+                    
+                    var option = document.createElement("option");
+                    $(option).val(work_type.id);
+                    $(option).text(work_type.value);
+                
+                    if(work_type.id == user_data[i].type_id){
+                        $(option).attr("selected", true);
+                    }
+                    
+                    $(obj).find("#work_type").append(option);
+                }
+                
+                $(obj).find("#bug_id").val(user_data[i].bug_id);
+                $(obj).find("#report_id").val(user_data[i].report_id);
+                $(obj).find("#time").val(user_data[i].work_hours);
+                $(obj).find("#work_content").val(user_data[i].report_content);
+            }
+            append_new_work_item();
+            trace("查询完毕，请填写日报");
+        }
+        
+        function append_new_work_item(){
+            var obj = append_new_work_item_obj();
+            
+            $.getJSON(get_service_url("/products"), function(data){
+                for(var i = 0; i < data.length; i++){
+                    var product = data[i];
+                    
+                    var option = document.createElement("option");
+                    $(option).val(product.id);
+                    $(option).text(product.value);
+                    
+                    $(obj).find("#product").append(option);
                 }
             });
             
-            $("#write_time").attr("value", parseDate(new Date()));
-                
-            $("#main").find("#item").remove();
-            //append_new_work_item();
-            
-            trace("个人信息加载成功，请填写日报");
+            $.getJSON(get_service_url("/work_types"), function(data){
+                for(var i = 0; i < data.length; i++){
+                    var work_type = data[i];
+                    
+                    var option = document.createElement("option");
+                    $(option).val(work_type.id);
+                    $(option).text(work_type.value);
+                    
+                    $(obj).find("#work_type").append(option);
+                }
+            });
         }
         
         function append_new_work_item_obj(){
@@ -221,114 +310,46 @@
                 append_new_work_item();
             });
             $(obj).find("#remove_item").click(function(){
-                var bug_id = $(this).parent().find("#report_id").val();
+                var content = $(this).parent();
+                var bug_id = $(content).find("#report_id").val();
                 
                 // when delete exists report, confirm it.
-                if(bug_id != "" && !confirm("确认删除这条日报（提交日报后将从数据库永久删除）？")){
-                    return;
+                if(bug_id != ""){
+                    trace("确认删除这条日报（提交日报后将从数据库永久删除）？");
+                    
+                    if(!confirm("确认删除这条日报（提交日报后将从数据库永久删除）？")){
+                        trace("放弃删除日报，日报不会从数据库删除");
+                        return;
+                    }
+                    trace("删除日报，提交日报后将从数据库永久删除");
                 }
                 
                 $(this).parentsUntil("#main").remove();
             });
             
             $(obj).find("#retrieve_from_redmine").click(function(){
-                var content = $(this).parent();
-                var bug_id = content.find("#bug_id").val();
+                var content = $(this).parent().parent();
+                var bug_id = $(content).find("#bug_id").val();
                 if(parseInt(bug_id) == 0){
                     error("bugId为0，不能从Redmine获取");
                     return;
                 }
                 
                 $.getJSON(get_service_url("/redmines/"+bug_id), function(data){
-                    var report_content = data.issue.subject + "." + data.issue.status.name + ".";
+                    var report_content = data.issue.subject + "。";
+                    
+                    // append if finished
+                    if(data.issue.status.name != "新建" && data.issue.status.name != "进行中"){
+                        report_content += data.issue.status.name + "。";
+                    }
+                    
                     content.find("#work_content").val(report_content);
                 });
             });
             
             return obj;
         }
-        function append_new_work_item(){
-            var obj = append_new_work_item_obj();
-            
-            $.getJSON(get_service_url("/products"), function(data){
-                for(var i = 0; i < data.length; i++){
-                    var product = data[i];
-                    
-                    var option = document.createElement("option");
-                    $(option).attr("value", product.id);
-                    $(option).text(product.value);
-                    
-                    $(obj).find("#product").append(option);
-                }
-            });
-            
-            $.getJSON(get_service_url("/work_types"), function(data){
-                for(var i = 0; i < data.length; i++){
-                    var work_type = data[i];
-                    
-                    var option = document.createElement("option");
-                    $(option).attr("value", work_type.id);
-                    $(option).text(work_type.value);
-                    
-                    $(obj).find("#work_type").append(option);
-                }
-            });
-        }
         
-        function prepare_data(req){
-            var is_ok = true;
-            
-            $("#main").find("#content").each(function(){
-                var item = {};
-                req.items.push(item);
-                
-                item.report_id = $(this).find("#report_id").val();
-                
-                item.bug_id = $(this).find("#bug_id").val();
-                if(item.bug_id == ""){
-                    error("请输入BugId");
-                    $(this).find("#bug_id").focus();
-                    is_ok = false;
-                    return false;
-                }
-                
-                item.product = $(this).find("#product").val();
-                if(item.product == ""){
-                    error("请选择工作项所属的产品");
-                    $(this).find("#product").focus();
-                    is_ok = false;
-                    return false;
-                }
-                
-                item.work_type = $(this).find("#work_type").val();
-                if(item.work_type == ""){
-                    error("请选择工作项的类型");
-                    $(this).find("#work_type").focus();
-                    is_ok = false;
-                    return false;
-                }
-                
-                item.time = $(this).find("#time").val();
-                if(item.time == ""){
-                    error("请输入工作项所花的时间");
-                    $(this).find("#time").focus();
-                    is_ok = false;
-                    return false;
-                }
-                
-                item.content = $(this).find("#work_content").val();
-                if(item.content == ""){
-                    error("请输入工作项的内容");
-                    $(this).find("#work_content").focus();
-                    is_ok = false;
-                    return false;
-                }
-                
-                return is_ok;
-            });
-            
-            return is_ok;
-        }
         function submit_daily_report(){
             var req = {};
             
@@ -347,7 +368,7 @@
             }
             
             req.items = [];
-            if(!prepare_data(req)){
+            if(!prepare_submit_data(req.items, true, false)){
                 return;
             }
             
@@ -362,6 +383,7 @@
                 success: function(){
                     trace("日报填写成功");
                     alert("日报填写成功");
+                    exists_user_data = req.items;
                     //initialize_page();
                 },
                 // if use application/x-www-form-urlencoded, the cherrypy get data from param POST(self, **data)
@@ -369,6 +391,96 @@
                 // if use text/html, the cherrypy get data from cherrypy.request.body.read()
                 contentType : "text/html"
             });
+        }
+        
+        function prepare_submit_data(req_items, report_error, ignore_pure_empty_item){
+            var is_ok = true;
+            
+            $("#main").find("#content").each(function(){
+                var item = {};
+                
+                if(ignore_pure_empty_item && is_pure_empty_item(this)){
+                    return;
+                }
+                
+                item.report_id = $(this).find("#report_id").val();
+                
+                item.bug_id = $(this).find("#bug_id").val();
+                if(item.bug_id == ""){
+                    if(report_error){
+                        error("请输入BugId");
+                    }
+                    $(this).find("#bug_id").focus();
+                    is_ok = false;
+                    return false;
+                }
+                
+                item.product_id = $(this).find("#product").val();
+                if(item.product_id == ""){
+                    if(report_error){
+                        error("请选择工作项所属的产品");
+                    }
+                    $(this).find("#product").focus();
+                    is_ok = false;
+                    return false;
+                }
+                
+                item.type_id = $(this).find("#work_type").val();
+                if(item.type_id == ""){
+                    if(report_error){
+                        error("请选择工作项的类型");
+                    }
+                    $(this).find("#work_type").focus();
+                    is_ok = false;
+                    return false;
+                }
+                
+                item.work_hours = $(this).find("#time").val();
+                if(item.work_hours == ""){
+                    if(report_error){
+                        error("请输入工作项所花的时间");
+                    }
+                    $(this).find("#time").focus();
+                    is_ok = false;
+                    return false;
+                }
+                
+                item.report_content = $(this).find("#work_content").val();
+                if(item.report_content == ""){
+                    if(report_error){
+                        error("请输入工作项的内容");
+                    }
+                    $(this).find("#work_content").focus();
+                    is_ok = false;
+                    return false;
+                }
+                
+                req_items.push(item);
+                
+                return is_ok;
+            });
+            
+            return is_ok;
+        }
+        
+        function is_pure_empty_item(item){
+            if($(item).find("#bug_id").val() != "" && $(item).find("#bug_id").val() != "0"){
+                return false;
+            }
+            if($(item).find("#product").val() != ""){
+                return false;
+            }
+            if($(item).find("#work_type").val() != ""){
+                return false;
+            }
+            if($(item).find("#time").val() != ""){
+                return false;
+            }
+            if($(item).find("#work_content").val() != ""){
+                return false;
+            }
+            
+            return true;
         }
     </script>
 </body>

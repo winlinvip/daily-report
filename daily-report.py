@@ -22,10 +22,12 @@ exec("sys.setdefaultencoding('utf-8')");
 assert sys.getdefaultencoding().lower() == "utf-8";
 
 def write_log(level, msg):
+    global _config;
     time = str(datetime.datetime.now());
     msg = "[%s][%s] %s"%(time, level, msg);
     print(msg);
-    f = open("daily_report.log", "a+"); f.write("%s\n"%(msg)); f.close();
+    log_file = _config["cherrypy_config"]["log_file"];
+    f = open(log_file, "a+"); f.write("%s\n"%(msg)); f.close();
 def error(msg):
     write_log("error", msg);
 def trace(msg):
@@ -124,7 +126,6 @@ config_file = "config.conf";
 def parse_config():
     file = open(config_file);
     conf = file.read();
-    trace(conf);
     file.close();
     return json.loads(conf);
     
@@ -275,11 +276,11 @@ class RESTDailyReport(object):
         # update or insert new
         for item in req_json["items"]:
             report_id = sql_escape(item["report_id"]);
-            product_id = sql_escape(item["product"]);
-            type_id = sql_escape(item["work_type"]);
+            product_id = sql_escape(item["product_id"]);
+            type_id = sql_escape(item["type_id"]);
             bug_id = sql_escape(item["bug_id"]);
-            report_content = sql_escape(item["content"]);
-            work_hours = sql_escape(item["time"]);
+            report_content = sql_escape(item["report_content"]);
+            work_hours = sql_escape(item["work_hours"]);
             if report_id != "" and report_id != 0:
                 ret = sql_exec("update dr_report set product_id='%s', user_id='%s', type_id='%s', bug_id='%s', work_hours='%s', report_content='%s', work_date='%s', modify_date=%s where %s"
                         %(product_id, user_id, type_id, bug_id, work_hours, report_content, work_date, "now()", 
@@ -302,13 +303,15 @@ if len(sys.argv) > 1:
 
 # global config.
 _config = parse_config();
+trace(json.dumps(_config, indent=2));
+
 # generate js conf by config
 if True:
     js_config = _config["js_config"];
     # base_dir is set to the execute file dir.
     base_dir = os.path.abspath(os.path.dirname(sys.argv[0]));
     static_dir = os.path.join(os.path.abspath(base_dir), "static-dir");
-    trace("base_dir=%s, static_dir=%s"%(base_dir, static_dir));
+    trace("base_dir=%s, static_dir=%s, port=%s, log=%s"%(base_dir, static_dir, _config["cherrypy_config"]["port"], _config["cherrypy_config"]["log_file"]));
     f = open(os.path.join(static_dir, "ui", "conf.js"), "w");
     for js in js_config:
         f.write("%s\n"%(js));
@@ -330,7 +333,7 @@ root.work_types = RESTWorkType();
 conf = {
     'global': {
         'server.socket_host': '0.0.0.0',
-        'server.socket_port': 3001,
+        'server.socket_port': _config["cherrypy_config"]["port"],
         # static files
         'tools.staticdir.on': True,
         'tools.staticdir.dir': static_dir,
