@@ -23,11 +23,16 @@ assert sys.getdefaultencoding().lower() == "utf-8";
 
 def write_log(level, msg):
     global _config;
+    log = _config["log"];
+    # generate msg
     time = str(datetime.datetime.now());
     msg = "[%s][%s] %s"%(time, level, msg);
-    print(msg);
-    log_file = _config["cherrypy_config"]["log_file"];
-    f = open(log_file, "a+"); f.write("%s\n"%(msg)); f.close();
+    # write msg
+    if log["log_to_console"]:
+        print(msg);
+    if log["log_to_file"]:
+        log_file = log["log_file"];
+        f = open(log_file, "a+"); f.write("%s\n"%(msg)); f.close();
 def error(msg):
     write_log("error", msg);
 def trace(msg):
@@ -311,7 +316,10 @@ if True:
     # base_dir is set to the execute file dir.
     base_dir = os.path.abspath(os.path.dirname(sys.argv[0]));
     static_dir = os.path.join(os.path.abspath(base_dir), "static-dir");
-    trace("base_dir=%s, static_dir=%s, port=%s, log=%s"%(base_dir, static_dir, _config["cherrypy_config"]["port"], _config["cherrypy_config"]["log_file"]));
+    log = _config["log"];
+    trace("base_dir=%s, static_dir=%s, port=%s, log=%s(file:%s, console:%s)"
+        %(base_dir, static_dir, _config["cherrypy_config"]["port"], 
+        log["log_file"], log["log_to_console"], log["log_to_file"]));
     f = open(os.path.join(static_dir, "ui", "conf.js"), "w");
     for js in js_config:
         f.write("%s\n"%(js));
