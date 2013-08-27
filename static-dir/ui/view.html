@@ -946,6 +946,15 @@
                 $("#day_type").text("没有数据");
             }
         }
+        function get_day_detail_users_sum(){
+            var day_detail_users_sum = "";
+            
+            if(data.reports.user_data.length > 0){
+                day_detail_users_sum = "(共" + data.reports.user_data.length + "人)";
+            }
+            
+            return day_detail_users_sum;
+        }
         function render_day_detail(){
             $("#day_detail_items").empty();
             data.reports.user_data.sort(user_id_sort);
@@ -969,7 +978,7 @@
             
             var template_user_html = 
                 '<div>'+
-                '    <div class="user_title" id="user_title">杨成立日报</div>'+
+                '    <div class="user_title" id="user_title">XXX日报</div>'+
                 '</div>'+
                 '<div class="item">'+
                 '    <div class="user_text"><div id="user_text" class="user_text_content"></div></div>'+
@@ -1129,11 +1138,11 @@
             render_day_product();
             
             // day: product view.
-            $("#day_summary_title").text(parseDate(data.date) + "汇总");
+            $("#day_summary_title").text(parseDate(data.date) + "汇总" + get_day_detail_users_sum());
             render_day_type();
             
             // day: detail view
-            $("#day_detail").text(parseDate(data.date) + "详细");
+            $("#day_detail").text(parseDate(data.date) + "详细" + get_day_detail_users_sum());
             render_day_detail();
         }
     </script>
