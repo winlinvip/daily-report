@@ -950,7 +950,7 @@
             var day_detail_users_sum = "";
             
             if(data.reports.user_data.length > 0){
-                day_detail_users_sum = "(共" + data.reports.user_data.length + "人)";
+                day_detail_users_sum = "(共" + data.reports.user_data.length + "/" + data.users.length + "人)";
             }
             
             return day_detail_users_sum;
