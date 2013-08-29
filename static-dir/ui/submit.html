@@ -330,6 +330,13 @@
             $(obj).find("#retrieve_from_redmine").click(function(){
                 var content = $(this).parent().parent();
                 var bug_id = $(content).find("#bug_id").val();
+                
+                if(bug_id == ""){
+                    error("请输入bug_id");
+                    $(content).find("#bug_id").focus();
+                    return;
+                }
+                
                 if(parseInt(bug_id) == 0){
                     error("bugId为0，不能从Redmine获取");
                     return;
