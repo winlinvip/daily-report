@@ -141,6 +141,11 @@
         }
         
         function on_click_add_work_item(){
+            if($("#users").val() == ""){
+                error("请选择填报人");
+                $("#users").focus();
+                return;
+            }
             append_new_work_item();
         }
         
