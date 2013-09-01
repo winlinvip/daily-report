@@ -26,6 +26,13 @@
         margin-left: 20px;
         padding: 1 3 3 3;
     }
+    span.item_label{
+        margin-right: -6px;
+    }
+    span.item_unit_label{
+        margin-left: -5px;
+        margin-right: 10px;
+    }
     </style>
 </head>
 <body>
@@ -207,6 +214,7 @@
             
             exists_user_data = user_data;
             
+            console.log(user_data);
             for(var i = 0; i < user_data.length; i++){
                 var obj = append_new_work_item_obj();
                 
@@ -241,6 +249,7 @@
                 $(obj).find("#bug_id").val(user_data[i].bug_id);
                 $(obj).find("#report_id").val(user_data[i].report_id);
                 $(obj).find("#time").val(user_data[i].work_hours);
+                $(obj).find("#priority").val(user_data[i].priority);
                 $(obj).find("#work_content").val(user_data[i].report_content);
             }
             append_new_work_item();
@@ -282,17 +291,33 @@
                 '    <div id="content" class="content">'+
                 '        <input id="report_id" type="hidden" value=""></input>'+
                 '        <div id="bug_id_div">BugId：<input id="bug_id" type="text" size="5" value="" title="整数，例如Redmine中的IssueID"/>'+
-                '        <a href="javascript:;" id="retrieve_from_redmine">从Redmine获取信息</a></div>'+
-                '        <span id="product_label">产品</span>：<select id="product">'+
-                '        <option value="">-请选择-</option>'+
-                '        </select>'+
-                '        <span id="type_label">类型</span>：<select id="work_type">'+
-                '        <option value="">-请选择-</option>'+
-                '        </select>'+
-                '        时长：<input id="time" type="text" size="1" value="" title="工作项所花时间"/>小时<br/>'+
-                '        内容：<br/><textarea id="work_content" rows="3" cols="80"></textarea>'+
-                '        <img id="remove_item" src="remove.png" title="删除工作项" align="right"/>'+
-                '        <img id="add_item" src="add.png" title="添加工作项" align="right"/>'+
+                '            <a href="javascript:;" id="retrieve_from_redmine">从Redmine获取信息</a>'+
+                '        </div>'+
+                '        <div>'+
+                '           <span id="product_label" class="item_label">产品</span>'+
+                '           <select id="product">'+
+                '               <option value="">-请选择-</option>'+
+                '           </select>'+
+                '           <span class="item_unit_label"></span>'+
+                '           <span id="type_label" class="item_label">类型</span>'+
+                '           <select id="work_type">'+
+                '               <option value="">-请选择-</option>'+
+                '           </select>'+
+                '           <span class="item_unit_label"></span>'+
+                '           <span id="priority_div">'+
+                '               <span id="priority_label" class="item_label">优先级</span>'+
+                '               <input id="priority" type="text" size="2" value="" title=""/>'+
+                '               <span id="priority_unit_label" class="item_unit_label">小时</span>'+
+                '           </span>'+    
+                '           <span id="time_label" class="item_label">时长</span>'+
+                '           <input id="time" type="text" size="2" value="" title=""/>'+
+                '           <span id="time_unit_label" class="item_unit_label">小时</span>'+
+                '        </div>'+
+                '        <div>'+
+                '           内容：<br/><textarea id="work_content" rows="3" cols="80"></textarea>'+
+                '           <img id="remove_item" src="remove.png" title="删除工作项" align="right"/>'+
+                '           <img id="add_item" src="add.png" title="添加工作项" align="right"/>'+ 
+                '        </div>'+
                 '    </div> '+
                 '</div>'+
             '';
@@ -308,14 +333,24 @@
                 $(obj).find("#bug_id_div").hide();
                 $(obj).find("#bug_id").val(0);
             }
+            if(!enable_priority_div()){
+                $(obj).find("#priority_div").hide();
+                $(obj).find("#priority").val(0);
+            }
             $(obj).find("#product_label").text(get_product_label());
             $(obj).find("#type_label").text(get_type_label());
+            $(obj).find("#time_label").text(get_time_label());
+            $(obj).find("#time").attr("title", get_time_title());
+            $(obj).find("#time_unit_label").text(get_time_unit_label());
+            $(obj).find("#priority_label").text(get_priority_label());
+            $(obj).find("#priority").attr("title", get_priority_title());
+            $(obj).find("#priority_unit_label").text(get_priority_unit_label());
             
             $(obj).find("#add_item").click(function(){
                 append_new_work_item();
             });
             $(obj).find("#remove_item").click(function(){
-                var content = $(this).parent();
+                var content = $(this).parent().parent();
                 var bug_id = $(content).find("#report_id").val();
                 
                 // when delete exists report, confirm it.
@@ -426,6 +461,14 @@
                     is_ok = false;
                     return false;
                 }
+                if(isNaN(item.bug_id)){
+                    if(report_error){
+                        error("BugId必须是整数");
+                    }
+                    $(this).find("#bug_id").focus();
+                    is_ok = false;
+                    return false;
+                }
                 
                 item.product_id = $(this).find("#product").val();
                 if(item.product_id == ""){
@@ -453,6 +496,32 @@
                         error("请输入工作项所花的时间");
                     }
                     $(this).find("#time").focus();
+                    is_ok = false;
+                    return false;
+                }
+                if(isNaN(item.work_hours) || Number(item.work_hours) <= 0){
+                    if(report_error){
+                        error("工作项所花的时间必须是非零的数字");
+                    }
+                    $(this).find("#time").focus();
+                    is_ok = false;
+                    return false;
+                }
+                
+                item.priority = $(this).find("#priority").val();
+                if(item.priority == ""){
+                    if(report_error){
+                        error("请输入工作项的优先级");
+                    }
+                    $(this).find("#priority").focus();
+                    is_ok = false;
+                    return false;
+                }
+                if(isNaN(item.priority)){
+                    if(report_error){
+                        error("工作项的优先级数字");
+                    }
+                    $(this).find("#priority").focus();
                     is_ok = false;
                     return false;
                 }
@@ -489,6 +558,9 @@
                 return false;
             }
             if($(item).find("#work_content").val() != ""){
+                return false;
+            }
+            if($(item).find("#priority").val() != ""){
                 return false;
             }
             

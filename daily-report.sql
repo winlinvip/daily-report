@@ -31,6 +31,7 @@ create table dr_report(
     type_id int(32) not null, 
     bug_id int(32) not null, 
     work_hours double not null, 
+    priority double not null, 
     report_content varchar(5000),
     work_date datetime not null,
     insert_date datetime not null,
@@ -52,3 +53,9 @@ create table dr_rs_group_user(
     user_id int(32) not null, 
     primary key (`rs_group_user_id`) 
 ) auto_increment=600 default charset=utf8;
+
+-- update history
+-- 2013-8-27
+-- alter table dr_report add modify_date datetime not null
+-- 2013-9-1
+-- alter table dr_report add priority double not null

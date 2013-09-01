@@ -167,7 +167,7 @@ class RESTDailyReport(object):
     query detail info, all users without group
     '''
     def query_detail(self, start_time="", end_time="", user_id="", product_id="", type_id=""):
-        sql = "select %s from %s where true"%("report_id,product_id,user_id,type_id,bug_id,work_hours,report_content,work_date,insert_date,modify_date", "dr_report");
+        sql = "select %s from %s where true"%("report_id,product_id,user_id,type_id,bug_id,work_hours,report_content,work_date,insert_date,modify_date,priority", "dr_report");
         sql = self.build_sql_conditions(sql, start_time, end_time, user_id, product_id, type_id);
         sql = "%s %s"%(sql, "order by dr_report.report_id asc");
 
@@ -178,7 +178,8 @@ class RESTDailyReport(object):
             ret.append({
                 "report_id":record[0], "product_id":record[1], "user_id":record[2], 
                 "type_id":record[3], "bug_id":record[4], "work_hours":record[5], 
-                "report_content":record[6], "work_date":str(record[7]), "insert_date":str(record[8]), "modify_date":str(record[9])
+                "report_content":record[6], "work_date":str(record[7]), "insert_date":str(record[8]), "modify_date":str(record[9]), 
+                "priority":record[10]
             });
         
         return json.dumps(ret);
@@ -201,7 +202,7 @@ class RESTDailyReport(object):
     '''
     def query_detail_group(self, group, start_time="", end_time="", user_id="", product_id="", type_id=""):
         sql = "select %s from %s where %s"%(
-            "report_id,product_id,u.user_id,type_id,bug_id,work_hours,report_content,work_date,insert_date,modify_date", 
+            "report_id,product_id,u.user_id,type_id,bug_id,work_hours,report_content,work_date,insert_date,modify_date,priority", 
             "dr_report,dr_user u,dr_group g,dr_rs_group_user rs",
             "dr_report.user_id = rs.user_id and rs.user_id = u.user_id and g.group_id = rs.group_id and g.group_id = %s"%(group));
         sql = self.build_sql_conditions(sql, start_time, end_time, user_id, product_id, type_id);
@@ -214,7 +215,8 @@ class RESTDailyReport(object):
             ret.append({
                 "report_id":record[0], "product_id":record[1], "user_id":record[2], 
                 "type_id":record[3], "bug_id":record[4], "work_hours":record[5], 
-                "report_content":record[6], "work_date":str(record[7]), "insert_date":str(record[8]), "modify_date":str(record[9])
+                "report_content":record[6], "work_date":str(record[7]), "insert_date":str(record[8]), "modify_date":str(record[9]), 
+                "priority":record[10]
             });
         
         return json.dumps(ret);
@@ -263,13 +265,15 @@ class RESTDailyReport(object):
             bug_id = sql_escape(item["bug_id"]);
             report_content = sql_escape(item["report_content"]);
             work_hours = sql_escape(item["work_hours"]);
+            priority = sql_escape(item["priority"]);
             if report_id != "" and report_id != 0:
-                ret = sql_exec("update dr_report set product_id='%s', user_id='%s', type_id='%s', bug_id='%s', work_hours='%s', report_content='%s', work_date='%s', modify_date=%s where %s"
-                        %(product_id, user_id, type_id, bug_id, work_hours, report_content, work_date, "now()", 
-                        "report_id='%s' and (product_id!='%s' or user_id!='%s' or type_id!='%s' or bug_id!='%s' or work_hours!='%s' or report_content!='%s' or work_date!='%s')"%(report_id, product_id, user_id, type_id, bug_id, work_hours, report_content, work_date)));
+                ret = sql_exec("update dr_report set product_id='%s', user_id='%s', type_id='%s', bug_id='%s', work_hours='%s', priority='%s', report_content='%s', work_date='%s', modify_date=%s where %s"
+                        %(product_id, user_id, type_id, bug_id, work_hours, priority, report_content, work_date, "now()", 
+                        "report_id='%s' and (product_id!='%s' or user_id!='%s' or type_id!='%s' or bug_id!='%s' or work_hours!='%s' or priority!='%s' or report_content!='%s' or work_date!='%s')"
+                            %(report_id, product_id, user_id, type_id, bug_id, work_hours, priority, report_content, work_date)));
             else:
-                ret = sql_exec("insert into dr_report (product_id, user_id, type_id, bug_id, work_hours, report_content, work_date, insert_date, modify_date) values('%s', '%s', '%s', '%s', '%s', '%s', '%s', %s, %s)"
-                        %(product_id, user_id, type_id, bug_id, work_hours, report_content, work_date, "now()", "now()"));
+                ret = sql_exec("insert into dr_report (product_id, user_id, type_id, bug_id, work_hours, priority, report_content, work_date, insert_date, modify_date) values('%s', '%s', '%s', '%s', '%s', '%s', '%s', %s, %s)"
+                        %(product_id, user_id, type_id, bug_id, work_hours, priority, report_content, work_date, "now()", "now()"));
 
         return json.dumps({"error_code":0, "desc":"success"});
         

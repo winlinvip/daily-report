@@ -63,7 +63,7 @@
     div.user_text{
         background-color: #E6E6E6;
     }
-    div.user_text_content{
+    div.user_text_content, div.day_detail_summary_content{
         padding: 3;
         font-size: 12px;
         overflow: auto;
@@ -89,6 +89,9 @@
     div.user_text_content{
         width: 745px;
         height: 245px;
+    }
+    div.day_detail_summary{
+        width: 750px;
     }
     </style>
 </head>
@@ -187,6 +190,9 @@
         </div>
         <div class="coll_item">
             <div class="title0" id="day_detail">当天详细</div>
+            <div class="day_detail_summary">
+                <div id="day_detail_summary" class="day_detail_summary_content"></div>
+            </div>
             <div id="day_detail_items">
             </div>
         </div>
@@ -956,6 +962,32 @@
             return day_detail_users_sum;
         }
         function render_day_detail(){
+            // generate the users array specified by submited or not submited.
+            var users_submited = [], users_not_submited = [];
+            for(var i = 0; i < data.users.length; i++){
+                var user = data.users[i];
+                var user_reported = false;
+                
+                for(var j = 0; j < data.reports.user_data.length; j++){
+                    if(user.id == data.reports.user_data[j][0].user_id){
+                        users_submited.push(user.value);
+                        user_reported = true;
+                    }
+                }
+                
+                if(!user_reported){
+                    users_not_submited.push(user.value);
+                }
+            }
+            
+            var day_detail_summary = '' +
+                '总人数：' + data.users.length + '<br/>' +
+                '已填写日报人数：' + data.reports.user_data.length + "人 " + users_submited.join(",") + '<br/>' + 
+                '未填写日报人数：' + (data.users.length - data.reports.user_data.length) + "人 " + users_not_submited.join(",") + '<br/>' +
+                '';
+            $("#day_detail_summary").html(day_detail_summary);
+            
+            // render each user.
             $("#day_detail_items").empty();
             data.reports.user_data.sort(user_id_sort);
             if(data.reports.user_data.length > 0){
