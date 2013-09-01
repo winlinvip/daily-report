@@ -272,7 +272,7 @@ class RESTDailyReport(object):
                         "report_id='%s' and (product_id!='%s' or user_id!='%s' or type_id!='%s' or bug_id!='%s' or work_hours!='%s' or priority!='%s' or report_content!='%s' or work_date!='%s')"
                             %(report_id, product_id, user_id, type_id, bug_id, work_hours, priority, report_content, work_date)));
             else:
-                ret = sql_exec("insert into dr_report (product_id, user_id, type_id, bug_id, work_hours, priority, report_content, work_date, insert_date, modify_date) values('%s', '%s', '%s', '%s', '%s', '%s', '%s', %s, %s)"
+                ret = sql_exec("insert into dr_report (product_id, user_id, type_id, bug_id, work_hours, priority, report_content, work_date, insert_date, modify_date) values('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', %s, %s)"
                         %(product_id, user_id, type_id, bug_id, work_hours, priority, report_content, work_date, "now()", "now()"));
 
         return json.dumps({"error_code":0, "desc":"success"});
