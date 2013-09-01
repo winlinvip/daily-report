@@ -303,6 +303,8 @@
         
         // main function 
         $(function(){
+            document.title = get_system_title();
+            
             initialize_page();
             
             $("div").ajaxError(function(){

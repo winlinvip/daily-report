@@ -69,6 +69,8 @@
         
         // main function.
         $(function(){
+            document.title = get_system_title();
+            
             $("div").ajaxError(function(){
                 error("ajax请求错误");
             });
