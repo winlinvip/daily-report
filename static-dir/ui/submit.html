@@ -70,6 +70,9 @@
         // main function.
         $(function(){
             document.title = get_system_title();
+            if(!enable_select_date()){
+                $("#write_time").attr("disabled", true);
+            }
             
             $("div").ajaxError(function(){
                 error("ajax请求错误");
