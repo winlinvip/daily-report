@@ -59,3 +59,5 @@ create table dr_rs_group_user(
 -- alter table dr_report add modify_date datetime not null
 -- 2013-9-1
 -- alter table dr_report add priority double not null
+-- 2013-9-3
+-- alter table dr_user add email varchar(200) null

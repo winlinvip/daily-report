@@ -300,6 +300,21 @@
             
             return str;
         }
+        function parse_query_string(){
+            var query_string = String(window.location.search).split("?")[1];
+            if(query_string == undefined){
+                return {};
+            }
+            
+            var queries = query_string.split("&");
+            var obj = {};
+            $(queries).each(function(){
+                var query = this.split("=");
+                obj[query[0]] = query[1];
+            });
+            
+            return obj;
+        }
         
         // main function 
         $(function(){
@@ -349,17 +364,7 @@
         });
         
         function do_url_query(){
-            var query_string = String(window.location.search).split("?")[1];
-            if(query_string == undefined){
-                return;
-            }
-            
-            var queries = query_string.split("&");
-            var obj = {};
-            $(queries).each(function(){
-                var query = this.split("=");
-                obj[query[0]] = query[1];
-            });
+            var obj = parse_query_string();
             
             if(obj.date != undefined){
                 $("#write_time").val(obj.date);

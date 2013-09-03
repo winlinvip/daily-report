@@ -1,18 +1,8 @@
 #!/usr/bin/python2.6
 #-*- coding: UTF-8 -*-
 
-import sys;
-import cherrypy
-import time;
-import os;
-import json;
-import traceback;
-import MySQLdb;
-import datetime;
-#send maill
-import smtplib
-from email.mime.text import MIMEText
-from email.header import Header
+import sys, time, os, json, traceback, datetime;
+import cherrypy, MySQLdb;
 
 # set the default encoding to utf-8
 # reload sys model to enable the getdefaultencoding method.
@@ -285,6 +275,33 @@ class Root(object):
     def GET(self):
         raise cherrypy.HTTPRedirect("ui");
         
+# in centos 5.5 64bit platform, maybe sendmail failed.
+# error is: "send email failed: unknown encoding: idna"
+# so, we import the encodings.idna.
+from encodings import ascii
+from encodings import idna
+
+import smtplib
+from email.mime.text import MIMEText
+def send_mail(smtp_server, username, password, to_user, subject, content):
+    msg = MIMEText(content, _subtype='html', _charset='utf-8');
+    msg['Subject'] = subject;
+    msg['From'] = username;
+    msg['To'] = ";".join(to_user);
+
+    try:
+        smtp = smtplib.SMTP();
+
+        smtp.connect(smtp_server);
+        smtp.login(username, password);
+        smtp.sendmail(username, to_user, msg.as_string());
+        smtp.close();
+
+        return True;
+    except Exception, ex:
+        error("send email failed: %s, %s"%(ex, sys.exc_info));
+        return False;
+
 class Manager:
     def __init__(self):
         pass;
@@ -296,7 +313,76 @@ class Manager:
         pass;
             
     def main(self):
-        pass;
+        mail_config = _config["mail_config"];
+        # on?
+        if not mail_config["on"]:
+            return;
+        # check time.
+        mail_times = mail_config["mail_times"]
+        for mail_time in mail_times:
+            if not self.email_for_time(mail_time, mail_times):
+                return;
+            
+    def email_for_time(self, mail_time, mail_times):
+        (hour, minute, second) = mail_time.split(":");
+        now = datetime.datetime.now();
+        if now.hour != int(hour):
+            return True;
+        if now.minute != int(minute):
+            return True;
+        if now.second != int(second):
+            return True;
+        mail_config = _config["mail_config"];
+        # log
+        date = now.strftime("%Y-%m-%d");
+        trace("email from %s when time is %s, date is %s"%(mail_config["username"], mail_times, date));
+        time.sleep(1);
+        # check email strategy
+        if not self.email_strategy_check(date):
+            return False;
+        # query email to user list.
+        records = sql_exec("select user_id,user_name,email from dr_user where user_id not in "
+            "(select distinct u.user_id from dr_user u, dr_report r where u.user_id = r.user_id and r.work_date='%s')"%(date));
+        if len(records) == 0:
+            trace("all user reported, donot email");
+            return False;
+        # generate to user list.
+        to_user = [];
+        for record in records:
+            to_user.append(record[1]);
+        trace("email to %s."%(to_user));
+        for record in records:
+            if not self.do_email_to(record[0], record[1], record[2], date):
+                return False;
+        trace("email to %s success."%(to_user));
+        return True;
+        
+    def do_email_to(self, user_id, user_name, email, date):
+        mail_config = _config["mail_config"];
+        # generate subject
+        subject = mail_config["subject"];
+        content = mail_config["content"];
+        # generate content
+        subject = subject.replace("{user_name}", user_name).replace("{date}", date);
+        content = content.replace("{user_id}", str(user_id));
+        # do email.
+        if not send_mail(mail_config["smtp_server"], mail_config["username"], mail_config["password"], [email], subject, content):
+            trace("email to %s(%s) id=%s failed"%(user_name, email, user_id));
+            return False;
+        trace("email to %s(%s) id=%s success"%(user_name, email, user_id));
+        return True;
+    
+    def email_strategy_check(self, date):
+        mail_config = _config["mail_config"];
+        # check only when someone has submitted report.
+        if mail_config["strategy_check_only_someone_submited"]:
+            records = sql_exec("select user_id,email from dr_user where user_id in "
+                "(select distinct u.user_id from dr_user u, dr_report r where u.user_id = r.user_id and r.work_date='%s')"%(date));
+            if len(records) < mail_config["strategy_check_only_someone_submited_count"]:
+                trace("strategy_check_only_someone_submited is checked, "
+                    "bug only %s submited(<%s), ignore and donot email."%(len(records), mail_config["strategy_check_only_someone_submited_count"]));
+                return False;
+        return True;
     
 # global consts.
 static_dir = None;
@@ -355,7 +441,6 @@ conf = {
 
 # global instance for manage all tasks.
 manager = Manager();
-
 '''
 the cherrypy event mechenism:
 http://docs.cherrypy.org/stable/progguide/extending/customplugins.html
