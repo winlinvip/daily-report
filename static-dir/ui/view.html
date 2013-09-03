@@ -987,9 +987,44 @@
             
             return day_detail_users_sum;
         }
-        function render_day_detail(){
-            // generate the users array specified by submited or not submited.
-            var users_submited = [], users_not_submited = [];
+        function get_delayied_report_summary(users_submited_ids){
+            var delayed_reports = "";
+            
+            //console.log(data);
+            for(var i = 0; i < users_submited_ids.length; i++){
+                var user_id = users_submited_ids[i];
+                
+                for(var j = 0; j < data.reports.user_data.length; j++){
+                    var user_data = data.reports.user_data[j];
+                    
+                    if(user_id != user_data[0].user_id){
+                        continue;
+                    }
+                    
+                    var work_date = user_data[0].work_date;
+                    
+                    user_data.sort(report_first_insert_sort);
+                    var first_insert = user_data[0].insert_date;
+                    
+                    user_data.sort(report_modify_date_sort);
+                    var last_modify = user_data[0].modify_date;
+                    
+                    // detect the delayed reports
+                    if(!is_report_delayed(parseToDate(work_date), parseToDate(first_insert))){
+                        continue;
+                    }
+                    
+                    delayed_reports += data.users_kv[user_id] + " 提交时间:" + first_insert + " 最后更新:" + last_modify + "<br/>";
+                }
+            }
+            
+            if(delayed_reports != ""){
+                delayed_reports = "延迟提交日报名单" + "<br/>" + delayed_reports;
+            }
+            
+            return delayed_reports;
+        }
+        function build_users_specified_by_submited(users_submited, users_submited_ids, users_not_submited){
             for(var i = 0; i < data.users.length; i++){
                 var user = data.users[i];
                 var user_reported = false;
@@ -997,6 +1032,7 @@
                 for(var j = 0; j < data.reports.user_data.length; j++){
                     if(user.id == data.reports.user_data[j][0].user_id){
                         users_submited.push(user.value);
+                        users_submited_ids.push(user.id);
                         user_reported = true;
                     }
                 }
@@ -1005,13 +1041,24 @@
                     users_not_submited.push(user.value);
                 }
             }
+        }
+        function render_day_detail_summary(){
+            // generate the users array specified by submited or not submited.
+            var users_submited = [], users_submited_ids = [], users_not_submited = [];
+            build_users_specified_by_submited(users_submited, users_submited_ids, users_not_submited);
             
             var day_detail_summary = '' +
                 '总人数：' + data.users.length + '<br/>' +
                 '已填写日报人数：' + data.reports.user_data.length + "人 " + users_submited.join(",") + '<br/>' + 
                 '未填写日报人数：' + (data.users.length - data.reports.user_data.length) + "人 " + users_not_submited.join(",") + '<br/>' +
+                get_delayied_report_summary(users_submited_ids)+
                 '';
+                
             $("#day_detail_summary").html(day_detail_summary);
+        }
+        function render_day_detail(){
+            // summaries of day detail.
+            render_day_detail_summary();
             
             // render each user.
             $("#day_detail_items").empty();

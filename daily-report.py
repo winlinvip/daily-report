@@ -280,6 +280,24 @@ class RESTDailyReport(object):
     def OPTIONS(self):
         enable_crossdomain();
     
+class Root(object):
+    exposed = True;
+    def GET(self):
+        raise cherrypy.HTTPRedirect("ui");
+        
+class Manager:
+    def __init__(self):
+        pass;
+        
+    def start(self):
+        pass;
+        
+    def stop(self):
+        pass;
+            
+    def main(self):
+        pass;
+    
 # global consts.
 static_dir = None;
 
@@ -308,12 +326,8 @@ if True:
     for js in js_config:
         f.write("%s\n"%(js));
     f.close();
-    
-class Root(object):
-    exposed = True;
-    def GET(self):
-        raise cherrypy.HTTPRedirect("ui");
 
+# init ui tree.
 root = Root();
 root.redmines = RESTRedmine();
 root.reports = RESTDailyReport();
@@ -338,5 +352,25 @@ conf = {
         'request.dispatch': cherrypy.dispatch.MethodDispatcher(),
     }
 }
+
+# global instance for manage all tasks.
+manager = Manager();
+
+'''
+the cherrypy event mechenism:
+http://docs.cherrypy.org/stable/progguide/extending/customplugins.html
+http://stackoverflow.com/questions/2004514/force-cherrypy-child-threads
+'''
+from cherrypy.process import plugins;
+class QueueThreadPlugin(plugins.SimplePlugin):
+    def start(self):
+        manager.start();
+    def stop(self):
+        manager.stop();
+    def main(self):
+        manager.main();
+# subscribe the start/stop event of cherrypy engine.
+queue_thread_plugin = QueueThreadPlugin(cherrypy.engine);
+queue_thread_plugin.subscribe();
 
 cherrypy.quickstart(root, '/', conf)
