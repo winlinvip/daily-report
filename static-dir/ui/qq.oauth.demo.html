@@ -1,0 +1,64 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta property="qc:admins" content="3545371525763066145763757411415250724" />
+    <title>DailyReport</title>
+    <style type="text/css">
+    body{
+        font-size: 12px;
+    }
+    </style>
+</head>
+<body>
+    <div id="login"></div>
+    <script type="text/javascript" src="jquery.js"></script>
+    <script type="text/javascript" src="conf.js"></script>
+    <script type="text/javascript">
+    function require_login(){
+        // 应用的APPID
+        var appID = get_qq_oauth_app_id();
+        // 成功授权后的回调地址
+        var redirectURI = get_qq_oauth_redirect_url();
+        // 透传的状态
+        var state = "dev-demo";
+        
+        var path = 'https://graph.qq.com/oauth2.0/authorize?';
+        var queryParams = ['client_id=' + appID,
+            'redirect_uri=' + redirectURI,
+            'scope=' + 'get_user_info', 
+            'response_type=token',
+            'state=' + state];
+
+        var query = queryParams.join('&');
+        var url = path + query;
+        //console.log(url);
+        $("#login").html("<a href='" + url + "'><img src='login.png'/></a>");
+        //window.location.href = url;
+    }
+    
+    $(function(){
+        // 没有access_token，要求登录
+        if (window.location.hash.length == 0){
+            require_login();
+            return;
+        }
+    
+        // 获取了access_token，获取用户信息
+        var access_token = window.location.hash.substring(1);
+        var api = "https://graph.qq.com/oauth2.0/me";
+        $.ajax({
+            url: api + "?" + access_token,
+            dataType: "jsonp",
+            jsonpCallback: "callback",
+            success: function(data){
+                if(data.error != undefined && data.error != 0){
+                    $("#login").html("error=" + data.error + ", description=" + data.description + ', <a href="javascript:require_login">重新登录</a>');
+                }
+                else{
+                    $("#login").html("client_id=" + data.client_id + ", openid=" + data.openid);
+                }
+            }
+        });
+    });
+    </script>
+</body>
