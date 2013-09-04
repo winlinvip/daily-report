@@ -1133,7 +1133,7 @@
                     redmine_url = get_redmine_issue_url() + "/" + o.bug_id;
                 }
                 var url = '<a href="' + redmine_url + '">refs#' + o.bug_id + ':</a>';
-                var hour = o.work_hours + "小时";
+                var hour = o.work_hours + get_view_sum_unit_label();
                 var text = '<p class="user_text_para">' + (i+1) + "." + url + " " + hour + ", " + o.report_content + "</p>";
                 $(div).find("#user_text").append(text);
             }
@@ -1163,7 +1163,7 @@
                 var first_insert = user_data[0].insert_date;
                 user_data.sort(report_modify_date_sort);
                 var last_modify = user_data[0].modify_date;
-                var text = '<p class="user_text_para">' + '总时间：' + total_value + '小时' 
+                var text = '<p class="user_text_para">' + '总计:' + total_value + get_view_sum_unit_label() 
                     + ', 提交时间:' + first_insert + ', 最后更新:' + last_modify + '</p>';
                 $(div).find("#user_text").append(text);
                 
