@@ -11,6 +11,44 @@ reload(sys);
 exec("sys.setdefaultencoding('utf-8')");
 assert sys.getdefaultencoding().lower() == "utf-8";
 
+def check_auth(*args, **kwargs):
+    if "access_token" in cherrypy.request.cookie:
+        trace("xxx: "+cherrypy.request.cookie["access_token"]);
+    conditions = cherrypy.request.config.get('auth.require', None)
+    if conditions is None:
+        return;
+        
+    auth = _config["auth"];
+    if not auth["on"]:
+        return;
+        
+    '''
+        username = cherrypy.session.get(SESSION_KEY)
+        if username:
+            cherrypy.request.login = username
+            for condition in conditions:
+                # A condition is just a callable that returns true or false
+                if not condition():
+                    raise cherrypy.HTTPRedirect("/auth/login")
+        else:
+            raise cherrypy.HTTPRedirect("/auth/login")
+    '''
+    
+cherrypy.tools.auth = cherrypy.Tool('before_handler', check_auth)
+
+'''
+@conditions defines what need to check for method.
+'''
+def check_auth(*conditions):
+    def decorate(f):
+        if not hasattr(f, "_cp_config"):
+            f._cp_config = {};
+        if 'auth.require' not in f._cp_config:
+            f._cp_config['auth.require'] = []
+        f._cp_config['auth.require'].extend(conditions)
+        return f;
+    return decorate;
+
 def sql_escape(sql):
     return sql.replace("'", "\\'");
 def sql_exec(sql):
@@ -82,6 +120,7 @@ class RESTWorkType(object):
 class RESTUser(object):
     exposed = True;
 
+    @check_auth()
     def GET(self, group=""):
         enable_crossdomain();
         
@@ -433,6 +472,7 @@ conf = {
         #'server.thread_pool': 1, # single thread server.
         'tools.encode.on': True,
         'tools.encode.encoding': 'utf-8',
+        'tools.auth.on': True
     },
     '/': {
         'request.dispatch': cherrypy.dispatch.MethodDispatcher(),
