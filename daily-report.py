@@ -342,7 +342,7 @@ class RESTUser(object):
                 continue;
             ret.append({"id":returned_user_id, "value":record[1]});
             
-        return json.dumps(ret);
+        return json.dumps({"auth":user_id, "users":ret});
         
     def OPTIONS(self):
         enable_crossdomain();

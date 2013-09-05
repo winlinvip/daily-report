@@ -435,11 +435,11 @@
             
             // query basic info, users/products/work_types.
             trace("请求users数据");
-            $.getJSON(get_service_url("/users?group=" + data.group), function(users){
-                data.users = users;
+            $.getJSON(get_service_url("/users?group=" + data.group), function(ret){
+                data.users = ret.users;
                 data.users_kv = {};
-                for(var i = 0; i < users.length; i++){
-                    data.users_kv[users[i].id] = users[i].value;
+                for(var i = 0; i < ret.users.length; i++){
+                    data.users_kv[ret.users[i].id] = ret.users[i].value;
                 }
                 
                 trace("请求products数据");

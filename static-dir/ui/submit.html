@@ -154,16 +154,15 @@
         function initialize_page(){
             $("#users").html('<option value>-请选择填报人-</option>');
             $.getJSON(get_service_url("/users"), function(data){
-                var query = parse_query_string();
-                
-                for(var i = 0; i < data.length; i++){
-                    var user = data[i];
+                //console.log(data);
+                for(var i = 0; i < data.users.length; i++){
+                    var user = data.users[i];
                     
                     var option = document.createElement("option");
                     $(option).val(user.id);
                     $(option).text(user.value);
                     
-                    if(query.user_id == user.id){
+                    if(data.auth == user.id || data.users.length == 0){
                         $(option).attr("selected", true);
                     }
                     
@@ -171,7 +170,7 @@
                 }
                 
                 // load user info auto
-                if(query.user_id != undefined){
+                if(data.auth != null || data.users.length == 0){
                     on_users_change("#users");
                 }
             });
