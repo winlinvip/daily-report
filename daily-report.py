@@ -314,6 +314,11 @@ class RESTUser(object):
     def GET(self, group=""):
         enable_crossdomain();
         
+        # if not null, must be a digit.
+        if group != "" and not group.isdigit():
+            error("group must be digit, actual is %s"%(group));
+            raise cherrypy.HTTPError(400, "group must be digit");
+        
         records = [];
         if group == "":
             records = sql_exec("select user_id,user_name from dr_user");
@@ -460,6 +465,11 @@ class RESTDailyReport(object):
     @check_auth()
     def GET(self, group="", start_time="", end_time="", summary="", user_id="", product_id="", type_id=""):
         enable_crossdomain();
+        
+        # if not null, must be a digit.
+        if group != "" and not group.isdigit():
+            error("group must be digit, actual is %s"%(group));
+            raise cherrypy.HTTPError(400, "group must be digit");
         
         trace('group=%s, start_time=%s, end_time=%s, summary=%s, user_id=%s, product_id=%s, type_id=%s'%(group, start_time, end_time, summary, user_id, product_id, type_id));
         if user_id != "":

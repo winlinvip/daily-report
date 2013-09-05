@@ -155,6 +155,11 @@
         function initialize_page(){
             $("#users").html('<option value>-请选择填报人-</option>');
             $.getJSON(get_service_url("/users"), function(data){
+                // only one? use it.
+                if(data.users.length <= 1){
+                    $("#users").empty();
+                }
+                
                 //console.log(data);
                 for(var i = 0; i < data.users.length; i++){
                     var user = data.users[i];

@@ -103,11 +103,11 @@
         function associate_auth_to_user(data){
             $("#login").empty();
             //console.log(data);
-            trace("请完善资料");
+            trace("关联" + get_system_name() + "系统的帐号");
             
             $("#login").html(''+
                 '<div class="main">'+
-                '    <div>*登录成功，请完善资料</div>'+
+                '    <div>*登录成功，请关联' + get_system_name() + '的帐号</div>'+
                 '    <input id="openid" type="hidden" value=""></input>'+
                 '    <input id="access_token" type="hidden" value=""></input>'+
                 '    <div>我是：<select id="users"/></div>'+
@@ -162,7 +162,7 @@
         }
         
         function parse_access_token(){
-            trace("登录成功");
+            trace("QQ帐号登录完成");
             
             var obj = parse_query_string();
             //console.log(obj);
@@ -180,10 +180,15 @@
             
             $.getJSON(get_service_url("/auths?access_token=" + obj.access_token), function(data){
                 waiting_bar_enabled = false;
-                trace("向内容服务器请求数据");
+                trace("向" + get_system_name() + "服务器请求数据");
                 //console.log(data);
                 
                 if(data.error == 0x200){
+                    if(data.users.length == 0){
+                        error(get_system_name() + "系统没有空闲的帐号，请联系管理员或<a href='javascript:require_login()'>使用其他QQ登录</a>");
+                        alert("系统没有空闲的帐号，请联系管理员或使用其他QQ登录");
+                        return;
+                    }
                     associate_auth_to_user(data);
                     return;
                 }
@@ -194,6 +199,8 @@
         }
         
         function require_login(){
+            trace("请点击按钮登录");
+            
             // 应用的APPID
             var appID = get_qq_oauth_app_id();
             // 成功授权后的回调地址
