@@ -362,7 +362,7 @@ class RESTRedmine(object):
         redmine_api_issues = _config["redmine_api_issues"]
         # proxy for redmine issues
         # 1. must Enable the RESTful api: http://www.redmine.org/projects/redmine/wiki/Rest_api#Authentication
-        # 2. add a user, username="restful", password="restful", add to report user, which can access the issues.
+        # 2. add a user, username="name", password="pwd", add to report user, which can access the issues.
         api = "%s/%s.json"%(redmine_api_issues, issue_id);
         trace(api);
         url = urllib.urlopen(api);
