@@ -67,7 +67,7 @@
             return date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate();
         }
         function parse_query_string(){
-            var query_string = String(window.location.search).split("?")[1];
+            var query_string = String(window.location.search).replace(" ", "").split("?")[1];
             if(query_string == undefined){
                 return {};
             }
@@ -81,6 +81,44 @@
             
             return obj;
         }
+        function parse_cookie(){
+            var queries = String(document.cookie).split(";");
+            
+            var obj = {};
+            $(queries).each(function(){
+                var query = this.split("=");
+                obj[query[0]] = query[1];
+            });
+            
+            return obj;
+        }
+        var ajax_alert_window = true;
+        function ajax_error_callback(event, jqxhr){
+            //console.log(jqxhr);
+            error("ajax请求错误, status=" + jqxhr.status);
+            
+            if(jqxhr.status == 401){
+                error("该页面需要登录后才能查看，请您先登录");
+                
+                if(ajax_alert_window){
+                    alert("该页面需要登录后才能查看，请您先登录");
+                    ajax_alert_window = false;
+                }
+                
+                window.location.href = "auth.html";
+                return;
+            }
+            
+            if(jqxhr.status == 403){
+                error("权限限制：您请求了未授权的资源");
+                
+                if(ajax_alert_window){
+                    alert("权限限制：您请求了未授权的资源");
+                    ajax_alert_window = false;
+                }
+                return;
+            }
+        }
         
         // main function.
         $(function(){
@@ -89,9 +127,7 @@
                 $("#write_time").attr("disabled", true);
             }
             
-            $("div").ajaxError(function(){
-                error("ajax请求错误");
-            });
+            $(document).ajaxError(ajax_error_callback);
             
             $("#add_item").click(function(){
                 on_click_add_work_item();

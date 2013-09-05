@@ -6,46 +6,184 @@
     body{
         font-size: 12px;
     }
+    div.log{
+        margin: 3;
+    }
+    div.main{
+    }
+    input.button{
+    }
     </style>
 </head>
 <body>
+    <div id="log" class="log"></div>
     <div id="login"></div>
     <script type="text/javascript" src="jquery.js"></script>
+    <script type="text/javascript" src="json2.js"></script>
     <script type="text/javascript" src="conf.js"></script>
     <script type="text/javascript">
-    function require_login(){
-        // 应用的APPID
-        var appID = get_qq_oauth_app_id();
-        // 成功授权后的回调地址
-        var redirectURI = get_qq_oauth_redirect_url();
-        // 透传的状态
-        var state = "dev";
-        
-        var path = 'https://graph.qq.com/oauth2.0/authorize?';
-        var queryParams = ['client_id=' + appID,
-            'redirect_uri=' + redirectURI,
-            'scope=' + 'get_user_info', 
-            'response_type=token',
-            'state=' + state];
-
-        var query = queryParams.join('&');
-        var url = path + query;
-        //console.log(url);
-        $("#login").html("<a href='" + url + "'><img src='login.png'/></a>");
-        //window.location.href = url;
-    }
-    
-    $(function(){
-        // 没有access_token，要求登录
-        if (window.location.hash.length == 0){
-            require_login();
-            return;
+        function error(msg){
+            $("#log").html('<font color="red">' + msg + '</font>');
         }
-    
-        // 获取了access_token，获取用户信息
-        var access_token = window.location.hash.substring(1);
-        document.cookie = "access_token="+access_token;
-        window.location.href = "submit.html";
-    });
+        function trace(msg){
+            $("#log").html('<font color="#33AA33">' + msg + '</font>');
+        }
+        function parse_query_string(){
+            var query_string = String(window.location.hash).replace(" ", "").split("#")[1];
+            if(query_string == undefined){
+                return {};
+            }
+            
+            var queries = query_string.split("&");
+            var obj = {};
+            $(queries).each(function(){
+                var query = this.split("=");
+                obj[query[0]] = query[1];
+            });
+            
+            return obj;
+        }
+        function ajax_error_callback(event, jqxhr){
+            //console.log(jqxhr);
+            error("ajax请求错误, status=" + jqxhr.status);
+        }
+        
+        
+        // main function.
+        $(function(){
+            document.title = get_system_title();
+            $(document).ajaxError(ajax_error_callback);
+            
+            trace("初始化页面成功");
+            
+            if (window.location.hash.length == 0){
+                trace("您还没有登录，请先登录");
+                require_login();
+                return;
+            }
+            
+            parse_access_token();
+        });
+        
+        function jump_to_work_page(){
+            window.location.href = "submit.html";
+        }
+        
+        function on_click_submit_info(){
+            var req = {};
+            
+            req.openid = $("#openid").val();
+            req.access_token = $("#access_token").val();
+            
+            req.user = $("#users").val();
+            if(req.user == ""){
+                error("请选择姓名");
+                $("#users").focus();
+                return;
+            }
+            
+            trace("提交数据到服务器...");
+            
+            $.ajax({
+                type: 'POST',
+                url: get_service_url("/auths"),
+                data: JSON.stringify(req),
+                success: function(){
+                    trace("资料填写成功，跳转到工作页面");
+                    jump_to_work_page();
+                },
+                // if use application/x-www-form-urlencoded, the cherrypy get data from param POST(self, **data)
+                //contentType : "application/x-www-form-urlencoded"
+                // if use text/html, the cherrypy get data from cherrypy.request.body.read()
+                contentType : "text/html"
+            });
+        }
+        
+        function associate_auth_to_user(data){
+            $("#login").empty();
+            //console.log(data);
+            trace("请完善资料");
+            
+            $("#login").html(''+
+                '<div class="main">'+
+                '    <div>*登录成功，请完善资料</div>'+
+                '    <input id="openid" type="hidden" value=""></input>'+
+                '    <input id="access_token" type="hidden" value=""></input>'+
+                '    <div>我是：<select id="users"/></div>'+
+                '    <div><input id="submit" class="button" type="button" value="提交资料"/></div>'+
+                '</div>'+
+                '');
+                
+            $("#openid").val(data.openid);
+            $("#access_token").val(data.access_token);
+            
+            $("#users").empty();
+            $("#users").html('<option value>-请选择-</option>');
+            for(var i = 0; i < data.users.length; i++){
+                var user = data.users[i];
+                
+                var option = document.createElement("option");
+                $(option).val(user.id);
+                $(option).text(user.value);
+                
+                $("#users").append(option);
+            }
+            
+            $("#submit").click(function(){
+                on_click_submit_info();
+            });
+        }
+        
+        function parse_access_token(){
+            trace("登录成功");
+            
+            var obj = parse_query_string();
+            //console.log(obj);
+            
+            if(obj.access_token == undefined || obj.access_token == null){
+                error("获取用户的token失败，请重新登录");
+                return;
+            }
+            
+            trace("登录成功，用户token正常，正在获取本地资料...");
+            
+            var req = {};
+            req.access_token = obj.access_token;
+            
+            $.getJSON(get_service_url("/auths?access_token=" + obj.access_token), function(data){
+                trace("向内容服务器请求数据");
+                //console.log(data);
+                
+                if(data.error == 0x200){
+                    associate_auth_to_user(data);
+                    return;
+                }
+                
+                trace("登录成功，跳转到工作页面");
+                jump_to_work_page();
+            });
+        }
+        
+        function require_login(){
+            // 应用的APPID
+            var appID = get_qq_oauth_app_id();
+            // 成功授权后的回调地址
+            var redirectURI = get_qq_oauth_redirect_url();
+            // 透传的状态
+            var state = get_qq_oauth_state();
+            
+            var path = 'https://graph.qq.com/oauth2.0/authorize?';
+            var queryParams = ['client_id=' + appID,
+                'redirect_uri=' + redirectURI,
+                'scope=' + 'get_user_info', 
+                'response_type=token',
+                'state=' + state];
+
+            var query = queryParams.join('&');
+            var url = path + query;
+            //console.log(url);
+            $("#login").html("<a href='" + url + "'><img src='login.png'/></a>");
+            //window.location.href = url;
+        }
     </script>
 </body>

@@ -1,7 +1,7 @@
 #!/usr/bin/python2.6
 #-*- coding: UTF-8 -*-
 
-import sys, time, os, json, traceback, datetime;
+import sys, time, os, json, traceback, datetime, urllib;
 import cherrypy, MySQLdb;
 
 # set the default encoding to utf-8
@@ -11,28 +11,94 @@ reload(sys);
 exec("sys.setdefaultencoding('utf-8')");
 assert sys.getdefaultencoding().lower() == "utf-8";
 
-def check_auth(*args, **kwargs):
-    if "access_token" in cherrypy.request.cookie:
-        trace("xxx: "+cherrypy.request.cookie["access_token"]);
-    conditions = cherrypy.request.config.get('auth.require', None)
-    if conditions is None:
-        return;
+SESSION_KEY = '_cp_user_id'
+    
+'''
+authorize: get the user ids that cannot access by user_id.
+'''
+def authorize_get_exception_user_id(user_id):
+    if user_id is None:
+        return [];
         
+    # check admin role, if admin, access all users.
+    records = sql_exec("select user_id from dr_authorize_admin where user_id='%s'"%(user_id));
+    if len(records) > 0:
+        return [];
+        
+    # check manager role, if manager, access himself and all users managed by him.
+    records = sql_exec("select user_id from dr_user "
+        "where user_id!='%s' "
+        "and user_id not in(select user_id from dr_authorize_manger where manager_id='%s')"
+        %(user_id, user_id));
+        
+    ret = [];
+    for record in records:
+        ret.append(record[0]);
+        
+    return ret;
+
+'''
+authorize: require user specified by request_user_id
+'''
+def authorize_user(request_user_id):
     auth = _config["auth"];
     if not auth["on"]:
         return;
         
-    '''
-        username = cherrypy.session.get(SESSION_KEY)
-        if username:
-            cherrypy.request.login = username
-            for condition in conditions:
-                # A condition is just a callable that returns true or false
-                if not condition():
-                    raise cherrypy.HTTPRedirect("/auth/login")
-        else:
-            raise cherrypy.HTTPRedirect("/auth/login")
-    '''
+    # method donot require check.
+    conditions = cherrypy.request.config.get('auth.require', None)
+    if conditions is None:
+        return;
+        
+    # QQ-OAuth not enabled.
+    if auth["strategy"] == "qq_oauth":
+        # check QQ-OAuth session.
+        key = cherrypy.session.get(SESSION_KEY);
+        if key is None:
+            error("authorize_user invalid, no session.");
+            enable_crossdomain();
+            raise cherrypy.HTTPError(401, "You are not authorized, login please.");
+            return;
+        if request_user_id in authorize_get_exception_user_id(key):
+            error("authorize_user(id=%s) requires user id=%s invalid, check authorization failed."%(key, request_user_id));
+            enable_crossdomain();
+            raise cherrypy.HTTPError(403, "You(id=%s) are not authorized as %s, login please."%(key, request_user_id));
+            return;
+        trace("authorize success, user_id=%s requires id=%s"%(key, request_user_id));
+            
+    return;
+    
+
+def check_auth(*args, **kwargs):
+    # auth not enabled in config.
+    auth = _config["auth"];
+    if not auth["on"]:
+        return;
+        
+    # method donot require check.
+    conditions = cherrypy.request.config.get('auth.require', None)
+    if conditions is None:
+        return;
+        
+    # QQ-OAuth not enabled.
+    if auth["strategy"] == "qq_oauth":
+        # check QQ-OAuth session.
+        key = cherrypy.session.get(SESSION_KEY);
+        if key is None:
+            error("session invalid, check auth failed.");
+            enable_crossdomain();
+            raise cherrypy.HTTPError(401, "You are not authorized, login please.");
+            return;
+    
+    # check condition.
+    for condition in conditions:
+        if not condition():
+            error("codition check invalid, check auth failed.");
+            enable_crossdomain();
+            raise cherrypy.HTTPError(401, "You are not authorized for specified condition");
+            return;
+            
+    trace("check auth success. key=%s"%(key));
     
 cherrypy.tools.auth = cherrypy.Tool('before_handler', check_auth)
 
@@ -71,11 +137,161 @@ def sql_exec(sql):
 def enable_crossdomain():
     cherrypy.response.headers["Access-Control-Allow-Origin"] = "*";
     cherrypy.response.headers["Access-Control-Allow-Methods"] = "GET, POST, HEAD, PUT, DELETE";
-    cherrypy.response.headers["Access-Control-Allow-Headers"] = "Cache-Control, X-Proxy-Authorization, X-Requested-With, Content-Type";
+    # generate allow headers.
+    allow_headers = ["Cache-Control", "X-Proxy-Authorization", "X-Requested-With", "Content-Type"];
+    cherrypy.response.headers["Access-Control-Allow-Headers"] = ",".join(allow_headers);
 
+class ErrorCode:
+    Success = 0x00;
+    Failed = 0x100;
+    # authenticated, but not associated with local system.
+    NotAssociated = 0x200;
+    
+class RESTAuth(object):
+    exposed = True;
+        
+    def qq_oauth_cache_openid(self, access_token, openid):
+        auth = _config["auth"];
+        
+        # query user by openid from local db.
+        records = sql_exec("select u.user_id,u.user_name from dr_user u, dr_authenticate a where u.user_id=a.user_id and a.qq_oauth_id='%s'"%(openid));
+        if len(records) == 0:
+            # query all un-associated users.
+            users = [];
+            records = sql_exec("select user_id,user_name from dr_user where user_id not in (select user_id from dr_authenticate)");
+            for record in records:
+                users.append({"id":record[0], "value":record[1]});
+            return json.dumps({"error":ErrorCode.NotAssociated, 
+                "access_token":access_token, "openid":openid, "users":users, 
+                "error_description":"user not found, please associate one"});
+            
+        # matched, update session to login success
+        (user_id, user_name) = (records[0][0], records[0][1]);
+        trace("openid=%s match user %s(id=%s)"%(openid, user_name, user_id));
+        cherrypy.session[SESSION_KEY] = user_id;
+        
+        '''
+        # matched, update the user info.
+        # https://graph.qq.com/user/get_user_info?access_token=xxx&appid=xxx&openid=xxx
+        app_id = auth["qq_oauth_api_app_id"];
+        api = "%s?access_token=%s&appid=%s&openid=%s"%(auth["qq_oauth_api_get_user_info"], access_token, app_id, openid);
+        trace("get user info from %s"%(api));
+        
+        # query user info
+        url = urllib.urlopen(api);
+        data = url.read();
+        url.close();
+
+        try:
+            res_json = json.loads(data);
+        except Exception,e:
+            error(sys.exc_info);
+            return json.dumps({"error":ErrorCode.Failed, "error_description":"user info to json error"});
+        
+        # retrieve user info
+        nick_name = "";figure_url="";
+        if "nickname" in res_json:
+            nick_name = res_json["nickname"];
+        if "figureurl_qq_2" in res_json:
+            figure_url = res_json["figureurl_qq_2"];
+        trace("user %s(id=%s) nick=%s figure=%s"%(user_name, user_id, nick_name, figure_url));
+        
+        # update user info to db.
+        sql_exec("update dr_authenticate set qq_oauth_nick_name='%s',qq_oauth_figure_url='%s',qq_oauth_access_token='%s' "
+            "where user_id=%s and qq_oauth_id='%s'"%(nick_name, figure_url, access_token, user_id, openid));
+        trace("update user info to local db success.");
+        '''
+        
+        return json.dumps({"error":ErrorCode.Success, "user_id":user_id, "error_description":"validate success"});
+    
+    def qq_oauth_access(self, access_token):
+        auth = _config["auth"];
+        
+        # https://graph.qq.com/oauth2.0/me?access_token=FD87F558D3F85668D5B5E43DA58C4D0D
+        api = "%s?access_token=%s"%(auth["qq_oauth_api_me"], access_token);
+        trace("validate access_token from %s"%(api));
+        
+        # query openid
+        url = urllib.urlopen(api);
+        data = url.read();
+        url.close();
+        
+        json_data = data.strip().strip("callback").strip("(").strip(";").strip(")").strip();
+        trace("trim data to %s"%(json_data));
+
+        try:
+            res_json = json.loads(json_data);
+        except Exception,e:
+            error(sys.exc_info);
+            return json.dumps({"error":ErrorCode.Failed, "error_description":"openid to json error"});
+            
+        # check openid
+        if "error" in res_json:
+            return json.dumps({"error":ErrorCode.Failed, "error_description":"request openid error, response=%s"%(data)});
+        if "openid" not in res_json:
+            return json.dumps({"error":ErrorCode.Failed, "error_description":"request openid invalid, response=%s"%(data)});
+        openid = res_json["openid"];
+        trace("openid=%s access_token=%s"%(openid, access_token));
+        
+        return self.qq_oauth_cache_openid(access_token, openid);
+        
+    def qq_oauth_associate(self, req_json):
+        access_token = sql_escape(req_json["access_token"]);
+        qq_oauth_id = sql_escape(req_json["openid"]);
+        user_id = sql_escape(req_json["user"]);
+        
+        sql_exec("delete from dr_authenticate where user_id=%s and qq_oauth_id='%s'"%(user_id, qq_oauth_id));
+        sql_exec("insert into dr_authenticate (user_id, qq_oauth_id) values('%s', '%s')"%(user_id, qq_oauth_id));
+        
+        trace("associate user id=%s to auth openid=%s access_token=%s"%(user_id, qq_oauth_id, access_token));
+        
+        openid = qq_oauth_id;
+        
+        return self.qq_oauth_cache_openid(access_token, openid);
+        
+    def GET(self, access_token):
+        enable_crossdomain();
+        
+        auth = _config["auth"];
+        if not auth["on"]:
+            raise cherrypy.HTTPError(405, "auth is off");
+            return;
+            
+        # valid for QQ-OAuth
+        if auth["strategy"] == "qq_oauth":
+            return self.qq_oauth_access(access_token);
+        else:
+            raise cherrypy.HTTPError(405, "no auth strategy speicfied");
+        
+    def POST(self):
+        enable_crossdomain();
+        
+        auth = _config["auth"];
+        if not auth["on"]:
+            raise cherrypy.HTTPError(405, "auth is off");
+            return;
+            
+        req_json_str = cherrypy.request.body.read();
+
+        try:
+            req_json = json.loads(req_json_str);
+        except Exception,e:
+            error(sys.exc_info);
+            return json.dumps({"error":ErrorCode.Failed, "error_description":"to json error"});
+            
+        # valid for QQ-OAuth
+        if auth["strategy"] == "qq_oauth":
+            return self.qq_oauth_associate(req_json);
+        else:
+            raise cherrypy.HTTPError(405, "no auth strategy speicfied");
+        
+    def OPTIONS(self):
+        enable_crossdomain();
+        
 class RESTGroup(object):
     exposed = True;
 
+    @check_auth()
     def GET(self):
         enable_crossdomain();
         records = sql_exec("select group_id,group_name from dr_group");
@@ -91,6 +307,7 @@ class RESTGroup(object):
 class RESTProduct(object):
     exposed = True;
 
+    @check_auth()
     def GET(self):
         enable_crossdomain();
         records = sql_exec("select product_id,product_name from dr_product");
@@ -106,6 +323,7 @@ class RESTProduct(object):
 class RESTWorkType(object):
     exposed = True;
 
+    @check_auth()
     def GET(self):
         enable_crossdomain();
         records = sql_exec("select type_id,type_name from dr_type");
@@ -124,26 +342,43 @@ class RESTUser(object):
     def GET(self, group=""):
         enable_crossdomain();
         
+        records = [];
         if group == "":
             records = sql_exec("select user_id,user_name from dr_user");
         else:
             records = sql_exec("select u.user_id,u.user_name "
                 "from dr_user u,dr_group g,dr_rs_group_user rs "
                 "where rs.user_id = u.user_id and g.group_id = rs.group_id and g.group_id = %s"%(group));
+        
+        user_id = None;
+        auth = _config["auth"];
+        if auth["on"]:
+            # QQ-OAuth not enabled.
+            if auth["strategy"] == "qq_oauth":
+                # check QQ-OAuth session.
+                key = cherrypy.session.get(SESSION_KEY);
+                user_id = key;
+                
+        # the user cannot authorize by specified user.
+        exception_users = authorize_get_exception_user_id(user_id);
+        trace("get users while group=%s for user_id=%s exception_users=%s"%(group, user_id, exception_users));
             
         ret = [];
         for record in records:
-            ret.append({"id":record[0], "value":record[1]});
+            returned_user_id = record[0];
+            if returned_user_id in exception_users:
+                continue;
+            ret.append({"id":returned_user_id, "value":record[1]});
+            
         return json.dumps(ret);
         
     def OPTIONS(self):
         enable_crossdomain();
 
-    
-import urllib;
 class RESTRedmine(object):
     exposed = True;
 
+    @check_auth()
     def GET(self, issue_id):
         enable_crossdomain();
         # read config from file.
@@ -250,8 +485,13 @@ class RESTDailyReport(object):
         
         return json.dumps(ret);
         
+    @check_auth()
     def GET(self, group="", start_time="", end_time="", summary="", user_id="", product_id="", type_id=""):
         enable_crossdomain();
+        
+        trace('group=%s, start_time=%s, end_time=%s, summary=%s, user_id=%s, product_id=%s, type_id=%s'%(group, start_time, end_time, summary, user_id, product_id, type_id));
+        if user_id != "":
+            authorize_user(user_id);
         
         if group == "":
             if summary == "1":
@@ -264,6 +504,7 @@ class RESTDailyReport(object):
             else:
                 return self.query_detail_group(group, start_time, end_time, user_id, product_id, type_id);
 
+    @check_auth()
     def POST(self):
         enable_crossdomain();
         req_json_str = cherrypy.request.body.read();
@@ -272,10 +513,14 @@ class RESTDailyReport(object):
             req_json = json.loads(req_json_str);
         except Exception,e:
             error(sys.exc_info);
-            return json.dumps({"error_code":ErrorCode.fail,"description":"to json error"});
+            return json.dumps({"error":ErrorCode.Failed, "error_description":"to json error"});
         
         user_id = sql_escape(req_json["user"]);
         work_date = sql_escape(req_json["date"]);
+        
+        # check authorize.
+        authorize_user(user_id);
+        
         # remove the removed reports
         exists_reports = [];
         for item in req_json["items"]:
@@ -304,7 +549,7 @@ class RESTDailyReport(object):
                 ret = sql_exec("insert into dr_report (product_id, user_id, type_id, bug_id, work_hours, priority, report_content, work_date, insert_date, modify_date) values('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', %s, %s)"
                         %(product_id, user_id, type_id, bug_id, work_hours, priority, report_content, work_date, "now()", "now()"));
 
-        return json.dumps({"error_code":0, "desc":"success"});
+        return json.dumps({"error":ErrorCode.Success, "desc":"success"});
         
     def OPTIONS(self):
         enable_crossdomain();
@@ -450,6 +695,10 @@ if True:
     f = open(os.path.join(static_dir, "ui", "conf.js"), "w");
     for js in js_config:
         f.write("%s\n"%(js));
+    if _config["auth"]["on"] and _config["auth"]["strategy"] == "qq_oauth":
+        f.write("%s\n"%("function get_qq_oauth_app_id(){\n    return '" + _config["auth"]["qq_oauth_api_app_id"] + "';\n}"));
+        f.write("%s\n"%("function get_qq_oauth_redirect_url(){\n    return '" + _config["auth"]["qq_oauth_api_redirect_url"] + "';\n}"));
+        f.write("%s\n"%("function get_qq_oauth_state(){\n    return '" + _config["auth"]["qq_oauth_api_state"] + "';\n}"));
     f.close();
 
 # init ui tree.
@@ -460,6 +709,7 @@ root.users = RESTUser();
 root.products = RESTProduct();
 root.groups = RESTGroup();
 root.work_types = RESTWorkType();
+root.auths = RESTAuth();
 
 conf = {
     'global': {
@@ -472,7 +722,8 @@ conf = {
         #'server.thread_pool': 1, # single thread server.
         'tools.encode.on': True,
         'tools.encode.encoding': 'utf-8',
-        'tools.auth.on': True
+        'tools.auth.on': _config["auth"]["on"],
+        'tools.sessions.on': True,
     },
     '/': {
         'request.dispatch': cherrypy.dispatch.MethodDispatcher(),

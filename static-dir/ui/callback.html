@@ -27,14 +27,8 @@
         var obj = parse_query_string();
         //console.log(obj);
         
-        // make the default router
-        var router = {
-            "dev": "http://dev:3001/ui/auth.html",
-            "dev-demo": "http://dev:3001/ui/qq.oauth.demo.html"
-        };
-        
         // generate the redirect url.
-        var url = router[obj.state] + window.location.hash;
+        var url = "http://" + obj.state + "/ui/auth.html" + window.location.hash;
         //console.log(url);
         
         window.location.href = url;
