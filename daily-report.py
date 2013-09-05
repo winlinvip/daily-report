@@ -170,37 +170,9 @@ class RESTAuth(object):
         trace("openid=%s match user %s(id=%s)"%(openid, user_name, user_id));
         cherrypy.session[SESSION_KEY] = user_id;
         
-        '''
-        # matched, update the user info.
-        # https://graph.qq.com/user/get_user_info?access_token=xxx&appid=xxx&openid=xxx
-        app_id = auth["qq_oauth_api_app_id"];
-        api = "%s?access_token=%s&appid=%s&openid=%s"%(auth["qq_oauth_api_get_user_info"], access_token, app_id, openid);
-        trace("get user info from %s"%(api));
-        
-        # query user info
-        url = urllib.urlopen(api);
-        data = url.read();
-        url.close();
-
-        try:
-            res_json = json.loads(data);
-        except Exception,e:
-            error(sys.exc_info);
-            return json.dumps({"error":ErrorCode.Failed, "error_description":"user info to json error"});
-        
-        # retrieve user info
-        nick_name = "";figure_url="";
-        if "nickname" in res_json:
-            nick_name = res_json["nickname"];
-        if "figureurl_qq_2" in res_json:
-            figure_url = res_json["figureurl_qq_2"];
-        trace("user %s(id=%s) nick=%s figure=%s"%(user_name, user_id, nick_name, figure_url));
-        
         # update user info to db.
-        sql_exec("update dr_authenticate set qq_oauth_nick_name='%s',qq_oauth_figure_url='%s',qq_oauth_access_token='%s' "
-            "where user_id=%s and qq_oauth_id='%s'"%(nick_name, figure_url, access_token, user_id, openid));
+        sql_exec("update dr_authenticate set qq_oauth_access_token='%s' where user_id=%s and qq_oauth_id='%s'"%(access_token, user_id, openid));
         trace("update user info to local db success.");
-        '''
         
         return json.dumps({"error":ErrorCode.Success, "user_id":user_id, "error_description":"validate success"});
     
