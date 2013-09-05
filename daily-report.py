@@ -668,9 +668,15 @@ if True:
     for js in js_config:
         f.write("%s\n"%(js));
     if _config["auth"]["on"] and _config["auth"]["strategy"] == "qq_oauth":
+        f.write("%s\n"%("function enable_auth(){\n    return true;\n}"));
         f.write("%s\n"%("function get_qq_oauth_app_id(){\n    return '" + _config["auth"]["qq_oauth_api_app_id"] + "';\n}"));
         f.write("%s\n"%("function get_qq_oauth_redirect_url(){\n    return '" + _config["auth"]["qq_oauth_api_redirect_url"] + "';\n}"));
         f.write("%s\n"%("function get_qq_oauth_state(){\n    return '" + _config["auth"]["qq_oauth_api_state"] + "';\n}"));
+    else:
+        f.write("%s\n"%("function enable_auth(){\n    return false;\n}"));
+        f.write("%s\n"%("function get_qq_oauth_app_id(){\n    return 'xxx';\n}"));
+        f.write("%s\n"%("function get_qq_oauth_redirect_url(){\n    return 'http://xxx';\n}"));
+        f.write("%s\n"%("function get_qq_oauth_state(){\n    return 'xxx';\n}"));
     f.close();
 
 # init ui tree.

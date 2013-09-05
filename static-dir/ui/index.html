@@ -36,6 +36,9 @@
             $("#login").append("<a href='" + url + "'><img src='ui/login.png'/></a>");
             //window.location.href = url;
         }
-        require_login();
+        
+        if(enable_auth()){
+            require_login();
+        }
     </script>
 </body>
