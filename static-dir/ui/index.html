@@ -2,7 +2,40 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>DailyReport</title>
+    <style type="text/css">
+    body{
+        font-size: 12px;
+    }
+    </style>
 </head>
 <body>
-    Welcome!
+    <div id="login"></div>
+    <script type="text/javascript" src="ui/jquery.js"></script>
+    <script type="text/javascript" src="ui/conf.js"></script>
+    <script type="text/javascript">
+        function require_login(){
+            // 应用的APPID
+            var appID = get_qq_oauth_app_id();
+            // 成功授权后的回调地址
+            var redirectURI = get_qq_oauth_redirect_url();
+            // 透传的状态
+            var state = get_qq_oauth_state();
+            
+            var path = 'https://graph.qq.com/oauth2.0/authorize?';
+            var queryParams = ['client_id=' + appID,
+                'redirect_uri=' + redirectURI,
+                'scope=' + 'get_user_info', 
+                'response_type=token',
+                'state=' + state];
+
+            var query = queryParams.join('&');
+            var url = path + query;
+            //console.log(url);
+            $("#login").empty();
+            $("#login").append("Welcome to " + get_system_title() + "!<br/>");
+            $("#login").append("<a href='" + url + "'><img src='ui/login.png'/></a>");
+            //window.location.href = url;
+        }
+        require_login();
+    </script>
 </body>

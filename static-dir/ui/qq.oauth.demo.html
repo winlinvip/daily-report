@@ -20,7 +20,7 @@
         // 成功授权后的回调地址
         var redirectURI = get_qq_oauth_redirect_url();
         // 透传的状态
-        var state = "dev-demo";
+        var state = get_qq_oauth_state();
         
         var path = 'https://graph.qq.com/oauth2.0/authorize?';
         var queryParams = ['client_id=' + appID,
