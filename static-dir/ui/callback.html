@@ -28,7 +28,8 @@
         //console.log(obj);
         
         // generate the redirect url.
-        var url = "http://" + obj.state + "/ui/auth.html" + window.location.hash;
+        var host = obj.state;
+        var url = "http://" + escape(host) + "/ui/auth.html" + window.location.hash;
         //console.log(url);
         
         window.location.href = url;
