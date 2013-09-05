@@ -27,9 +27,11 @@
         var obj = parse_query_string();
         //console.log(obj);
         
+        // for IE, cannot pase the char ":", we use ".." to substitued.
+        var host = obj.state.replace("..", ":");
+        
         // generate the redirect url.
-        var host = obj.state;
-        var url = "http://" + escape(host) + "/ui/auth.html" + window.location.hash;
+        var url = "http://" + host + "/ui/auth.html" + window.location.hash;
         //console.log(url);
         
         window.location.href = url;
