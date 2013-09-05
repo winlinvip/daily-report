@@ -1,7 +1,6 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <meta property="qc:admins" content="3545371525763066145763757411415250724" />
     <title>DailyReport</title>
     <style type="text/css">
     body{
@@ -14,6 +13,8 @@
     <script type="text/javascript" src="jquery.js"></script>
     <script type="text/javascript" src="conf.js"></script>
     <script type="text/javascript">
+        document.title = get_system_title();
+        
         function require_login(){
             // 应用的APPID
             var appID = get_qq_oauth_app_id();
