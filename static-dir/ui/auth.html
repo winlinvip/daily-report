@@ -135,6 +135,32 @@
             });
         }
         
+        var waiting_bar_enabled = true;
+        var waiting_bar_ms = 0;
+        function waiting_bar(){
+            var waiting_bar_interval_ms = 100;
+            
+            if(!waiting_bar_enabled){
+                return;
+            }
+            
+            var msg = "连接到腾讯服务器验证用户token，请稍候：";
+            
+            msg += "<font color='red'>" + Number(waiting_bar_ms / 1000).toFixed(1) + "</font>";
+            msg += "秒";
+            
+            var dotdot = "";
+            for(var i = 0; i < waiting_bar_ms / 1000; i++){
+                dotdot += ".";
+            }
+            msg += "<font color='red'>" + dotdot + "</font>";
+            
+            waiting_bar_ms += waiting_bar_interval_ms;
+            trace(msg);
+            
+            setTimeout(waiting_bar, waiting_bar_interval_ms);
+        }
+        
         function parse_access_token(){
             trace("登录成功");
             
@@ -146,12 +172,14 @@
                 return;
             }
             
-            trace("登录成功，用户token正常，正在获取本地资料...");
+            waiting_bar_enabled = true;
+            waiting_bar();
             
             var req = {};
             req.access_token = obj.access_token;
             
             $.getJSON(get_service_url("/auths?access_token=" + obj.access_token), function(data){
+                waiting_bar_enabled = false;
                 trace("向内容服务器请求数据");
                 //console.log(data);
                 
