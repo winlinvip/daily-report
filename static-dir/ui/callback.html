@@ -28,11 +28,12 @@
         //console.log(obj);
         
         // for IE, cannot pase the char ":", we use ".." to substitued.
-        var host = obj.state.replace("..", ":");
+        var host = obj.state;
         
         // generate the redirect url.
-        var url = "http://" + host + "/ui/auth.html" + window.location.hash;
+        var url = "http://" + unescape(host) + "/ui/auth.html" + window.location.hash;
         //console.log(url);
+        //document.write(url);
         
         window.location.href = url;
     </script>
