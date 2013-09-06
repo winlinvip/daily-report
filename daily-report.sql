@@ -12,7 +12,8 @@ create table dr_product(
 drop table if exists dr_user;
 create table dr_user( 
     user_id int(32) not null auto_increment, 
-    user_name varchar(200) default null,  
+    user_name varchar(200) not null,  
+    email varchar(200) default null,
     primary key (`user_id`) 
 ) auto_increment=200 default charset=utf8;
 

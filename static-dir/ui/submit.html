@@ -33,9 +33,27 @@
         margin-left: -5px;
         margin-right: 10px;
     }
+    div.copy_right_container{
+        clear:both;
+    }
+    div.copy_right_container{
+        padding-top: 5px;
+    }
+    div.copy_right{
+        border-top: 1px solid #cccccc;
+        font-size: 14px;
+        font-weight: bold;
+        padding: 3;
+        background-color: #FFF;
+        text-align: center;
+    }
+    div.copy_right{
+        width: 600px;
+        margin-left: 100px;
+    }
     </style>
 </head>
-<body>
+<body id="body">
     <div id="log" class="log"></div>
     <div class="main">
         <div class="item">
@@ -52,6 +70,11 @@
         <input id="add_item" value="增加工作项" type="button"/>
         <input id="view" value="查看日报" type="button"/>
         <input id="submit" value="提交日报" type="button"/>
+    </div>
+    <div class="copy_right_container">
+        <div class="copy_right">
+        CopyRight&copy;OpenSourceDailyReport, 2013.
+        </div>
     </div>
     <script type="text/javascript" src="jquery.js"></script>
     <script type="text/javascript" src="json2.js"></script>
@@ -123,6 +146,7 @@
         // main function.
         $(function(){
             document.title = get_system_title();
+            $("#body").hide();
             
             if(!enable_select_date()){
                 $("#write_time").attr("disabled", true);
@@ -155,6 +179,8 @@
         function initialize_page(){
             $("#users").html('<option value>-请选择填报人-</option>');
             $.getJSON(get_service_url("/users"), function(data){
+                $("#body").show();
+                
                 // only one? use it.
                 if(data.users.length <= 1){
                     $("#users").empty();
@@ -286,7 +312,7 @@
             
             exists_user_data = user_data;
             
-            console.log(user_data);
+            //console.log(user_data);
             for(var i = 0; i < user_data.length; i++){
                 var obj = append_new_work_item_obj();
                 

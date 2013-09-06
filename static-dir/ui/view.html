@@ -6,7 +6,7 @@
     body{
         font-size: 12px;
     }
-    div.coll_item{
+    div.coll_item,div.copy_right_container{
         clear:both;
     }
     div.item{
@@ -18,7 +18,11 @@
         padding: 3;
         background-color: #36E636;
     }
+    div.copy_right_container{
+        padding-top: 5px;
+    }
     div.copy_right{
+        border-top: 1px solid #cccccc;
         font-size: 14px;
         font-weight: bold;
         padding: 3;
@@ -75,6 +79,10 @@
     div.coll_item{
         width: 1500px;
     }
+    div.copy_right{
+        margin-left: 150px;
+        width: 1200px;
+    }
     div.item{
         width: 750px;
     }
@@ -95,7 +103,7 @@
     }
     </style>
 </head>
-<body>
+<body id="body">
     <div>
         <div id="log" class="log"></div>
         <div>
@@ -196,7 +204,7 @@
             <div id="day_detail_items">
             </div>
         </div>
-        <div class="coll_item">
+        <div class="copy_right_container">
             <div class="copy_right">
             CopyRight&copy;OpenSourceDailyReport, 2013.
             </div>
@@ -346,6 +354,7 @@
         // main function
         $(function(){
             document.title = get_system_title();
+            $("#body").hide();
             
             initialize_page();
             
@@ -372,6 +381,8 @@
             });
             
             $.getJSON(get_service_url("/groups"), function(data){
+                $("#body").show();
+                
                 for(var i = 0; i < data.length; i++){
                     var group = data[i];
                     
@@ -394,6 +405,7 @@
             if(obj.date != undefined){
                 $("#write_time").val(obj.date);
             }
+            
             if(obj.auto_query == 1){
                 show_report();
             }
@@ -436,6 +448,8 @@
             // query basic info, users/products/work_types.
             trace("请求users数据");
             $.getJSON(get_service_url("/users?group=" + data.group), function(ret){
+                $("#body").show();
+                
                 data.users = ret.users;
                 data.users_kv = {};
                 for(var i = 0; i < ret.users.length; i++){
