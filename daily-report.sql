@@ -59,7 +59,7 @@ create table dr_authenticate(
     auth_id int(32) not null auto_increment, 
     user_id int(32) not null, 
     qq_oauth_access_token varchar(200) default null,  
-    qq_oauth_id varchar(200) default null,
+    qq_oauth_openid varchar(200) default null,
     primary key (`auth_id`) 
 ) auto_increment=700 default charset=utf8;
 
@@ -82,12 +82,15 @@ create table dr_authorize_admin(
 
 -- update history
 -- 2013-8-27
--- alter table dr_report add modify_date datetime not null
+-- alter table dr_report add modify_date datetime not null;
 -- 2013-9-1
--- alter table dr_report add priority double not null
+-- alter table dr_report add priority double not null;
 -- 2013-9-3
--- alter table dr_user add email varchar(200) null
+-- alter table dr_user add email varchar(200) null;
 -- 2013-9-5
--- create table dr_authenticate
--- create table dr_authorize_manger
--- create table dr_authorize_admin
+-- create table dr_authenticate;
+-- create table dr_authorize_manger;
+-- create table dr_authorize_admin;
+-- 2013-9-6
+-- alter table dr_authenticate drop qq_oauth_id;
+-- alter table dr_authenticate add qq_oauth_openid varchar(200);

@@ -73,7 +73,7 @@
         function on_click_submit_info(){
             var req = {};
             
-            req.openid = $("#openid").val();
+            req.qq_oauth_openid = $("#qq_oauth_openid").val();
             req.access_token = $("#access_token").val();
             
             req.user = $("#users").val();
@@ -108,14 +108,14 @@
             $("#login").html(''+
                 '<div class="main">'+
                 '    <div>*登录成功，请关联' + get_system_name() + '的帐号</div>'+
-                '    <input id="openid" type="hidden" value=""></input>'+
+                '    <input id="qq_oauth_openid" type="hidden" value=""></input>'+
                 '    <input id="access_token" type="hidden" value=""></input>'+
                 '    <div>我是：<select id="users"/></div>'+
                 '    <div><input id="submit" class="button" type="button" value="提交资料"/></div>'+
                 '</div>'+
                 '');
                 
-            $("#openid").val(data.openid);
+            $("#qq_oauth_openid").val(data.qq_oauth_openid);
             $("#access_token").val(data.access_token);
             
             $("#users").empty();

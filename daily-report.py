@@ -1,7 +1,7 @@
 #!/usr/bin/python2.6
 #-*- coding: UTF-8 -*-
 
-import sys, time, os, json, traceback, datetime, urllib;
+import sys, time, os, json, traceback, datetime, urllib, random;
 import cherrypy, MySQLdb;
 
 # set the default encoding to utf-8
@@ -149,77 +149,124 @@ class ErrorCode:
     
 class RESTAuth(object):
     exposed = True;
-        
-    def qq_oauth_cache_openid(self, access_token, openid):
-        auth = _config["auth"];
-        
-        # query user by openid from local db.
-        records = sql_exec("select u.user_id,u.user_name from dr_user u, dr_authenticate a where u.user_id=a.user_id and a.qq_oauth_id='%s'"%(openid));
-        if len(records) == 0:
-            # query all un-associated users.
-            users = [];
-            records = sql_exec("select user_id,user_name from dr_user where user_id not in (select user_id from dr_authenticate)");
-            for record in records:
-                users.append({"id":record[0], "value":record[1]});
-            return json.dumps({"error":ErrorCode.NotAssociated, 
-                "access_token":access_token, "openid":openid, "users":users, 
-                "error_description":"user not found, please associate one"});
-            
-        # matched, update session to login success
-        (user_id, user_name) = (records[0][0], records[0][1]);
-        trace("openid=%s match user %s(id=%s)"%(openid, user_name, user_id));
-        cherrypy.session[SESSION_KEY] = user_id;
-        
-        # update user info to db.
-        sql_exec("update dr_authenticate set qq_oauth_access_token='%s' where user_id=%s and qq_oauth_id='%s'"%(access_token, user_id, openid));
-        trace("update user info to local db success.");
-        
-        return json.dumps({"error":ErrorCode.Success, "user_id":user_id, "error_description":"validate success"});
     
-    def qq_oauth_access(self, access_token):
+    def qq_oauth_query_available_associate_user(self, access_token, qq_oauth_openid):
+        # query all un-associated users.
+        users = [];
+        records = sql_exec("select user_id,user_name from dr_user where user_id not in (select user_id from dr_authenticate)");
+        for record in records:
+            users.append({"id":record[0], "value":record[1]});
+        return json.dumps({"error":ErrorCode.NotAssociated, 
+            "access_token":access_token, "qq_oauth_openid":qq_oauth_openid, "users":users, 
+            "error_description":"user not found, please associate one"});
+            
+    def qq_oauth_get_associated(self, qq_oauth_openid):
+        return sql_exec("select u.user_id,u.user_name from dr_user u, dr_authenticate a "
+            "where u.user_id=a.user_id and a.qq_oauth_openid='%s'"%(qq_oauth_openid));
+            
+    def qq_oauth_auto_register(self, access_token, qq_oauth_openid):
         auth = _config["auth"];
         
-        # https://graph.qq.com/oauth2.0/me?access_token=FD87F558D3F85668D5B5E43DA58C4D0D
-        api = "%s?access_token=%s"%(auth["qq_oauth_api_me"], access_token);
-        trace("validate access_token from %s"%(api));
+        # https://graph.qq.com/user/get_user_info?access_token=71871H1H3187I31EQJK3197J3JWQ8Q0D&appid=8373636744&openid=87JDD73KH32W3983JIUDS92198DS5B32
+        # get user nickname as user_name, email empty
+        api = "%s?access_token=%s&appid=%s&openid=%s"%(auth["qq_oauth_api_get_user_info"], access_token, auth["qq_oauth_api_app_id"], qq_oauth_openid);
+        trace("auto register get user_info from %s"%(api));
         
-        # query openid
+        # query qq_oauth_openid
         url = urllib.urlopen(api);
         data = url.read();
         url.close();
         
         json_data = data.strip().strip("callback").strip("(").strip(";").strip(")").strip();
-        trace("trim data to %s"%(json_data));
+        trace("trim get_user_info data to %s"%(json_data));
 
         try:
             res_json = json.loads(json_data);
         except Exception,e:
             error(sys.exc_info);
-            return json.dumps({"error":ErrorCode.Failed, "error_description":"openid to json error"});
+            return json.dumps({"error":ErrorCode.Failed, "error_description":"userinfo to json error"});
             
-        # check openid
+        # check userinfo
         if "error" in res_json:
-            return json.dumps({"error":ErrorCode.Failed, "error_description":"request openid error, response=%s"%(data)});
-        if "openid" not in res_json:
-            return json.dumps({"error":ErrorCode.Failed, "error_description":"request openid invalid, response=%s"%(data)});
-        openid = res_json["openid"];
-        trace("openid=%s access_token=%s"%(openid, access_token));
+            return json.dumps({"error":ErrorCode.Failed, "error_description":"request userinfo error, response=%s"%(data)});
+        if "nickname" not in res_json:
+            return json.dumps({"error":ErrorCode.Failed, "error_description":"request nickname invalid, response=%s"%(data)});
+        nickname = res_json["nickname"];
+        trace("nickname=%s access_token=%s qq_oauth_openid=%s"%(nickname, access_token, qq_oauth_openid));
         
-        return self.qq_oauth_cache_openid(access_token, openid);
+        user_name = "%s%s"%(nickname, int(random.random()*1000000));
+        sql_exec("insert into dr_user(user_name) values('%s')"%(user_name));
+        records = sql_exec("select user_id from dr_user where user_name='%s'"%(user_name));
+        user_id = records[0][0];
+        trace("auto insert user, access_token=%s, qq_oauth_openid=%s, user_id=%s"%(access_token, qq_oauth_openid, user_id));
+        
+        self.qq_oauth_register_associate(access_token, qq_oauth_openid, user_id);
+        
+    def qq_oauth_cache_qq_oauth_openid(self, access_token, qq_oauth_openid):
+        auth = _config["auth"];
+        
+        # query user by qq_oauth_openid from local db.
+        records = self.qq_oauth_get_associated(qq_oauth_openid);
+        if len(records) == 0:
+            # if not auto register user, let user to select the available user.
+            if not auth["qq_oauth_auto_register_user"]:
+                return self.qq_oauth_query_available_associate_user(access_token, qq_oauth_openid);
+            # auto register user then reinitialize the associated records.
+            self.qq_oauth_auto_register(access_token, qq_oauth_openid);
+            records = self.qq_oauth_get_associated(qq_oauth_openid);
+            
+        # matched, update session to login success
+        (user_id, user_name) = (records[0][0], records[0][1]);
+        trace("qq_oauth_openid=%s match user %s(id=%s)"%(qq_oauth_openid, user_name, user_id));
+        cherrypy.session[SESSION_KEY] = user_id;
+        
+        return json.dumps({"error":ErrorCode.Success, "user_id":user_id, "error_description":"validate success"});
+    
+    def qq_oauth_register_associate(self, access_token, qq_oauth_openid, user_id):
+        sql_exec("delete from dr_authenticate where user_id=%s and qq_oauth_openid='%s'"%(user_id, qq_oauth_openid));
+        sql_exec("insert into dr_authenticate (user_id, qq_oauth_openid, qq_oauth_access_token) values('%s', '%s', '%s')"%(user_id, qq_oauth_openid, access_token));
+        trace("associate user id=%s to auth qq_oauth_openid=%s access_token=%s"%(user_id, qq_oauth_openid, access_token));
+    
+    def qq_oauth_access(self, access_token):
+        auth = _config["auth"];
+        
+        # https://graph.qq.com/oauth2.0/me?access_token=QE9894RYY787767676G8G87G90980D0D
+        api = "%s?access_token=%s"%(auth["qq_oauth_api_me"], access_token);
+        trace("validate access_token from %s"%(api));
+        
+        # query qq_oauth_openid
+        url = urllib.urlopen(api);
+        data = url.read();
+        url.close();
+        
+        json_data = data.strip().strip("callback").strip("(").strip(";").strip(")").strip();
+        trace("trim me data to %s"%(json_data));
+
+        try:
+            res_json = json.loads(json_data);
+        except Exception,e:
+            error(sys.exc_info);
+            return json.dumps({"error":ErrorCode.Failed, "error_description":"qq_oauth_openid to json error"});
+            
+        # check qq_oauth_openid
+        if "error" in res_json:
+            return json.dumps({"error":ErrorCode.Failed, "error_description":"request qq_oauth_openid error, response=%s"%(data)});
+        if "openid" not in res_json:
+            return json.dumps({"error":ErrorCode.Failed, "error_description":"request qq_oauth_openid invalid, response=%s"%(data)});
+        qq_oauth_openid = res_json["openid"];
+        trace("qq_oauth_openid=%s access_token=%s"%(qq_oauth_openid, access_token));
+        
+        return self.qq_oauth_cache_qq_oauth_openid(access_token, qq_oauth_openid);
         
     def qq_oauth_associate(self, req_json):
         access_token = sql_escape(req_json["access_token"]);
-        qq_oauth_id = sql_escape(req_json["openid"]);
+        qq_oauth_openid = sql_escape(req_json["qq_oauth_openid"]);
         user_id = sql_escape(req_json["user"]);
         
-        sql_exec("delete from dr_authenticate where user_id=%s and qq_oauth_id='%s'"%(user_id, qq_oauth_id));
-        sql_exec("insert into dr_authenticate (user_id, qq_oauth_id) values('%s', '%s')"%(user_id, qq_oauth_id));
+        self.qq_oauth_register_associate(access_token, qq_oauth_openid, user_id);
         
-        trace("associate user id=%s to auth openid=%s access_token=%s"%(user_id, qq_oauth_id, access_token));
-        
-        openid = qq_oauth_id;
-        
-        return self.qq_oauth_cache_openid(access_token, openid);
+        qq_oauth_openid = qq_oauth_openid;
+        return self.qq_oauth_cache_qq_oauth_openid(access_token, qq_oauth_openid);
         
     def GET(self, access_token):
         enable_crossdomain();
