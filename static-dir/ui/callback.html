@@ -8,7 +8,7 @@
     <script type="text/javascript" src="jquery.js"></script>
     <script type="text/javascript">
         function parse_query_string(){
-            var query_string = String(window.location.search).split("?")[1];
+            var query_string = String(window.location.hash).split("#")[1];
             if(query_string == undefined){
                 return {};
             }
@@ -31,7 +31,7 @@
         var host = obj.state;
         
         // generate the redirect url.
-        var url = "http://" + unescape(host) + "/ui/auth.html" + window.location.search;
+        var url = "http://" + unescape(host) + "/ui/auth.html" + window.location.hash;
         //console.log(url);
         //document.write(url);
         

@@ -349,6 +349,12 @@
                 }
                 return;
             }
+            
+            error("程序错误, code="+jqxhr.status);
+            if(ajax_alert_window){
+                alert("程序错误, code="+jqxhr.status);
+                ajax_alert_window = false;
+            }
         }
         var browser={
             agents:function(){
@@ -369,22 +375,14 @@
                 };
             }()
         };
+        // when browser warning, for example maybe not compatible, show warn message in the timeout.
+        var browser_warning_timeout_seconds = 3;
         
         // main function
         $(function(){
             document.title = get_system_title();
             $("#body").hide();
             
-            if(!browser.agents.Windows || !browser.agents.Chrome){
-                error("您的浏览器不是Windows下的Chrome，统计报表图可能会出现问题");
-                setTimeout(main, 2000);
-                return;
-            }
-            
-            main();
-        });
-        
-        function main(){
             initialize_page();
             
             $("div").ajaxError(ajax_error_callback);
@@ -421,12 +419,18 @@
                     
                     $("#group").append(option);
                 }
+                
+                $("#write_time").val(parseDate(new Date()));
+                if(!browser.agents.Windows || !browser.agents.Chrome){
+                    trace("请查询数据");
+                    error("您的浏览器不是Windows下的Chrome，统计报表图可能会出现问题");
+                    setTimeout(do_url_query, browser_warning_timeout_seconds * 1000);
+                }
+                else{
+                    do_url_query();
+                }
             });
-            
-            $("#write_time").val(parseDate(new Date()));
-            trace("请查询数据");
-            do_url_query();
-        }
+        });
         
         function do_url_query(){
             var obj = parse_query_string();
@@ -437,6 +441,7 @@
             
             if(obj.auto_query == 1){
                 show_report();
+                return;
             }
         }
         

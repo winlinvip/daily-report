@@ -141,6 +141,12 @@
                 }
                 return;
             }
+            
+            error("程序错误, code="+jqxhr.status);
+            if(ajax_alert_window){
+                alert("程序错误, code="+jqxhr.status);
+                ajax_alert_window = false;
+            }
         }
         
         // main function.

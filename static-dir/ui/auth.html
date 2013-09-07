@@ -30,7 +30,7 @@
             $("#log").html('<font color="#33AA33">' + msg + '</font>');
         }
         function parse_query_string(){
-            var query_string = String(window.location.search).replace(" ", "").split("?")[1];
+            var query_string = String(window.location.hash).replace(" ", "").split("#")[1];
             if(query_string == undefined){
                 return {};
             }
@@ -76,7 +76,7 @@
             
             trace("初始化页面成功");
             
-            if (window.location.search.length == 0){
+            if (window.location.hash.length == 0){
                 trace("您还没有登录，请先登录");
                 require_login();
                 return;
@@ -86,7 +86,7 @@
         });
         
         function jump_to_work_page(){
-            //window.location.href = "submit.html";
+            window.location.href = "submit.html";
         }
         
         function on_click_submit_info(){
@@ -186,7 +186,7 @@
             var obj = parse_query_string();
             //console.log(obj);
             
-            if(obj.code == undefined || obj.code == null){
+            if(obj.access_token == undefined || obj.access_token == null){
                 error("获取用户的token失败，请重新登录");
                 return;
             }
@@ -195,9 +195,9 @@
             waiting_bar();
             
             var req = {};
-            req.access_token = obj.code;
+            req.access_token = obj.access_token;
             
-            $.getJSON(get_service_url("/auths?access_token=" + obj.code), function(data){
+            $.getJSON(get_service_url("/auths?access_token=" + obj.access_token), function(data){
                 waiting_bar_enabled = false;
                 trace("向" + get_system_name() + "服务器请求数据");
                 //console.log(data);
@@ -231,7 +231,7 @@
             if(browser.agents.Windows){
                 var api = 'https://graph.qq.com/oauth2.0/authorize?';
                 var queryParams = [
-                    'response_type=code',
+                    'response_type=token',
                     'client_id=' + appID,
                     'redirect_uri=' + encodeURI(redirectURI),
                     'state=' + state, 
@@ -243,7 +243,7 @@
                 var api = 'https://graph.qq.com/oauth2.0/authorize?';
                 //var path = 'https://graph.z.qq.com/moc2/authorize?';
                 var queryParams = [
-                    'response_type=code',
+                    'response_type=token',
                     'client_id=' + appID,
                     'redirect_uri=' + encodeURI(redirectURI),
                     'state=' + state, 
