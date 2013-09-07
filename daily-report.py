@@ -604,11 +604,12 @@ from encodings import idna
 
 import smtplib
 from email.mime.text import MIMEText
-def send_mail(smtp_server, username, password, to_user, subject, content):
+def send_mail(smtp_server, username, password, to_user, cc_user, subject, content):
     msg = MIMEText(content, _subtype='html', _charset='utf-8');
     msg['Subject'] = subject;
     msg['From'] = username;
     msg['To'] = ";".join(to_user);
+    msg['CC'] = ";".join(cc_user);
 
     try:
         smtp = smtplib.SMTP();
@@ -675,10 +676,14 @@ class Manager:
         for record in records:
             if not self.do_email_to(record[0], record[1], record[2], date):
                 return False;
-        trace("email to %s success."%(to_user));
+        trace("email to %s cc=%s success."%(to_user, mail_config["cc_user"]));
         return True;
         
     def do_email_to(self, user_id, user_name, email, date):
+        if email is None:
+            error("ignore the empty email for user %s(%s)"%(user_name, user_id));
+            return True;
+            
         mail_config = _config["mail_config"];
         # generate subject
         subject = mail_config["subject"];
@@ -687,7 +692,7 @@ class Manager:
         subject = subject.replace("{user_name}", user_name).replace("{date}", date);
         content = content.replace("{user_id}", str(user_id));
         # do email.
-        if not send_mail(mail_config["smtp_server"], mail_config["username"], mail_config["password"], [email], subject, content):
+        if not send_mail(mail_config["smtp_server"], mail_config["username"], mail_config["password"], [email], mail_config["cc_user"], subject, content):
             trace("email to %s(%s) id=%s failed"%(user_name, email, user_id));
             return False;
         trace("email to %s(%s) id=%s success"%(user_name, email, user_id));
