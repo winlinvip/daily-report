@@ -794,6 +794,7 @@ import signal;
 def handle_SIGUSR2():
     trace("get SIGUSR2, reload config.");
     (static_dir, _config) = reload_config(config_file);
+    cherrypy.engine.restart();
 cherrypy.engine.signal_handler.handlers[signal.SIGUSR2] = handle_SIGUSR2;
 cherrypy.engine.signal_handler.subscribe();
 
