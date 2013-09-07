@@ -194,7 +194,15 @@ class RESTAuth(object):
         nickname = res_json["nickname"];
         trace("nickname=%s access_token=%s qq_oauth_openid=%s"%(nickname, access_token, qq_oauth_openid));
         
-        user_name = "%s%s"%(nickname, int(random.random()*1000000));
+        # check exists.
+        user_name = nickname;
+        records = sql_exec("select user_id from dr_user where user_name='%s'"%(user_name));
+        
+        # exists, change nickname with random postfix.
+        if len(records) != 0:
+            user_name = "%s%s"%(nickname, int(random.random()*1000000));
+        
+        # register user
         sql_exec("insert into dr_user(user_name) values('%s')"%(user_name));
         records = sql_exec("select user_id from dr_user where user_name='%s'"%(user_name));
         user_id = records[0][0];
