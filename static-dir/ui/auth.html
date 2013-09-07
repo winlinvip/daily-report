@@ -30,7 +30,7 @@
             $("#log").html('<font color="#33AA33">' + msg + '</font>');
         }
         function parse_query_string(){
-            var query_string = String(window.location.hash).replace(" ", "").split("#")[1];
+            var query_string = String(window.location.search).replace(" ", "").split("?")[1];
             if(query_string == undefined){
                 return {};
             }
@@ -48,6 +48,25 @@
             //console.log(jqxhr);
             error("ajax请求错误, status=" + jqxhr.status);
         }
+        var browser={
+            agents:function(){
+                var agent = navigator.userAgent;
+                return {
+                    // platform
+                    Android: agent.indexOf("Android") != -1,
+                    Windows: agent.indexOf("Windows") != -1,
+                    iPhone: agent.indexOf("iPhone") != -1,
+                    // Windows Browsers
+                    Chrome: agent.indexOf("Chrome") != -1,
+                    Firefox: agent.indexOf("Firefox") != -1,
+                    QQBrowser: agent.indexOf("QQBrowser") != -1,
+                    MSIE: agent.indexOf("MSIE") != -1, 
+                    // Android Browsers
+                    Opera: agent.indexOf("Presto") != -1,
+                    MQQBrowser: agent.indexOf("MQQBrowser") != -1,
+                };
+            }()
+        };
         
         // main function.
         $(function(){
@@ -57,7 +76,7 @@
             
             trace("初始化页面成功");
             
-            if (window.location.hash.length == 0){
+            if (window.location.search.length == 0){
                 trace("您还没有登录，请先登录");
                 require_login();
                 return;
@@ -67,7 +86,7 @@
         });
         
         function jump_to_work_page(){
-            window.location.href = "submit.html";
+            //window.location.href = "submit.html";
         }
         
         function on_click_submit_info(){
@@ -167,7 +186,7 @@
             var obj = parse_query_string();
             //console.log(obj);
             
-            if(obj.access_token == undefined || obj.access_token == null){
+            if(obj.code == undefined || obj.code == null){
                 error("获取用户的token失败，请重新登录");
                 return;
             }
@@ -176,9 +195,9 @@
             waiting_bar();
             
             var req = {};
-            req.access_token = obj.access_token;
+            req.access_token = obj.code;
             
-            $.getJSON(get_service_url("/auths?access_token=" + obj.access_token), function(data){
+            $.getJSON(get_service_url("/auths?access_token=" + obj.code), function(data){
                 waiting_bar_enabled = false;
                 trace("向" + get_system_name() + "服务器请求数据");
                 //console.log(data);
@@ -208,19 +227,34 @@
             // 透传的状态
             var state = get_qq_oauth_state();
             
-            // PC
-            var path = 'https://graph.qq.com/oauth2.0/authorize?';
-            // Mobile
-            //var path = 'https://graph.z.qq.com/moc2/authorize?';
-            var queryParams = ['client_id=' + appID,
-                'redirect_uri=' + redirectURI,
-                'scope=' + 'get_user_info', 
-                'response_type=token',
-                'state=' + state];
-
-            var query = queryParams.join('&');
-            var url = path + query;
+            var url = "";
+            if(browser.agents.Windows){
+                var api = 'https://graph.qq.com/oauth2.0/authorize?';
+                var queryParams = [
+                    'response_type=code',
+                    'client_id=' + appID,
+                    'redirect_uri=' + encodeURI(redirectURI),
+                    'state=' + state, 
+                    'scope=' + 'get_user_info', 
+                ];
+                url = api + queryParams.join('&');
+            }
+            else{
+                var api = 'https://graph.qq.com/oauth2.0/authorize?';
+                //var path = 'https://graph.z.qq.com/moc2/authorize?';
+                var queryParams = [
+                    'response_type=code',
+                    'client_id=' + appID,
+                    'redirect_uri=' + encodeURI(redirectURI),
+                    'state=' + state, 
+                    'scope=' + 'get_user_info', 
+                    'display=mobile',
+                    'g_ut=' + '1', 
+                ];
+                url = api + queryParams.join('&');
+            }
             //console.log(url);
+
             $("#login").html("<a href='" + url + "'><img src='login.png'/></a>");
             //window.location.href = url;
         }
