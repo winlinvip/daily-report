@@ -65,8 +65,8 @@ create table dr_authenticate(
 ) auto_increment=700 default charset=utf8;
 
 -- to show the manager role, the manager can manage some user.
-drop table if exists dr_authorize_manger;
-create table dr_authorize_manger( 
+drop table if exists dr_authorize_manager;
+create table dr_authorize_manager( 
     auth_id int(32) not null auto_increment, 
     manager_id int(32) not null, 
     user_id int(32) not null, 
@@ -95,3 +95,5 @@ create table dr_authorize_admin(
 -- 2013-9-6
 -- alter table dr_authenticate drop qq_oauth_id;
 -- alter table dr_authenticate add qq_oauth_openid varchar(200);
+-- 2013-9-7
+-- rename table dr_authorize_manger to dr_authorize_manager;

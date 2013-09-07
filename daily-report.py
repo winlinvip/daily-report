@@ -28,7 +28,7 @@ def authorize_get_exception_user_id(user_id):
     # check manager role, if manager, access himself and all users managed by him.
     records = sql_exec("select user_id from dr_user "
         "where user_id!='%s' "
-        "and user_id not in(select user_id from dr_authorize_manger where manager_id='%s')"
+        "and user_id not in(select user_id from dr_authorize_manager where manager_id='%s')"
         %(user_id, user_id));
         
     ret = [];
