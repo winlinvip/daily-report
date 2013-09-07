@@ -49,7 +49,6 @@
             error("ajax请求错误, status=" + jqxhr.status);
         }
         
-        
         // main function.
         $(function(){
             document.title = get_system_title();
@@ -209,7 +208,10 @@
             // 透传的状态
             var state = get_qq_oauth_state();
             
+            // PC
             var path = 'https://graph.qq.com/oauth2.0/authorize?';
+            // Mobile
+            //var path = 'https://graph.z.qq.com/moc2/authorize?';
             var queryParams = ['client_id=' + appID,
                 'redirect_uri=' + redirectURI,
                 'scope=' + 'get_user_info', 

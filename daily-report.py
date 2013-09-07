@@ -697,44 +697,48 @@ class Manager:
                 return False;
         return True;
     
-# global consts.
-static_dir = None;
+from utility import parse_config, initialize_log, error, trace;
+def reload_config(config_file):
+    # global consts.
+    static_dir = None;
+
+    # global config.
+    _config = parse_config(config_file);
+    initialize_log(_config["log"]["log_to_console"], _config["log"]["log_to_file"], _config["log"]["log_file"]);
+    trace(json.dumps(_config, indent=2));
+
+    # generate js conf by config
+    if True:
+        js_config = _config["js_config"];
+        # base_dir is set to the execute file dir.
+        base_dir = os.path.abspath(os.path.dirname(sys.argv[0]));
+        static_dir = os.path.join(os.path.abspath(base_dir), "static-dir");
+        log = _config["log"];
+        trace("base_dir=%s, static_dir=%s, port=%s, log=%s(file:%s, console:%s)"
+            %(base_dir, static_dir, _config["cherrypy_config"]["port"], 
+            log["log_file"], log["log_to_console"], log["log_to_file"]));
+        f = open(os.path.join(static_dir, "ui", "conf.js"), "w");
+        for js in js_config:
+            f.write("%s\n"%(js));
+        if _config["auth"]["on"] and _config["auth"]["strategy"] == "qq_oauth":
+            f.write("%s\n"%("function enable_auth(){\n    return true;\n}"));
+            f.write("%s\n"%("function get_qq_oauth_app_id(){\n    return '" + _config["auth"]["qq_oauth_api_app_id"] + "';\n}"));
+            f.write("%s\n"%("function get_qq_oauth_redirect_url(){\n    return '" + _config["auth"]["qq_oauth_api_redirect_url"] + "';\n}"));
+            f.write("%s\n"%("function get_qq_oauth_state(){\n    return '" + _config["auth"]["qq_oauth_api_state"] + "';\n}"));
+        else:
+            f.write("%s\n"%("function enable_auth(){\n    return false;\n}"));
+            f.write("%s\n"%("function get_qq_oauth_app_id(){\n    return 'xxx';\n}"));
+            f.write("%s\n"%("function get_qq_oauth_redirect_url(){\n    return 'http://xxx';\n}"));
+            f.write("%s\n"%("function get_qq_oauth_state(){\n    return 'xxx';\n}"));
+        f.close();
+        
+    return (static_dir, _config);
 
 # parse argv as base dir
 config_file = "config.conf";
 if len(sys.argv) > 1:
     config_file = sys.argv[1];
-
-# global config.
-from utility import parse_config, initialize_log, error, trace;
-_config = parse_config(config_file);
-initialize_log(_config["log"]["log_to_console"], _config["log"]["log_to_file"], _config["log"]["log_file"]);
-trace(json.dumps(_config, indent=2));
-
-# generate js conf by config
-if True:
-    js_config = _config["js_config"];
-    # base_dir is set to the execute file dir.
-    base_dir = os.path.abspath(os.path.dirname(sys.argv[0]));
-    static_dir = os.path.join(os.path.abspath(base_dir), "static-dir");
-    log = _config["log"];
-    trace("base_dir=%s, static_dir=%s, port=%s, log=%s(file:%s, console:%s)"
-        %(base_dir, static_dir, _config["cherrypy_config"]["port"], 
-        log["log_file"], log["log_to_console"], log["log_to_file"]));
-    f = open(os.path.join(static_dir, "ui", "conf.js"), "w");
-    for js in js_config:
-        f.write("%s\n"%(js));
-    if _config["auth"]["on"] and _config["auth"]["strategy"] == "qq_oauth":
-        f.write("%s\n"%("function enable_auth(){\n    return true;\n}"));
-        f.write("%s\n"%("function get_qq_oauth_app_id(){\n    return '" + _config["auth"]["qq_oauth_api_app_id"] + "';\n}"));
-        f.write("%s\n"%("function get_qq_oauth_redirect_url(){\n    return '" + _config["auth"]["qq_oauth_api_redirect_url"] + "';\n}"));
-        f.write("%s\n"%("function get_qq_oauth_state(){\n    return '" + _config["auth"]["qq_oauth_api_state"] + "';\n}"));
-    else:
-        f.write("%s\n"%("function enable_auth(){\n    return false;\n}"));
-        f.write("%s\n"%("function get_qq_oauth_app_id(){\n    return 'xxx';\n}"));
-        f.write("%s\n"%("function get_qq_oauth_redirect_url(){\n    return 'http://xxx';\n}"));
-        f.write("%s\n"%("function get_qq_oauth_state(){\n    return 'xxx';\n}"));
-    f.close();
+(static_dir, _config) = reload_config(config_file);
 
 # init ui tree.
 root = Root();
@@ -772,8 +776,8 @@ the cherrypy event mechenism:
 http://docs.cherrypy.org/stable/progguide/extending/customplugins.html
 http://stackoverflow.com/questions/2004514/force-cherrypy-child-threads
 '''
-from cherrypy.process import plugins;
-class QueueThreadPlugin(plugins.SimplePlugin):
+from cherrypy.process.plugins import SimplePlugin;
+class QueueThreadPlugin(SimplePlugin):
     def start(self):
         manager.start();
     def stop(self):
@@ -781,7 +785,16 @@ class QueueThreadPlugin(plugins.SimplePlugin):
     def main(self):
         manager.main();
 # subscribe the start/stop event of cherrypy engine.
-queue_thread_plugin = QueueThreadPlugin(cherrypy.engine);
-queue_thread_plugin.subscribe();
+QueueThreadPlugin(cherrypy.engine).subscribe();
+    
+'''
+http://docs.cherrypy.org/stable/refman/process/plugins/signalhandler.html#signalhandler
+'''
+import signal;
+def handle_SIGUSR2():
+    trace("get SIGUSR2, reload config.");
+    (static_dir, _config) = reload_config(config_file);
+cherrypy.engine.signal_handler.handlers[signal.SIGUSR2] = handle_SIGUSR2;
+cherrypy.engine.signal_handler.subscribe();
 
 cherrypy.quickstart(root, '/', conf)
