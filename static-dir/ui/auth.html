@@ -48,25 +48,6 @@
             //console.log(jqxhr);
             error("ajax请求错误, status=" + jqxhr.status);
         }
-        var browser={
-            agents:function(){
-                var agent = navigator.userAgent;
-                return {
-                    // platform
-                    Android: agent.indexOf("Android") != -1,
-                    Windows: agent.indexOf("Windows") != -1,
-                    iPhone: agent.indexOf("iPhone") != -1,
-                    // Windows Browsers
-                    Chrome: agent.indexOf("Chrome") != -1,
-                    Firefox: agent.indexOf("Firefox") != -1,
-                    QQBrowser: agent.indexOf("QQBrowser") != -1,
-                    MSIE: agent.indexOf("MSIE") != -1, 
-                    // Android Browsers
-                    Opera: agent.indexOf("Presto") != -1,
-                    MQQBrowser: agent.indexOf("MQQBrowser") != -1,
-                };
-            }()
-        };
         
         // main function.
         $(function(){
@@ -228,7 +209,7 @@
             var state = get_qq_oauth_state();
             
             var url = "";
-            if(browser.agents.Windows){
+            if(true){
                 var api = 'https://graph.qq.com/oauth2.0/authorize?';
                 var queryParams = [
                     'response_type=token',
@@ -236,20 +217,6 @@
                     'redirect_uri=' + encodeURI(redirectURI),
                     'state=' + state, 
                     'scope=' + 'get_user_info', 
-                ];
-                url = api + queryParams.join('&');
-            }
-            else{
-                var api = 'https://graph.qq.com/oauth2.0/authorize?';
-                //var path = 'https://graph.z.qq.com/moc2/authorize?';
-                var queryParams = [
-                    'response_type=token',
-                    'client_id=' + appID,
-                    'redirect_uri=' + encodeURI(redirectURI),
-                    'state=' + state, 
-                    'scope=' + 'get_user_info', 
-                    'display=mobile',
-                    'g_ut=' + '1', 
                 ];
                 url = api + queryParams.join('&');
             }
