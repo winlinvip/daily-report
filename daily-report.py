@@ -573,6 +573,7 @@ if len(sys.argv) > 1:
 def do_reload():
     _config = reload_config(os.path.join(get_work_dir(), config_file), js_file_path);
     auth_init(_config);
+    utility_init(_config);
     return _config;
     
 # static dir specifies the dir which store static html/js/css/images files.

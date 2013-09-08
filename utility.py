@@ -4,6 +4,11 @@
 import os,sys,json, datetime;
 import cherrypy;
 
+_config = None;
+def utility_init(config):
+    global _config;
+    _config = config;
+
 _log_config = None;
 def _initialize_log(log_to_console=True, log_to_file=False, log_file=None):
     global _log_config;
