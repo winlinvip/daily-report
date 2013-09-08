@@ -11,135 +11,8 @@ reload(sys);
 exec("sys.setdefaultencoding('utf-8')");
 assert sys.getdefaultencoding().lower() == "utf-8";
 
-SESSION_KEY = '_cp_user_id'
-    
-'''
-authorize: get the user ids that cannot access by user_id.
-'''
-def authorize_get_exception_user_id(user_id):
-    if user_id is None:
-        return [];
-        
-    # check admin role, if admin, access all users.
-    records = sql_exec("select user_id from dr_authorize_admin where user_id='%s'"%(user_id));
-    if len(records) > 0:
-        return [];
-        
-    # check manager role, if manager, access himself and all users managed by him.
-    records = sql_exec("select user_id from dr_user "
-        "where user_id!='%s' "
-        "and user_id not in(select user_id from dr_authorize_manager where manager_id='%s')"
-        %(user_id, user_id));
-        
-    ret = [];
-    for record in records:
-        ret.append(record[0]);
-        
-    return ret;
-
-'''
-authorize: require user specified by request_user_id
-'''
-def authorize_user(request_user_id):
-    auth = _config["auth"];
-    if not auth["on"]:
-        return;
-        
-    # method donot require check.
-    conditions = cherrypy.request.config.get('auth.require', None)
-    if conditions is None:
-        return;
-        
-    # QQ-OAuth not enabled.
-    if auth["strategy"] == "qq_oauth":
-        # check QQ-OAuth session.
-        key = cherrypy.session.get(SESSION_KEY);
-        if key is None:
-            error("authorize_user invalid, no session.");
-            enable_crossdomain();
-            raise cherrypy.HTTPError(401, "You are not authorized, login please.");
-            return;
-        if request_user_id in authorize_get_exception_user_id(key):
-            error("authorize_user(id=%s) requires user id=%s invalid, check authorization failed."%(key, request_user_id));
-            enable_crossdomain();
-            raise cherrypy.HTTPError(403, "You(id=%s) are not authorized as %s, login please."%(key, request_user_id));
-            return;
-        trace("authorize success, user_id=%s requires id=%s"%(key, request_user_id));
-            
-    return;
-    
-
-def check_auth(*args, **kwargs):
-    # auth not enabled in config.
-    auth = _config["auth"];
-    if not auth["on"]:
-        return;
-        
-    # method donot require check.
-    conditions = cherrypy.request.config.get('auth.require', None)
-    if conditions is None:
-        return;
-        
-    # QQ-OAuth not enabled.
-    if auth["strategy"] == "qq_oauth":
-        # check QQ-OAuth session.
-        key = cherrypy.session.get(SESSION_KEY);
-        if key is None:
-            error("session invalid, check auth failed.");
-            enable_crossdomain();
-            raise cherrypy.HTTPError(401, "You are not authorized, login please.");
-            return;
-    
-    # check condition.
-    for condition in conditions:
-        if not condition():
-            error("codition check invalid, check auth failed.");
-            enable_crossdomain();
-            raise cherrypy.HTTPError(401, "You are not authorized for specified condition");
-            return;
-            
-    trace("check auth success. key=%s"%(key));
-    
-cherrypy.tools.auth = cherrypy.Tool('before_handler', check_auth)
-
-'''
-@conditions defines what need to check for method.
-'''
-def check_auth(*conditions):
-    def decorate(f):
-        if not hasattr(f, "_cp_config"):
-            f._cp_config = {};
-        if 'auth.require' not in f._cp_config:
-            f._cp_config['auth.require'] = []
-        f._cp_config['auth.require'].extend(conditions)
-        return f;
-    return decorate;
-
-def sql_escape(sql):
-    return sql.replace("'", "\\'");
-def sql_exec(sql):
-    conn = None;
-    cursor = None;
-    try:
-        trace("connect to mysql");
-        mysql_config = _config["mysql_config"];
-        conn = MySQLdb.connect(mysql_config["host"], mysql_config["user"], mysql_config["passwd"], mysql_config["db"], charset='utf8');
-        cursor = conn.cursor();
-        trace("execute sql: %s"%(sql));
-        cursor.execute(sql);
-        ret = cursor.fetchall();
-        conn.commit();
-        return ret;
-    finally:
-        if cursor is not None: cursor.close();
-        if conn is not None: conn.close();
-
-def enable_crossdomain():
-    cherrypy.response.headers["Access-Control-Allow-Origin"] = "*";
-    cherrypy.response.headers["Access-Control-Allow-Methods"] = "GET, POST, HEAD, PUT, DELETE";
-    # generate allow headers.
-    allow_headers = ["Cache-Control", "X-Proxy-Authorization", "X-Requested-With", "Content-Type"];
-    cherrypy.response.headers["Access-Control-Allow-Headers"] = ",".join(allow_headers);
+from utility import error, trace, get_work_dir, reload_config, send_mail, enable_crossdomain, sql_escape, sql_exec;
+from auth import SESSION_KEY, authorize_get_exception_user_id, authorize_user, check_auth, crossdomain_session, require_auth, auth_init;
 
 class ErrorCode:
     Success = 0x00;
@@ -228,7 +101,14 @@ class RESTAuth(object):
         trace("qq_oauth_openid=%s match user %s(id=%s)"%(qq_oauth_openid, user_name, user_id));
         cherrypy.session[SESSION_KEY] = user_id;
         
-        return json.dumps({"error":ErrorCode.Success, "user_id":user_id, "error_description":"validate success"});
+        res = json.dumps({
+            "error":ErrorCode.Success, 
+            "user_id":user_id, 
+            "error_description":"validate success", 
+            "api_key":str(cherrypy.session.id) # the api_key used to hack the cookie.
+        });
+        trace("response: %s"%(res));
+        return res;
     
     def qq_oauth_register_associate(self, access_token, qq_oauth_openid, user_id):
         sql_exec("delete from dr_authenticate where user_id=%s and qq_oauth_openid='%s'"%(user_id, qq_oauth_openid));
@@ -318,7 +198,7 @@ class RESTAuth(object):
 class RESTGroup(object):
     exposed = True;
 
-    @check_auth()
+    @require_auth()
     def GET(self):
         enable_crossdomain();
         records = sql_exec("select group_id,group_name from dr_group");
@@ -334,7 +214,7 @@ class RESTGroup(object):
 class RESTProduct(object):
     exposed = True;
 
-    @check_auth()
+    @require_auth()
     def GET(self):
         enable_crossdomain();
         records = sql_exec("select product_id,product_name from dr_product");
@@ -350,7 +230,7 @@ class RESTProduct(object):
 class RESTWorkType(object):
     exposed = True;
 
-    @check_auth()
+    @require_auth()
     def GET(self):
         enable_crossdomain();
         records = sql_exec("select type_id,type_name from dr_type");
@@ -365,7 +245,7 @@ class RESTWorkType(object):
 class RESTUser(object):
     exposed = True;
 
-    @check_auth()
+    @require_auth()
     def GET(self, group=""):
         enable_crossdomain();
         
@@ -388,8 +268,7 @@ class RESTUser(object):
             # QQ-OAuth not enabled.
             if auth["strategy"] == "qq_oauth":
                 # check QQ-OAuth session.
-                key = cherrypy.session.get(SESSION_KEY);
-                user_id = key;
+                user_id = cherrypy.session.get(SESSION_KEY);
                 
         # the user cannot authorize by specified user.
         exception_users = authorize_get_exception_user_id(user_id);
@@ -410,11 +289,14 @@ class RESTUser(object):
 class RESTRedmine(object):
     exposed = True;
 
-    @check_auth()
+    @require_auth()
     def GET(self, issue_id):
         enable_crossdomain();
         # read config from file.
-        redmine_api_issues = _config["redmine_api_issues"]
+        redmine = _config["redmine"];
+        redmine_api_issues = "%s://%s:%s@%s:%s/%s"%(
+            redmine["protocol"], redmine["username"], redmine["password"], 
+            redmine["host"], redmine["port"], redmine["path"]);
         # proxy for redmine issues
         # 1. must Enable the RESTful api: http://www.redmine.org/projects/redmine/wiki/Rest_api#Authentication
         # 2. add a user, username="name", password="pwd", add to report user, which can access the issues.
@@ -517,7 +399,7 @@ class RESTDailyReport(object):
         
         return json.dumps(ret);
         
-    @check_auth()
+    @require_auth()
     def GET(self, group="", start_time="", end_time="", summary="", user_id="", product_id="", type_id=""):
         enable_crossdomain();
         
@@ -541,7 +423,7 @@ class RESTDailyReport(object):
             else:
                 return self.query_detail_group(group, start_time, end_time, user_id, product_id, type_id);
 
-    @check_auth()
+    @require_auth()
     def POST(self):
         enable_crossdomain();
         req_json_str = cherrypy.request.body.read();
@@ -595,34 +477,6 @@ class Root(object):
     exposed = True;
     def GET(self):
         raise cherrypy.HTTPRedirect("ui");
-        
-# in centos 5.5 64bit platform, maybe sendmail failed.
-# error is: "send email failed: unknown encoding: idna"
-# so, we import the encodings.idna.
-from encodings import ascii
-from encodings import idna
-
-import smtplib
-from email.mime.text import MIMEText
-def send_mail(smtp_server, username, password, to_user, cc_user, subject, content):
-    msg = MIMEText(content, _subtype='html', _charset='utf-8');
-    msg['Subject'] = subject;
-    msg['From'] = username;
-    msg['To'] = ";".join(to_user);
-    msg['CC'] = ";".join(cc_user);
-
-    try:
-        smtp = smtplib.SMTP();
-
-        smtp.connect(smtp_server);
-        smtp.login(username, password);
-        smtp.sendmail(username, to_user, msg.as_string());
-        smtp.close();
-
-        return True;
-    except Exception, ex:
-        error("send email failed: %s, %s"%(ex, sys.exc_info));
-        return False;
 
 class Manager:
     def __init__(self):
@@ -635,12 +489,12 @@ class Manager:
         pass;
             
     def main(self):
-        mail_config = _config["mail_config"];
+        mail = _config["mail"];
         # on?
-        if not mail_config["on"]:
+        if not mail["on"]:
             return;
         # check time.
-        mail_times = mail_config["mail_times"]
+        mail_times = mail["mail_times"]
         for mail_time in mail_times:
             if not self.email_for_time(mail_time, mail_times):
                 return;
@@ -654,10 +508,10 @@ class Manager:
             return True;
         if now.second != int(second):
             return True;
-        mail_config = _config["mail_config"];
+        mail = _config["mail"];
         # log
         date = now.strftime("%Y-%m-%d");
-        trace("email from %s when time is %s, date is %s"%(mail_config["username"], mail_times, date));
+        trace("email from %s when time is %s, date is %s"%(mail["username"], mail_times, date));
         time.sleep(1);
         # check email strategy
         if not self.email_strategy_check(date):
@@ -676,7 +530,7 @@ class Manager:
         for record in records:
             if not self.do_email_to(record[0], record[1], record[2], date):
                 return False;
-        trace("email to %s cc=%s success."%(to_user, mail_config["cc_user"]));
+        trace("email to %s cc=%s success."%(to_user, mail["cc_user"]));
         return True;
         
     def do_email_to(self, user_id, user_name, email, date):
@@ -684,74 +538,49 @@ class Manager:
             error("ignore the empty email for user %s(%s)"%(user_name, user_id));
             return True;
             
-        mail_config = _config["mail_config"];
+        mail = _config["mail"];
         # generate subject
-        subject = mail_config["subject"];
-        content = mail_config["content"];
+        subject = mail["subject"];
+        content = mail["content"];
         # generate content
         subject = subject.replace("{user_name}", user_name).replace("{date}", date);
         content = content.replace("{user_id}", str(user_id));
         # do email.
-        if not send_mail(mail_config["smtp_server"], mail_config["username"], mail_config["password"], [email], mail_config["cc_user"], subject, content):
+        if not send_mail(mail["smtp_server"], mail["username"], mail["password"], [email], mail["cc_user"], subject, content):
             trace("email to %s(%s) id=%s failed"%(user_name, email, user_id));
             return False;
         trace("email to %s(%s) id=%s success"%(user_name, email, user_id));
         return True;
     
     def email_strategy_check(self, date):
-        mail_config = _config["mail_config"];
+        mail = _config["mail"];
         # check only when someone has submitted report.
-        if mail_config["strategy_check_only_someone_submited"]:
+        if mail["strategy_check_only_someone_submited"]:
             records = sql_exec("select user_id,email from dr_user where user_id in "
                 "(select distinct u.user_id from dr_user u, dr_report r where u.user_id = r.user_id and r.work_date='%s')"%(date));
-            if len(records) < mail_config["strategy_check_only_someone_submited_count"]:
+            if len(records) < mail["strategy_check_only_someone_submited_count"]:
                 trace("strategy_check_only_someone_submited is checked, "
-                    "bug only %s submited(<%s), ignore and donot email."%(len(records), mail_config["strategy_check_only_someone_submited_count"]));
+                    "bug only %s submited(<%s), ignore and donot email."%(len(records), mail["strategy_check_only_someone_submited_count"]));
                 return False;
         return True;
-    
-from utility import parse_config, initialize_log, error, trace;
-def reload_config(config_file):
-    # global consts.
-    static_dir = None;
-
-    # global config.
-    _config = parse_config(config_file);
-    initialize_log(_config["log"]["log_to_console"], _config["log"]["log_to_file"], _config["log"]["log_file"]);
-    trace(json.dumps(_config, indent=2));
-
-    # generate js conf by config
-    if True:
-        js_config = _config["js_config"];
-        # base_dir is set to the execute file dir.
-        base_dir = os.path.abspath(os.path.dirname(sys.argv[0]));
-        static_dir = os.path.join(os.path.abspath(base_dir), "static-dir");
-        log = _config["log"];
-        trace("base_dir=%s, static_dir=%s, port=%s, log=%s(file:%s, console:%s)"
-            %(base_dir, static_dir, _config["cherrypy_config"]["port"], 
-            log["log_file"], log["log_to_console"], log["log_to_file"]));
-        f = open(os.path.join(static_dir, "ui", "conf.js"), "w");
-        for js in js_config:
-            f.write("%s\n"%(js));
-        if _config["auth"]["on"] and _config["auth"]["strategy"] == "qq_oauth":
-            f.write("%s\n"%("function enable_auth(){\n    return true;\n}"));
-            f.write("%s\n"%("function get_qq_oauth_app_id(){\n    return '" + _config["auth"]["qq_oauth_api_app_id"] + "';\n}"));
-            f.write("%s\n"%("function get_qq_oauth_redirect_url(){\n    return '" + _config["auth"]["qq_oauth_api_redirect_url"] + "';\n}"));
-            f.write("%s\n"%("function get_qq_oauth_state(){\n    return '" + _config["auth"]["qq_oauth_api_state"] + "';\n}"));
-        else:
-            f.write("%s\n"%("function enable_auth(){\n    return false;\n}"));
-            f.write("%s\n"%("function get_qq_oauth_app_id(){\n    return 'xxx';\n}"));
-            f.write("%s\n"%("function get_qq_oauth_redirect_url(){\n    return 'http://xxx';\n}"));
-            f.write("%s\n"%("function get_qq_oauth_state(){\n    return 'xxx';\n}"));
-        f.close();
-        
-    return (static_dir, _config);
 
 # parse argv as base dir
 config_file = "config.conf";
 if len(sys.argv) > 1:
     config_file = sys.argv[1];
-(static_dir, _config) = reload_config(config_file);
+
+# reload the config.
+def do_reload():
+    _config = reload_config(os.path.join(get_work_dir(), config_file), js_file_path);
+    auth_init(_config);
+    return _config;
+    
+# static dir specifies the dir which store static html/js/css/images files.
+static_dir = os.path.join(get_work_dir(), "static-dir");
+# the js file path, must under the static dir.
+js_file_path = os.path.join(static_dir, "ui", "conf.js");
+# reload config, init log and generate js config file
+_config = do_reload();
 
 # init ui tree.
 root = Root();
@@ -766,7 +595,7 @@ root.auths = RESTAuth();
 conf = {
     'global': {
         'server.socket_host': '0.0.0.0',
-        'server.socket_port': _config["cherrypy_config"]["port"],
+        'server.socket_port': _config["system"]["port"],
         # static files
         'tools.staticdir.on': True,
         'tools.staticdir.dir': static_dir,
@@ -775,7 +604,10 @@ conf = {
         'tools.encode.on': True,
         'tools.encode.encoding': 'utf-8',
         'tools.auth.on': _config["auth"]["on"],
-        'tools.sessions.on': True,
+        # session
+        'tools.sessions.on': _config["session"]["on"],
+        'tools.sessions.storage_type': _config["session"]["storage_type"],
+        'tools.crossdomain_session.on': _config["session"]["crossdomain_session"]
     },
     '/': {
         'request.dispatch': cherrypy.dispatch.MethodDispatcher(),
@@ -806,9 +638,8 @@ http://docs.cherrypy.org/stable/refman/process/plugins/signalhandler.html#signal
 import signal;
 def handle_SIGUSR2():
     trace("get SIGUSR2, reload config.");
-    (static_dir, _config) = reload_config(config_file);
+    _config = do_reload();
     cherrypy.engine.restart();
 cherrypy.engine.signal_handler.handlers[signal.SIGUSR2] = handle_SIGUSR2;
-cherrypy.engine.signal_handler.subscribe();
 
 cherrypy.quickstart(root, '/', conf)

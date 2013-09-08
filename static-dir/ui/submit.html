@@ -77,6 +77,7 @@
         </div>
     </div>
     <script type="text/javascript" src="jquery.js"></script>
+    <script type="text/javascript" src="jquery.cookie.js"></script>
     <script type="text/javascript" src="json2.js"></script>
     <script type="text/javascript" src="conf.js"></script>
     <script type="text/javascript">
@@ -148,6 +149,33 @@
                 ajax_alert_window = false;
             }
         }
+        function is_crossdomain(){
+            var o = window.location;
+            
+            var service_name = "api";
+            var this_domain_api = o.protocol + '//' + o.hostname + ':' + o.port + '/' + service_name;
+            
+            if(this_domain_api != get_service_url(service_name)){
+                return true;
+            }
+            return false;
+        }
+        function generate_api_key(url){
+            if(!is_crossdomain()){
+                return url;
+            }
+            
+            var api_key = $.cookie("api_key");
+            
+            if(!api_key){
+                return url;
+            }
+            
+            if(url.indexOf("?") == -1){
+                return url + "?" + "api_key=" + api_key;
+            }
+            return url + "&" + "api_key=" + api_key;
+        }
         
         // main function.
         $(function(){
@@ -184,7 +212,7 @@
         
         function initialize_page(){
             $("#users").html('<option value>-请选择填报人-</option>');
-            $.getJSON(get_service_url("/users"), function(data){
+            $.getJSON(get_service_url(generate_api_key("/users")), function(data){
                 $("#body").show();
                 
                 // only one? use it.
@@ -233,7 +261,7 @@
             }
             
             trace("重定向到查看日报页面");
-            window.location.href = "view.html?date="+$("#write_time").val()+"&auto_query=1";
+            window.location.href = "view.html?date=" + $("#write_time").val() + "&auto_query=1";
         }
         
         function on_users_change(user_element){
@@ -299,14 +327,14 @@
             
             trace("正在查询" + user_name + "在" + date + "的日报");
             
-            var url = "/reports?summary=0&"+"start_time=" + date + "&end_time=" + date + "&user_id=" + user_id;
+            var url = generate_api_key("/reports?summary=0&"+"start_time=" + date + "&end_time=" + date + "&user_id=" + user_id);
             $.getJSON(get_service_url(url), function(user_data){
                 if(user_data.length <= 0){
                     trace("用户" + user_name + "在" + date + "没有提交过日报");
                 }
                 
-                $.getJSON(get_service_url("/products"), function(product_data){
-                    $.getJSON(get_service_url("/work_types"), function(work_type_data){
+                $.getJSON(get_service_url(generate_api_key("/products")), function(product_data){
+                    $.getJSON(get_service_url(generate_api_key("/work_types")), function(work_type_data){
                         render_user_data(user_data, product_data, work_type_data);
                     });
                 });
@@ -363,7 +391,7 @@
         function append_new_work_item(){
             var obj = append_new_work_item_obj();
             
-            $.getJSON(get_service_url("/products"), function(data){
+            $.getJSON(get_service_url(generate_api_key("/products")), function(data){
                 for(var i = 0; i < data.length; i++){
                     var product = data[i];
                     
@@ -375,7 +403,7 @@
                 }
             });
             
-            $.getJSON(get_service_url("/work_types"), function(data){
+            $.getJSON(get_service_url(generate_api_key("/work_types")), function(data){
                 for(var i = 0; i < data.length; i++){
                     var work_type = data[i];
                     
@@ -486,7 +514,7 @@
                     return;
                 }
                 
-                $.getJSON(get_service_url("/redmines/"+bug_id), function(data){
+                $.getJSON(get_service_url(generate_api_key("/redmines/" + bug_id)), function(data){
                     var report_content = data.issue.subject + "。";
                     
                     // append if finished
@@ -529,7 +557,7 @@
             
             $.ajax({
                 type: 'POST',
-                url: get_service_url("/reports"),
+                url: get_service_url(generate_api_key("/reports")),
                 data: JSON.stringify(req),
                 success: function(){
                     trace("日报填写成功");

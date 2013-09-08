@@ -20,6 +20,7 @@
     <div id="log" class="log"></div>
     <div id="login"></div>
     <script type="text/javascript" src="jquery.js"></script>
+    <script type="text/javascript" src="jquery.cookie.js"></script>
     <script type="text/javascript" src="json2.js"></script>
     <script type="text/javascript" src="conf.js"></script>
     <script type="text/javascript">
@@ -48,6 +49,17 @@
             //console.log(jqxhr);
             error("ajax请求错误, status=" + jqxhr.status);
         }
+        function is_crossdomain(){
+            var o = window.location;
+            
+            var service_name = "api";
+            var this_domain_api = o.protocol + '//' + o.hostname + ':' + o.port + '/' + service_name;
+            
+            if(this_domain_api != get_service_url(service_name)){
+                return true;
+            }
+            return false;
+        }
         
         // main function.
         $(function(){
@@ -66,7 +78,11 @@
             parse_access_token();
         });
         
-        function jump_to_work_page(){
+        function jump_to_work_page(api_key){
+            if(is_crossdomain()){
+                $.cookie("api_key", api_key);
+            }
+            
             window.location.href = "submit.html";
         }
         
@@ -89,9 +105,10 @@
                 type: 'POST',
                 url: get_service_url("/auths"),
                 data: JSON.stringify(req),
-                success: function(){
+                success: function(data){
+                    //console.log("data="+data);
                     trace("资料填写成功，跳转到工作页面");
-                    jump_to_work_page();
+                    jump_to_work_page(data.api_key);
                 },
                 // if use application/x-www-form-urlencoded, the cherrypy get data from param POST(self, **data)
                 //contentType : "application/x-www-form-urlencoded"
@@ -175,9 +192,6 @@
             waiting_bar_enabled = true;
             waiting_bar();
             
-            var req = {};
-            req.access_token = obj.access_token;
-            
             $.getJSON(get_service_url("/auths?access_token=" + obj.access_token), function(data){
                 waiting_bar_enabled = false;
                 trace("向" + get_system_name() + "服务器请求数据");
@@ -194,7 +208,7 @@
                 }
                 
                 trace("登录成功，跳转到工作页面");
-                jump_to_work_page();
+                jump_to_work_page(data.api_key);
             });
         }
         
