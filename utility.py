@@ -2,7 +2,7 @@
 #-*- coding: UTF-8 -*-
 
 import os,sys,json, datetime;
-import cherrypy;
+import cherrypy, MySQLdb;
 
 _config = None;
 def utility_init(config):
