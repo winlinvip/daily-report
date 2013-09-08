@@ -24,18 +24,26 @@
             return obj;
         }
         
-        // discovery the query string.
-        var obj = parse_query_string();
-        //console.log(obj);
-        
-        // for IE, cannot pase the char ":", we use ".." to substitued.
-        var host = obj.state;
-        
-        // generate the redirect url.
-        var url = "http://" + unescape(host) + "/ui/auth.html" + window.location.hash;
-        //console.log(url);
-        //document.write(url);
-        
-        window.location.href = url;
+        function jump(){
+            // discovery the query string.
+            var obj = parse_query_string();
+            //console.log(obj);
+            
+            // for IE, cannot pase the char ":", we use ".." to substitued.
+            var host = obj.state;
+            
+            if(!host){
+                alert("invalid state to parsed to host");
+                return;
+            }
+            
+            // generate the redirect url.
+            var url = "http://" + unescape(host) + "/ui/auth.html" + window.location.hash;
+            //console.log(url);
+            //document.write(url);
+            
+            window.location.href = url;
+        }
+        jump();
     </script>
 </body>
