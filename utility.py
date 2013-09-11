@@ -147,19 +147,33 @@ def enable_crossdomain():
 
 def sql_escape(sql):
     return sql.replace("'", "\\'");
+    
 def sql_exec(sql):
-    conn = None;
-    cursor = None;
+    (conn, cursor) = (None, None);
+    
     try:
-        trace("connect to mysql");
-        mysql = _config["mysql"];
-        conn = MySQLdb.connect(mysql["host"], mysql["user"], mysql["passwd"], mysql["db"], charset='utf8');
-        cursor = conn.cursor();
+        mysql_config = _config["mysql"];
+        trace("connect to mysql, config=%s"%(mysql_config));
+        
+        host = mysql_config["host"];
+        user = mysql_config["user"];
+        passwd = mysql_config["passwd"];
+        db = mysql_config["db"];
+        
+        conn = MySQLdb.connect(host, user, passwd, db, charset='utf8');
+        cursor = conn.cursor(MySQLdb.cursors.DictCursor);
+        
         trace("execute sql: %s"%(sql));
         cursor.execute(sql);
+        
         ret = cursor.fetchall();
+        
+        # for windows mysql, commit changes.
         conn.commit();
+        
         return ret;
     finally:
-        if cursor is not None: cursor.close();
-        if conn is not None: conn.close();
+        if cursor is not None: 
+            cursor.close();
+        if conn is not None: 
+            conn.close();

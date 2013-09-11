@@ -68,7 +68,8 @@
     </div>
     <div>
         <input id="add_item" value="增加工作项" type="button"/>
-        <input id="view" value="查看日报" type="button"/>
+        <input id="view_yesterday" value="查看昨天日报" type="button"/>
+        <input id="view_today" value="查看今天日报" type="button"/>
         <input id="submit" value="提交日报" type="button"/>
     </div>
     <div class="copy_right_container">
@@ -86,6 +87,13 @@
         }
         function trace(msg){
             $("#log").html('<font color="#33AA33">' + msg + '</font>');
+        }
+        // @date_in_string ie. 2013-8-13
+        // @return Date object.
+        function parseToDate(date_in_string){
+            var date = new Date();
+            date.setTime(Date.parse(date_in_string));
+            return date;
         }
         function parseDate(date){
             return date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate();
@@ -200,8 +208,12 @@
                 on_users_change(this);
             });
             
-            $("#view").click(function(){
-                on_click_view_reports();
+            $("#view_today").click(function(){
+                on_click_view_today_reports();
+            });
+            
+            $("#view_yesterday").click(function(){
+                on_click_view_yesterday_reports();
             });
             
             initialize_page();
@@ -249,7 +261,7 @@
             trace("个人信息加载成功，请填写日报");
         }
         
-        function on_click_view_reports(){
+        function on_click_view_today_reports(){
             if(!can_leave_this_page()){
                 trace("您修改了日报，但是还没有提交日报，离开页面会导致修改丢失，确定离开？");
                 
@@ -262,6 +274,23 @@
             
             trace("重定向到查看日报页面");
             window.location.href = "view.html?date=" + $("#write_time").val() + "&auto_query=1";
+        }
+        
+        function on_click_view_yesterday_reports(){
+            if(!can_leave_this_page()){
+                trace("您修改了日报，但是还没有提交日报，离开页面会导致修改丢失，确定离开？");
+                
+                if(!confirm("您修改了日报，但是还没有提交日报，离开页面会导致修改丢失，确定离开？")){
+                    trace("继续修改和提交日报");
+                    return;
+                }
+                trace("放弃修改的日报");
+            }
+            
+            trace("重定向到查看日报页面");
+            date = parseToDate($("#write_time").val());
+            date.setDate(date.getDate() - 1);
+            window.location.href = "view.html?date=" + parseDate(date) + "&auto_query=1";
         }
         
         function on_users_change(user_element){

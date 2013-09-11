@@ -1,7 +1,7 @@
 #!/usr/bin/python2.6
 #-*- coding: UTF-8 -*-
 
-import sys, time, os, json, traceback, datetime, urllib, random;
+import sys, time, os, json, traceback, datetime, urllib, random, traceback;
 import cherrypy, MySQLdb;
 
 # set the default encoding to utf-8
@@ -28,7 +28,7 @@ class RESTAuth(object):
         users = [];
         records = sql_exec("select user_id,user_name from dr_user where user_id not in (select user_id from dr_authenticate)");
         for record in records:
-            users.append({"id":record[0], "value":record[1]});
+            users.append({"id":record["user_id"], "value":record["user_name"]});
         return json.dumps({"error":ErrorCode.NotAssociated, 
             "access_token":access_token, "qq_oauth_openid":qq_oauth_openid, "users":users, 
             "error_description":"user not found, please associate one"});
@@ -56,7 +56,7 @@ class RESTAuth(object):
         try:
             res_json = json.loads(json_data);
         except Exception,e:
-            error(sys.exc_info);
+            error("ex=%s, info=%s"%(e, traceback.format_exc()));
             return json.dumps({"error":ErrorCode.Failed, "error_description":"userinfo to json error"});
             
         # check userinfo
@@ -78,7 +78,7 @@ class RESTAuth(object):
         # register user
         sql_exec("insert into dr_user(user_name) values('%s')"%(user_name));
         records = sql_exec("select user_id from dr_user where user_name='%s'"%(user_name));
-        user_id = records[0][0];
+        user_id = records[0]["user_id"];
         trace("auto insert user, access_token=%s, qq_oauth_openid=%s, user_id=%s"%(access_token, qq_oauth_openid, user_id));
         
         self.qq_oauth_register_associate(access_token, qq_oauth_openid, user_id);
@@ -97,7 +97,7 @@ class RESTAuth(object):
             records = self.qq_oauth_get_associated(qq_oauth_openid);
             
         # matched, update session to login success
-        (user_id, user_name) = (records[0][0], records[0][1]);
+        (user_id, user_name) = (records[0]["user_id"], records[0]["user_name"]);
         trace("qq_oauth_openid=%s match user %s(id=%s)"%(qq_oauth_openid, user_name, user_id));
         cherrypy.session[SESSION_KEY] = user_id;
         
@@ -204,7 +204,7 @@ class RESTGroup(object):
         records = sql_exec("select group_id,group_name from dr_group");
         ret = [];
         for record in records:
-            ret.append({"id":record[0], "value":record[1]});
+            ret.append({"id":record["group_id"], "value":record["group_name"]});
         
         return json.dumps(ret);
         
@@ -220,7 +220,7 @@ class RESTProduct(object):
         records = sql_exec("select product_id,product_name from dr_product");
         ret = [];
         for record in records:
-            ret.append({"id":record[0], "value":record[1]});
+            ret.append({"id":record["product_id"], "value":record["product_name"]});
         
         return json.dumps(ret);
         
@@ -236,7 +236,7 @@ class RESTWorkType(object):
         records = sql_exec("select type_id,type_name from dr_type");
         ret = [];
         for record in records:
-            ret.append({"id":record[0], "value":record[1]});
+            ret.append({"id":record["type_id"], "value":record["type_name"]});
         return json.dumps(ret);
         
     def OPTIONS(self):
@@ -276,10 +276,10 @@ class RESTUser(object):
             
         ret = [];
         for record in records:
-            returned_user_id = record[0];
+            returned_user_id = record["user_id"];
             if returned_user_id in exception_users:
                 continue;
-            ret.append({"id":returned_user_id, "value":record[1]});
+            ret.append({"id":returned_user_id, "value":record["user_name"]});
             
         return json.dumps({"auth":user_id, "users":ret});
         
@@ -334,11 +334,11 @@ class RESTDailyReport(object):
     query summary work hours, all users without group
     '''
     def query_summary(self, start_time="", end_time="", user_id="", product_id="", type_id=""):
-        sql = "select %s from %s where true"%("sum(work_hours)", "dr_report");
+        sql = "select %s from %s where true"%("sum(work_hours) as work_hours", "dr_report");
         sql = self.build_sql_conditions(sql, start_time, end_time, user_id, product_id, type_id);
 
         records = sql_exec(sql);
-        ret = {"user_id":user_id, "product_id":product_id, "type_id":type_id, "work_hours":records[0][0]};
+        ret = {"user_id":user_id, "product_id":product_id, "type_id":type_id, "work_hours":records[0]["work_hours"]};
         return json.dumps(ret);
         
     '''
@@ -354,10 +354,11 @@ class RESTDailyReport(object):
         
         for record in records:
             ret.append({
-                "report_id":record[0], "product_id":record[1], "user_id":record[2], 
-                "type_id":record[3], "bug_id":record[4], "work_hours":record[5], 
-                "report_content":record[6], "work_date":str(record[7]), "insert_date":str(record[8]), "modify_date":str(record[9]), 
-                "priority":record[10]
+                "report_id":record["report_id"], "product_id":record["product_id"], "user_id":record["user_id"], 
+                "type_id":record["type_id"], "bug_id":record["bug_id"], "work_hours":record["work_hours"], 
+                "report_content":record["report_content"], "work_date":str(record["work_date"]), 
+                "insert_date":str(record["insert_date"]), "modify_date":str(record["modify_date"]), 
+                "priority":record["priority"]
             });
         
         return json.dumps(ret);
@@ -366,13 +367,13 @@ class RESTDailyReport(object):
     query summary hours of specified group
     '''
     def query_summary_group(self, group, start_time="", end_time="", user_id="", product_id="", type_id=""):
-        sql = "select %s from %s where %s"%("sum(work_hours)", 
+        sql = "select %s from %s where %s"%("sum(work_hours) as work_hours", 
             "dr_report,dr_user u,dr_group g,dr_rs_group_user rs",
             "dr_report.user_id = rs.user_id and rs.user_id = u.user_id and g.group_id = rs.group_id and g.group_id = %s"%(group));
         sql = self.build_sql_conditions(sql, start_time, end_time, user_id, product_id, type_id);
 
         records = sql_exec(sql);
-        ret = {"user_id":user_id, "product_id":product_id, "type_id":type_id, "work_hours":records[0][0]};
+        ret = {"user_id":user_id, "product_id":product_id, "type_id":type_id, "work_hours":records[0]["work_hours"]};
         return json.dumps(ret);
         
     '''
@@ -391,10 +392,11 @@ class RESTDailyReport(object):
         
         for record in records:
             ret.append({
-                "report_id":record[0], "product_id":record[1], "user_id":record[2], 
-                "type_id":record[3], "bug_id":record[4], "work_hours":record[5], 
-                "report_content":record[6], "work_date":str(record[7]), "insert_date":str(record[8]), "modify_date":str(record[9]), 
-                "priority":record[10]
+                "report_id":record["report_id"], "product_id":record["product_id"], "user_id":record["user_id"], 
+                "type_id":record["type_id"], "bug_id":record["bug_id"], "work_hours":record["work_hours"], 
+                "report_content":record["report_content"], "work_date":str(record["work_date"]), 
+                "insert_date":str(record["insert_date"]), "modify_date":str(record["modify_date"]), 
+                "priority":record["priority"]
             });
         
         return json.dumps(ret);
@@ -525,10 +527,10 @@ class Manager:
         # generate to user list.
         to_user = [];
         for record in records:
-            to_user.append(record[1]);
+            to_user.append(record["user_name"]);
         trace("email to %s."%(to_user));
         for record in records:
-            if not self.do_email_to(record[0], record[1], record[2], date):
+            if not self.do_email_to(record["user_id"], record["user_name"], record["email"], date):
                 return False;
         trace("email to %s cc=%s success."%(to_user, mail["cc_user"]));
         return True;

@@ -460,6 +460,17 @@
             });
         });
         
+        function on_start_query(){
+            $("#view").attr("disabled", true);
+            $("#yestoday").attr("disabled", true);
+            $("#today").attr("disabled", true);
+        }
+        function on_stop_query(){
+            $("#view").attr("disabled", false);
+            $("#yestoday").attr("disabled", false);
+            $("#today").attr("disabled", false);
+        }
+        
         function do_url_query(){
             var obj = parse_query_string();
             
@@ -485,6 +496,8 @@
         }
         
         function show_report(){
+            on_start_query();
+            
             $("#report").show();
             
             // convert date string to date object.
@@ -559,6 +572,8 @@
                 $("#day_type").empty();
                 $("#day_type_text").empty();
                 $("#day_detail_items").empty();
+                
+                on_stop_query();
                 return;
             }
             
@@ -1355,6 +1370,8 @@
             // day: detail view
             $("#day_detail").text(parseDate(data.date) + "详细" + get_day_detail_users_sum());
             render_day_detail();
+            
+            on_stop_query();
         }
     </script>
 </body>
