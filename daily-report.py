@@ -610,6 +610,7 @@ conf = {
         # session
         'tools.sessions.on': _config["session"]["on"],
         'tools.sessions.storage_type': _config["session"]["storage_type"],
+        'tools.sessions.timeout': _config["session"]["timeout_minutes"],
         'tools.crossdomain_session.on': _config["session"]["crossdomain_session"]
     },
     '/': {
