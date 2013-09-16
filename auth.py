@@ -32,7 +32,7 @@ def authorize_get_exception_user_id(user_id):
         
     ret = [];
     for record in records:
-        ret.append(record[0]);
+        ret.append(record["user_id"]);
         
     return ret;
 
