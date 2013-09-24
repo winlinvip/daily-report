@@ -123,7 +123,7 @@ def send_mail(smtp_server, username, password, to_user, cc_user, subject, conten
     msg['Subject'] = subject;
     msg['From'] = username;
     msg['To'] = ";".join(to_user);
-    msg['CC'] = ";".join(cc_user);
+    msg['Cc'] = ";".join(cc_user);
 
     try:
         smtp = smtplib.SMTP();
