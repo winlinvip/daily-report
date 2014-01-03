@@ -873,7 +873,7 @@
                 }
                 for(var i = 0; i < data.reports.year_product_data.length; i++){
                     var percent = data.reports.year_product_data[i].work_hours * 100 / total_value;
-                    percent = Number(percent.toFixed(1));
+                    percent = Number(percent).toFixed(1);
                     values.push(percent);
                 }
                 Raphael("year_product", 220, 220).pieChart(0.1/*hsb_start*/, 110, 110, 100, values, labels, "#fff");
@@ -882,7 +882,7 @@
                     $("#year_product_text").append(labels[i] + ": " + values[i] + "%<br/>");
                 }
                 if(enable_view_sum()){
-                    $("#year_product_text").append(get_view_sum_label() + total_value + get_view_sum_unit_label() + "<br/>");
+                    $("#year_product_text").append(get_view_sum_label() + Number(total_value).toFixed(1) + get_view_sum_unit_label() + "<br/>");
                 }
             }
             else{
@@ -903,7 +903,7 @@
                 }
                 for(var i = 0; i < data.reports.year_type_data.length; i++){
                     var percent = data.reports.year_type_data[i].work_hours * 100 / total_value;
-                    percent = Number(percent.toFixed(1));
+                    percent = Number(percent).toFixed(1);
                     values.push(percent);
                 }
                 Raphael("year_type", 220, 220).pieChart(0.15/*hsb_start*/, 110, 110, 100, values, labels, "#fff");
@@ -912,7 +912,7 @@
                     $("#year_type_text").append(labels[i] + ": " + values[i] + "%<br/>");
                 }
                 if(enable_view_sum()){
-                    $("#year_type_text").append(get_view_sum_label() + total_value + get_view_sum_unit_label() + "<br/>");
+                    $("#year_type_text").append(get_view_sum_label() + Number(total_value).toFixed(1) + get_view_sum_unit_label() + "<br/>");
                 }
             }
             else{
@@ -933,7 +933,7 @@
                 }
                 for(var i = 0; i < data.reports.quarter_product_data.length; i++){
                     var percent = data.reports.quarter_product_data[i].work_hours * 100 / total_value;
-                    percent = Number(percent.toFixed(1));
+                    percent = Number(percent).toFixed(1);
                     values.push(percent);
                 }
                 Raphael("quarter_product", 220, 220).pieChart(0.2/*hsb_start*/, 110, 110, 100, values, labels, "#fff");
@@ -942,7 +942,7 @@
                     $("#quarter_product_text").append(labels[i] + ": " + values[i] + "%<br/>");
                 }
                 if(enable_view_sum()){
-                    $("#quarter_product_text").append(get_view_sum_label() + total_value + get_view_sum_unit_label() + "<br/>");
+                    $("#quarter_product_text").append(get_view_sum_label() + Number(total_value).toFixed(1) + get_view_sum_unit_label() + "<br/>");
                 }
             }
             else{
@@ -963,7 +963,7 @@
                 }
                 for(var i = 0; i < data.reports.quarter_type_data.length; i++){
                     var percent = data.reports.quarter_type_data[i].work_hours * 100 / total_value;
-                    percent = Number(percent.toFixed(1));
+                    percent = Number(percent).toFixed(1);
                     values.push(percent);
                 }
                 Raphael("quarter_type", 220, 220).pieChart(0.25/*hsb_start*/, 110, 110, 100, values, labels, "#fff");
@@ -972,7 +972,7 @@
                     $("#quarter_type_text").append(labels[i] + ": " + values[i] + "%<br/>");
                 }
                 if(enable_view_sum()){
-                    $("#quarter_type_text").append(get_view_sum_label() + total_value + get_view_sum_unit_label() + "<br/>");
+                    $("#quarter_type_text").append(get_view_sum_label() + Number(total_value).toFixed(1) + get_view_sum_unit_label() + "<br/>");
                 }
             }
             else{
@@ -993,7 +993,7 @@
                 }
                 for(var i = 0; i < data.reports.month_product_data.length; i++){
                     var percent = data.reports.month_product_data[i].work_hours * 100 / total_value;
-                    percent = Number(percent.toFixed(1));
+                    percent = Number(percent).toFixed(1);
                     values.push(percent);
                 }
                 Raphael("month_product", 220, 220).pieChart(0.3/*hsb_start*/, 110, 110, 100, values, labels, "#fff");
@@ -1002,7 +1002,7 @@
                     $("#month_product_text").append(labels[i] + ": " + values[i] + "%<br/>");
                 }
                 if(enable_view_sum()){
-                    $("#month_product_text").append(get_view_sum_label() + total_value + get_view_sum_unit_label() + "<br/>");
+                    $("#month_product_text").append(get_view_sum_label() + Number(total_value).toFixed(1) + get_view_sum_unit_label() + "<br/>");
                 }
             }
             else{
@@ -1023,7 +1023,7 @@
                 }
                 for(var i = 0; i < data.reports.month_type_data.length; i++){
                     var percent = data.reports.month_type_data[i].work_hours * 100 / total_value;
-                    percent = Number(percent.toFixed(1));
+                    percent = Number(percent).toFixed(1);
                     values.push(percent);
                 }
                 Raphael("month_type", 220, 220).pieChart(0.35/*hsb_start*/, 110, 110, 100, values, labels, "#fff");
@@ -1032,7 +1032,7 @@
                     $("#month_type_text").append(labels[i] + ": " + values[i] + "%<br/>");
                 }
                 if(enable_view_sum()){
-                    $("#month_type_text").append(get_view_sum_label() + total_value + get_view_sum_unit_label() + "<br/>");
+                    $("#month_type_text").append(get_view_sum_label() + Number(total_value).toFixed(1) + get_view_sum_unit_label() + "<br/>");
                 }
             }
             else{
@@ -1053,7 +1053,7 @@
                 }
                 for(var i = 0; i < data.reports.day_product_data.length; i++){
                     var percent = data.reports.day_product_data[i].work_hours * 100 / total_value;
-                    percent = Number(percent.toFixed(1));
+                    percent = Number(percent).toFixed(1);
                     values.push(percent);
                 }
                 Raphael("day_product", 220, 220).pieChart(0.4/*hsb_start*/, 110, 110, 100, values, labels, "#fff");
@@ -1062,7 +1062,7 @@
                     $("#day_product_text").append(labels[i] + ": " + values[i] + "%<br/>");
                 }
                 if(enable_view_sum()){
-                    $("#day_product_text").append(get_view_sum_label() + total_value + get_view_sum_unit_label() + "<br/>");
+                    $("#day_product_text").append(get_view_sum_label() + Number(total_value).toFixed(1) + get_view_sum_unit_label() + "<br/>");
                 }
             }
             else{
@@ -1083,7 +1083,7 @@
                 }
                 for(var i = 0; i < data.reports.day_type_data.length; i++){
                     var percent = data.reports.day_type_data[i].work_hours * 100 / total_value;
-                    percent = Number(percent.toFixed(1));
+                    percent = Number(percent).toFixed(1);
                     values.push(percent);
                 }
                 Raphael("day_type", 220, 220).pieChart(0.45/*hsb_start*/, 110, 110, 100, values, labels, "#fff");
@@ -1092,7 +1092,7 @@
                     $("#day_type_text").append(labels[i] + ": " + values[i] + "%<br/>");
                 }
                 if(enable_view_sum()){
-                    $("#day_type_text").append(get_view_sum_label() + total_value + get_view_sum_unit_label() + "<br/>");
+                    $("#day_type_text").append(get_view_sum_label() + Number(total_value).toFixed(1) + get_view_sum_unit_label() + "<br/>");
                 }
             }
             else{
@@ -1279,7 +1279,7 @@
                 var first_insert = user_data[0].insert_date;
                 user_data.sort(report_modify_date_sort);
                 var last_modify = user_data[0].modify_date;
-                var text = '<p class="user_text_para">' + '总计:' + total_value + get_view_sum_unit_label() 
+                var text = '<p class="user_text_para">' + '总计:' + Number(total_value).toFixed(1) + get_view_sum_unit_label() 
                     + ', 提交时间:' + first_insert + ', 最后更新:' + last_modify + '</p>';
                 $(div).find("#user_text").append(text);
                 
@@ -1291,7 +1291,7 @@
                     
                     labels.push(key);
                     var percent = work_hours * 100 / total_value;
-                    percent = Number(percent.toFixed(1));
+                    percent = Number(percent).toFixed(1);
                     values.push(percent);
                 }
                 Raphael("user_product"+user_id, 220, 220).pieChart(0.5/*hsb_start*/, 110, 110, 100, values, labels, "#fff");
@@ -1329,7 +1329,7 @@
                     
                     labels.push(key);
                     var percent = work_hours * 100 / total_value;
-                    percent = Number(percent.toFixed(1));
+                    percent = Number(percent).toFixed(1);
                     values.push(percent);
                 }
                 Raphael("user_type"+user_id, 220, 220).pieChart(0.55/*hsb_start*/, 110, 110, 100, values, labels, "#fff");
