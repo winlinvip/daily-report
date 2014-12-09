@@ -273,7 +273,7 @@
             }
             
             trace("重定向到查看日报页面");
-            window.location.href = "view.html?date=" + $("#write_time").val() + "&auto_query=1";
+            window.location.href = "view.html?date=" + $("#write_time").val() + "&auto_query=1&query_all=0";
         }
         
         function on_click_view_yesterday_reports(){
@@ -663,6 +663,14 @@
                 if(isNaN(item.work_hours) || Number(item.work_hours) <= 0){
                     if(report_error){
                         error("工作项所花的时间必须是非零的数字");
+                    }
+                    $(this).find("#time").focus();
+                    is_ok = false;
+                    return false;
+                }
+                if(isNaN(item.work_hours) || Number(item.work_hours) > 18){
+                    if(report_error){
+                        error("工作项所花的时间不能大于18小时");
                     }
                     $(this).find("#time").focus();
                     is_ok = false;

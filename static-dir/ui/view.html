@@ -113,6 +113,7 @@
             <input id="submit" value="写日报" type="button"/>
             <input id="yestoday" value="查询昨天" type="button"/>
             <input id="today" value="查询今天" type="button"/>
+            <input id="query_all" type="checkbox"/>包含离职同事
         </div>
     </div>
     <div id="report" style="display:none">
@@ -464,11 +465,13 @@
             $("#view").attr("disabled", true);
             $("#yestoday").attr("disabled", true);
             $("#today").attr("disabled", true);
+            $("#query_all").attr("disabled", true);
         }
         function on_stop_query(){
             $("#view").attr("disabled", false);
             $("#yestoday").attr("disabled", false);
             $("#today").attr("disabled", false);
+            $("#query_all").attr("disabled", false);
         }
         
         function do_url_query(){
@@ -476,6 +479,10 @@
             
             if(obj.date != undefined){
                 $("#write_time").val(obj.date);
+            }
+            
+            if (obj.query_all == "1") {
+                $("#query_all").attr("checked", true);
             }
             
             if(obj.auto_query == 1){
@@ -519,10 +526,13 @@
             data.reports = {};
             // the group id
             data.group = $("#group").val();
+            // whether query all
+            data.query_all = $("#query_all").attr("checked")? true:false;
             
             // query basic info, users/products/work_types.
             trace("请求users数据");
-            $.getJSON(get_service_url(generate_api_key("/users?group=" + data.group)), function(ret){
+            var url = "/users?group=" + data.group + "&query_all=" + data.query_all;
+            $.getJSON(get_service_url(generate_api_key(url)), function(ret){
                 $("#body").show();
                 
                 data.users = ret.users;
@@ -582,7 +592,7 @@
             data.reports.user_data = [];
             var responsed_count = 0;
             for(var i = 0; i < data.users.length; i++){
-                var url = "/reports?summary=0"+"&group="+data.group+"&start_time=" + parseDate(data.date) + "&end_time=" + parseDate(data.date) + "&user_id=" + data.users[i].id;
+                var url = "/reports?summary=0"+"&group="+data.group+"&start_time=" + parseDate(data.date) + "&end_time=" + parseDate(data.date) + "&user_id=" + data.users[i].id + "&query_all=" + data.query_all;
                 trace("请求用户" + data.users[i].value + "在" + parseDate(data.date) + "的数据");
                 $.getJSON(get_service_url(generate_api_key(url)), function(user_data){
                     if(user_data.length > 0){
@@ -606,7 +616,7 @@
             data.reports.day_product_data = [];
             var responsed_count = 0;
             for(var i = 0; i < data.products.length; i++){
-                var url = "/reports?summary=1"+"&group="+data.group+"&start_time=" + start_time + "&end_time=" + end_time + "&product_id=" + data.products[i].id;
+                var url = "/reports?summary=1"+"&group="+data.group+"&start_time=" + start_time + "&end_time=" + end_time + "&product_id=" + data.products[i].id + "&query_all=" + data.query_all;
                 trace("请求产品'" + data.products[i].value + "'的当天汇总数据");
                 $.getJSON(get_service_url(generate_api_key(url)), function(response_data){
                     if(response_data.work_hours != null){
@@ -630,7 +640,7 @@
             data.reports.day_type_data = [];
             var responsed_count = 0;
             for(var i = 0; i < data.work_types.length; i++){
-                var url = "/reports?summary=1"+"&group="+data.group+"&start_time=" + start_time + "&end_time=" + end_time + "&type_id=" + data.work_types[i].id;
+                var url = "/reports?summary=1"+"&group="+data.group+"&start_time=" + start_time + "&end_time=" + end_time + "&type_id=" + data.work_types[i].id + "&query_all=" + data.query_all;
                 trace("请求工作类型'" + data.work_types[i].value + "'的当天汇总数据");
                 $.getJSON(get_service_url(generate_api_key(url)), function(response_data){
                     if(response_data.work_hours != null){
@@ -661,7 +671,7 @@
             data.reports.month_product_data = [];
             var responsed_count = 0;
             for(var i = 0; i < data.products.length; i++){
-                var url = "/reports?summary=1"+"&group="+data.group+"&start_time=" + start_time + "&end_time=" + end_time + "&product_id=" + data.products[i].id;
+                var url = "/reports?summary=1"+"&group="+data.group+"&start_time=" + start_time + "&end_time=" + end_time + "&product_id=" + data.products[i].id + "&query_all=" + data.query_all;
                 trace("请求产品'" + data.products[i].value + "'的月度汇总数据");
                 $.getJSON(get_service_url(generate_api_key(url)), function(response_data){
                     if(response_data.work_hours != null){
@@ -692,7 +702,7 @@
             data.reports.month_type_data = [];
             var responsed_count = 0;
             for(var i = 0; i < data.work_types.length; i++){
-                var url = "/reports?summary=1"+"&group="+data.group+"&start_time=" + start_time + "&end_time=" + end_time + "&type_id=" + data.work_types[i].id;
+                var url = "/reports?summary=1"+"&group="+data.group+"&start_time=" + start_time + "&end_time=" + end_time + "&type_id=" + data.work_types[i].id + "&query_all=" + data.query_all;
                 trace("请求工作类型'" + data.work_types[i].value + "'的月度汇总数据");
                 $.getJSON(get_service_url(generate_api_key(url)), function(response_data){
                     if(response_data.work_hours != null){
@@ -724,7 +734,7 @@
             data.reports.quarter_product_data = [];
             var responsed_count = 0;
             for(var i = 0; i < data.products.length; i++){
-                var url = "/reports?summary=1"+"&group="+data.group+"&start_time=" + start_time + "&end_time=" + end_time + "&product_id=" + data.products[i].id;
+                var url = "/reports?summary=1"+"&group="+data.group+"&start_time=" + start_time + "&end_time=" + end_time + "&product_id=" + data.products[i].id + "&query_all=" + data.query_all;
                 trace("请求产品'" + data.products[i].value + "'的季度汇总数据");
                 $.getJSON(get_service_url(generate_api_key(url)), function(response_data){
                     if(response_data.work_hours != null){
@@ -756,7 +766,7 @@
             data.reports.quarter_type_data = [];
             var responsed_count = 0;
             for(var i = 0; i < data.work_types.length; i++){
-                var url = "/reports?summary=1"+"&group="+data.group+"&start_time=" + start_time + "&end_time=" + end_time + "&type_id=" + data.work_types[i].id;
+                var url = "/reports?summary=1"+"&group="+data.group+"&start_time=" + start_time + "&end_time=" + end_time + "&type_id=" + data.work_types[i].id + "&query_all=" + data.query_all;
                 trace("请求工作类型'" + data.work_types[i].value + "'的季度汇总数据");
                 $.getJSON(get_service_url(generate_api_key(url)), function(response_data){
                     if(response_data.work_hours != null){
@@ -788,7 +798,7 @@
             data.reports.year_product_data = [];
             var responsed_count = 0;
             for(var i = 0; i < data.products.length; i++){
-                var url = "/reports?summary=1"+"&group="+data.group+"&start_time=" + start_time + "&end_time=" + end_time + "&product_id=" + data.products[i].id;
+                var url = "/reports?summary=1"+"&group="+data.group+"&start_time=" + start_time + "&end_time=" + end_time + "&product_id=" + data.products[i].id + "&query_all=" + data.query_all;
                 trace("请求产品'" + data.products[i].value + "'的年度汇总数据");
                 $.getJSON(get_service_url(generate_api_key(url)), function(response_data){
                     if(response_data.work_hours != null){
@@ -820,7 +830,7 @@
             data.reports.year_type_data = [];
             var responsed_count = 0;
             for(var i = 0; i < data.work_types.length; i++){
-                var url = "/reports?summary=1"+"&group="+data.group+"&start_time=" + start_time + "&end_time=" + end_time + "&type_id=" + data.work_types[i].id;
+                var url = "/reports?summary=1"+"&group="+data.group+"&start_time=" + start_time + "&end_time=" + end_time + "&type_id=" + data.work_types[i].id + "&query_all=" + data.query_all;
                 trace("请求工作类型'" + data.work_types[i].value + "'的年度汇总数据");
                 $.getJSON(get_service_url(generate_api_key(url)), function(response_data){
                     if(response_data.work_hours != null){

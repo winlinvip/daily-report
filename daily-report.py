@@ -28,7 +28,10 @@ class RESTAuth(object):
     def qq_oauth_query_available_associate_user(self, access_token, qq_oauth_openid):
         # query all un-associated users.
         users = [];
-        records = sql_exec("select user_id,user_name from dr_user where user_id not in (select user_id from dr_authenticate)");
+        records = sql_exec(
+            "select user_id,user_name from dr_user where "
+                "user_id not in (select user_id from dr_authenticate) "
+                "and enabled=true");
         for record in records:
             users.append({"id":record["user_id"], "value":record["user_name"]});
         return json.dumps({"error":ErrorCode.NotAssociated, 
@@ -37,7 +40,7 @@ class RESTAuth(object):
             
     def qq_oauth_get_associated(self, qq_oauth_openid):
         return sql_exec("select u.user_id,u.user_name from dr_user u, dr_authenticate a "
-            "where u.user_id=a.user_id and a.qq_oauth_openid='%s'"%(qq_oauth_openid));
+            "where u.enabled=true and u.user_id=a.user_id and a.qq_oauth_openid='%s'"%(qq_oauth_openid));
             
     def qq_oauth_auto_register(self, access_token, qq_oauth_openid):
         auth = _config["auth"];
@@ -71,7 +74,7 @@ class RESTAuth(object):
         
         # check exists.
         user_name = nickname;
-        records = sql_exec("select user_id from dr_user where user_name='%s'"%(user_name));
+        records = sql_exec("select user_id from dr_user where user_name='%s' and enabled=true"%(user_name));
         
         # exists, change nickname with random postfix.
         if len(records) != 0:
@@ -248,8 +251,13 @@ class RESTUser(object):
     exposed = True;
 
     @require_auth()
-    def GET(self, group=""):
+    def GET(self, group="", query_all="false"):
         enable_crossdomain();
+        
+        if query_all == True or query_all == "true":
+            query_all = True
+        else:
+            query_all = False
         
         # if not null, must be a digit.
         if group != "" and not group.isdigit():
@@ -257,12 +265,21 @@ class RESTUser(object):
             raise cherrypy.HTTPError(400, "group must be digit");
         
         records = [];
-        if group == "":
-            records = sql_exec("select user_id,user_name from dr_user");
+        if query_all:
+            if group == "":
+                records = sql_exec("select user_id,user_name from dr_user");
+            else:
+                records = sql_exec("select u.user_id,u.user_name "
+                    "from dr_user u,dr_group g,dr_rs_group_user rs "
+                    "where rs.user_id = u.user_id and g.group_id = rs.group_id and g.group_id = %s"%(group));
         else:
-            records = sql_exec("select u.user_id,u.user_name "
-                "from dr_user u,dr_group g,dr_rs_group_user rs "
-                "where rs.user_id = u.user_id and g.group_id = rs.group_id and g.group_id = %s"%(group));
+            if group == "":
+                records = sql_exec("select user_id,user_name from dr_user where enabled=true");
+            else:
+                records = sql_exec("select u.user_id,u.user_name "
+                    "from dr_user u,dr_group g,dr_rs_group_user rs "
+                    "where u.enabled=true "
+                        "and rs.user_id = u.user_id and g.group_id = rs.group_id and g.group_id = %s"%(group));
         
         user_id = None;
         auth = _config["auth"];
@@ -335,8 +352,13 @@ class RESTDailyReport(object):
     '''
     query summary work hours, all users without group
     '''
-    def query_summary(self, start_time="", end_time="", user_id="", product_id="", type_id=""):
-        sql = "select %s from %s where true"%("sum(work_hours) as work_hours", "dr_report");
+    def query_summary(self, start_time="", end_time="", user_id="", product_id="", type_id="", query_all=False):
+        if query_all:
+            sql = "select %s from %s where true"%("sum(work_hours) as work_hours", "dr_report");
+        else:
+            sql = "select %s from %s where %s"%("sum(work_hours) as work_hours", 
+                "dr_report,dr_user u",
+                "u.enabled = true and dr_report.user_id = u.user_id");
         sql = self.build_sql_conditions(sql, start_time, end_time, user_id, product_id, type_id);
 
         records = sql_exec(sql);
@@ -346,8 +368,16 @@ class RESTDailyReport(object):
     '''
     query detail info, all users without group
     '''
-    def query_detail(self, start_time="", end_time="", user_id="", product_id="", type_id=""):
-        sql = "select %s from %s where true"%("report_id,product_id,user_id,type_id,bug_id,work_hours,report_content,work_date,insert_date,modify_date,priority", "dr_report");
+    def query_detail(self, start_time="", end_time="", user_id="", product_id="", type_id="", query_all=False):
+        if query_all:
+            sql = "select %s from %s where true"%(
+                "report_id,product_id,user_id,type_id,bug_id,work_hours,report_content,work_date,insert_date,modify_date,priority", 
+                "dr_report");
+        else:
+            sql = "select %s from %s where %s"%(
+                "report_id,product_id,u.user_id,type_id,bug_id,work_hours,report_content,work_date,insert_date,modify_date,priority", 
+                "dr_report,dr_user u",
+                "u.enabled = true and dr_report.user_id = u.user_id");
         sql = self.build_sql_conditions(sql, start_time, end_time, user_id, product_id, type_id);
         sql = "%s %s"%(sql, "order by dr_report.report_id asc");
 
@@ -368,10 +398,15 @@ class RESTDailyReport(object):
     '''
     query summary hours of specified group
     '''
-    def query_summary_group(self, group, start_time="", end_time="", user_id="", product_id="", type_id=""):
-        sql = "select %s from %s where %s"%("sum(work_hours) as work_hours", 
-            "dr_report,dr_user u,dr_group g,dr_rs_group_user rs",
-            "dr_report.user_id = rs.user_id and rs.user_id = u.user_id and g.group_id = rs.group_id and g.group_id = %s"%(group));
+    def query_summary_group(self, group, start_time="", end_time="", user_id="", product_id="", type_id="", query_all=False):
+        if query_all:
+            sql = "select %s from %s where %s"%("sum(work_hours) as work_hours", 
+                "dr_report,dr_user u,dr_group g,dr_rs_group_user rs",
+                "dr_report.user_id = rs.user_id and rs.user_id = u.user_id and g.group_id = rs.group_id and g.group_id = %s"%(group));
+        else:
+            sql = "select %s from %s where %s"%("sum(work_hours) as work_hours", 
+                "dr_report,dr_user u,dr_group g,dr_rs_group_user rs",
+                "u.enabled = true and dr_report.user_id = rs.user_id and rs.user_id = u.user_id and g.group_id = rs.group_id and g.group_id = %s"%(group));
         sql = self.build_sql_conditions(sql, start_time, end_time, user_id, product_id, type_id);
 
         records = sql_exec(sql);
@@ -381,11 +416,17 @@ class RESTDailyReport(object):
     '''
     query detail info of specified group
     '''
-    def query_detail_group(self, group, start_time="", end_time="", user_id="", product_id="", type_id=""):
-        sql = "select %s from %s where %s"%(
-            "report_id,product_id,u.user_id,type_id,bug_id,work_hours,report_content,work_date,insert_date,modify_date,priority", 
-            "dr_report,dr_user u,dr_group g,dr_rs_group_user rs",
-            "dr_report.user_id = rs.user_id and rs.user_id = u.user_id and g.group_id = rs.group_id and g.group_id = %s"%(group));
+    def query_detail_group(self, group, start_time="", end_time="", user_id="", product_id="", type_id="", query_all=False):
+        if query_all:
+            sql = "select %s from %s where %s"%(
+                "report_id,product_id,u.user_id,type_id,bug_id,work_hours,report_content,work_date,insert_date,modify_date,priority", 
+                "dr_report,dr_user u,dr_group g,dr_rs_group_user rs",
+                "dr_report.user_id = rs.user_id and rs.user_id = u.user_id and g.group_id = rs.group_id and g.group_id = %s"%(group));
+        else:
+            sql = "select %s from %s where %s"%(
+                "report_id,product_id,u.user_id,type_id,bug_id,work_hours,report_content,work_date,insert_date,modify_date,priority", 
+                "dr_report,dr_user u,dr_group g,dr_rs_group_user rs",
+                "u.enabled = true and dr_report.user_id = rs.user_id and rs.user_id = u.user_id and g.group_id = rs.group_id and g.group_id = %s"%(group));
         sql = self.build_sql_conditions(sql, start_time, end_time, user_id, product_id, type_id);
         sql = "%s %s"%(sql, "order by dr_report.report_id asc");
 
@@ -404,28 +445,33 @@ class RESTDailyReport(object):
         return json.dumps(ret);
         
     @require_auth()
-    def GET(self, group="", start_time="", end_time="", summary="", user_id="", product_id="", type_id=""):
+    def GET(self, group="", start_time="", end_time="", summary="", user_id="", product_id="", type_id="", query_all="false"):
         enable_crossdomain();
         
+        if query_all == True or query_all == "true":
+            query_all = True
+        else:
+            query_all = False
+            
         # if not null, must be a digit.
         if group != "" and not group.isdigit():
             error("group must be digit, actual is %s"%(group));
             raise cherrypy.HTTPError(400, "group must be digit");
         
-        trace('group=%s, start_time=%s, end_time=%s, summary=%s, user_id=%s, product_id=%s, type_id=%s'%(group, start_time, end_time, summary, user_id, product_id, type_id));
+        trace('group=%s, start_time=%s, end_time=%s, summary=%s, user_id=%s, product_id=%s, type_id=%s, query_all=%s'%(group, start_time, end_time, summary, user_id, product_id, type_id, query_all));
         if user_id != "":
             authorize_user(user_id);
         
         if group == "":
             if summary == "1":
-                return self.query_summary(start_time, end_time, user_id, product_id, type_id);
+                return self.query_summary(start_time, end_time, user_id, product_id, type_id, query_all);
             else:
-                return self.query_detail(start_time, end_time, user_id, product_id, type_id);
+                return self.query_detail(start_time, end_time, user_id, product_id, type_id, query_all);
         else:
             if summary == "1":
-                return self.query_summary_group(group, start_time, end_time, user_id, product_id, type_id);
+                return self.query_summary_group(group, start_time, end_time, user_id, product_id, type_id, query_all);
             else:
-                return self.query_detail_group(group, start_time, end_time, user_id, product_id, type_id);
+                return self.query_detail_group(group, start_time, end_time, user_id, product_id, type_id, query_all);
 
     @require_auth()
     def POST(self):
@@ -521,7 +567,7 @@ class Manager:
         if not self.email_strategy_check(date):
             return False;
         # query email to user list.
-        records = sql_exec("select user_id,user_name,email from dr_user where user_id not in "
+        records = sql_exec("select user_id,user_name,email from dr_user where enabled=true and user_id not in "
             "(select distinct u.user_id from dr_user u, dr_report r where u.user_id = r.user_id and r.work_date='%s')"%(date));
         if len(records) == 0:
             trace("all user reported, donot email");
@@ -560,7 +606,7 @@ class Manager:
         mail = _config["mail"];
         # check only when someone has submitted report.
         if mail["strategy_check_only_someone_submited"]:
-            records = sql_exec("select user_id,email from dr_user where user_id in "
+            records = sql_exec("select user_id,email from dr_user where enabled=true and user_id in "
                 "(select distinct u.user_id from dr_user u, dr_report r where u.user_id = r.user_id and r.work_date='%s')"%(date));
             if len(records) < mail["strategy_check_only_someone_submited_count"]:
                 trace("strategy_check_only_someone_submited is checked, "
