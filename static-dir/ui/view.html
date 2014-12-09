@@ -1260,7 +1260,8 @@
                 }
                 var url = '<a href="' + redmine_url + '">refs#' + o.bug_id + ':</a>';
                 var hour = o.work_hours + get_view_sum_unit_label();
-                var text = '<p class="user_text_para">' + (i+1) + "." + url + " " + hour + ", " + o.report_content + "</p>";
+                var type = data.work_types_kv[o.type_id];
+                var text = '<p class="user_text_para">' + (i+1) + "." + url + " " + hour + "(" + type + "), " + o.report_content + "</p>";
                 $(div).find("#user_text").append(text);
             }
             
