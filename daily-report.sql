@@ -14,7 +14,7 @@ CREATE TABLE `dr_user`(
     `user_id` int(32) NOT NULL AUTO_INCREMENT, 
     `user_name` varchar(200) NOT NULL,  
     `email` varchar(200) DEFAULT NULL,
-    PRIMARY KEY (user_id`) 
+    PRIMARY KEY (`user_id`) 
 ) AUTO_INCREMENT=200 DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS `dr_type`;
