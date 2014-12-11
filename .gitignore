@@ -15,3 +15,4 @@
 # by winlin
 *.pyc
 .idea
+/static-dir/ui/conf.js

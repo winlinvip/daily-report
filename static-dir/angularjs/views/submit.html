@@ -1,0 +1,58 @@
+<div class="container">
+    <div class="form-inline">
+        <div class="input-prepend">
+            <span class="add-on">我是</span>
+            <select class="span2" id="server_type" ng-model="server_reg.type"
+                    ng-options="o.name as o.value for o in server_types"
+                    ng-click="on_user_change_server_type()">
+            </select>
+        </div>
+        <div class="input-prepend input-append">
+            <span class="add-on">日报日期</span>
+            <input type="text" class="input-medium" placeholder="格式为：2014-12-12">
+            <button class="btn" type="button">今天</button>
+            <button class="btn" type="button">昨天</button>
+            <button class="btn" type="button">上周五</button>
+        </div>
+    </div>
+    <div ng-repeat="work in works">
+        <div class="title">工作项</div>
+        <div id="content" class="content">
+            <input id="report_id" type="hidden" value=""/>
+            <div id="bug_id_div">BugId：<input id="bug_id" type="text" size="5" value="" title="整数，例如Redmine中的IssueID"/>
+                <a href="javascript:;" id="retrieve_from_redmine">从Redmine获取信息</a>
+            </div>
+            <div>
+                <span id="product_label" class="item_label">产品</span>
+                <select id="product">
+                    <option value="">-请选择-</option>
+                </select>
+                <span class="item_unit_label"></span>
+                <span id="type_label" class="item_label">类型</span>
+                <select id="work_type">
+                    <option value="">-请选择-</option>
+                </select>
+                <span class="item_unit_label"></span>
+            <span id="priority_div">
+                <span id="priority_label" class="item_label">优先级</span>
+                <input id="priority" type="text" size="2" value="" title=""/>
+                <span id="priority_unit_label" class="item_unit_label">小时</span>
+            </span>
+                <span id="time_label" class="item_label">时长</span>
+                <input id="time" type="text" size="2" value="" title=""/>
+                <span id="time_unit_label" class="item_unit_label">小时</span>
+            </div>
+            <div>
+                内容：<br/><textarea id="work_content" rows="3" cols="80"></textarea>
+                <img id="remove_item" src="img/remove.png" title="删除工作项" align="right"/>
+                <img id="add_item" src="img/add.png" title="添加工作项" align="right"/>
+            </div>
+        </div>
+    </div>
+    <div class="form-inline">
+        <button type="button" class="btn">增加工作项</button>
+        <button type="button" class="btn">查看昨天日报</button>
+        <button type="button" class="btn">查看今天日报</button>
+        <button type="button" class="btn">提交日报</button>
+    </div>
+</div>
