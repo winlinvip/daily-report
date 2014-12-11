@@ -1,12 +1,15 @@
-daily-report
+DailyReport
 ============
 
-open source daily report, support team time analysis.
+Open Source Daily Report, support team time analysis.
 
 ## DEMO
 
-<img src="http://winlinvip.github.io/daily-report/wiki/demo-001.png" title="团队一年时间如何分配的"/>
+The daily report analysis of my work team, from 2013 to 2014.
 
+* 团队一年时间如何分配的
+<img src="http://winlinvip.github.io/daily-report/wiki/demo-001.png" title="团队一年时间如何分配的"/>
+* 去年和今年相比，在不同的事务上花费的时间比较
 <img src="http://winlinvip.github.io/daily-report/wiki/demo-002.png" title="去年和今年相比，在不同的事务上花费的时间比较"/>
 
 <img src="http://winlinvip.github.io/daily-report/wiki/demo-003.png" title="去年和今年相比，在不同的产品上花费的时间比较"/>
