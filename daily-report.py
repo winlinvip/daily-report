@@ -526,7 +526,7 @@ class RESTDailyReport(object):
 class Root(object):
     exposed = True;
     def GET(self):
-        raise cherrypy.HTTPRedirect("ui");
+        raise cherrypy.HTTPRedirect("ui/");
 
 class Manager:
     def __init__(self):
