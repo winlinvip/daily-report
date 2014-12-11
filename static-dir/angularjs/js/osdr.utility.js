@@ -135,12 +135,15 @@ function api_users_for_select(data) {
  */
 function api_products_for_select(data) {
     var products = [];
+    var kvs = [];
     for (var i = 0; i < data.data.length; i++){
         var product = data.data[i];
         products.push({name:product.id, value:product.value});
+        kvs[product.id] = product.value;
     }
     return {
         products: products,
+        kv: kvs,
         first: (products.length > 0? products[0].name : null)
     };
 }
@@ -166,26 +169,131 @@ function api_products_for_select(data) {
  */
 function api_types_for_select(data) {
     var types = [];
+    var kvs = [];
     for (var i = 0; i < data.data.length; i++){
         var type = data.data[i];
         types.push({name:type.id, value:type.value});
+        kvs[type.id] = type.value;
     }
     return {
         types: types,
+        kv: kvs,
         first: (types.length > 0? types[0].name : null)
+    };
+}
+
+/**
+ * convert the api reports for reg(sumbit render).
+ * @param data is
+ *      {
+ *          code: 0,
+ *          data: [
+ *              {
+ *                  report_id: 400,
+ *                  user_id: 200,
+ *                  bug_id: 1670,
+ *                  product_id: 100,
+ *                  type_id: 300,
+ *                  work_hours: 8,
+ *                  priority: 0,
+ *                  report_content: "编写代码",
+ *                  insert_date: "2014-12-09 13:51:32",
+ *                  modify_date: "2014-12-09 13:51:32",
+ *                  work_date: "2014-12-09 00:00:00"
+ *              }
+ *          ]
+ *      }
+ * @returns an array is
+ *      [
+ *          {
+ *              id: 400,
+ *              user: 200,
+ *              bug: 1670,
+ *              product: 100,
+ *              type: 300,
+ *              time: 8,
+ *              content: "编写代码",
+ *              editing: false,
+ *              modified: false
+ *          }
+ *      ]
+ */
+function api_reports_for_reg(products, types, data) {
+    var reports = [];
+    for (var i = 0; i < data.data.length; i++){
+        var report = data.data[i];
+        reports.push({
+            id: report.report_id,
+            user: report.user_id,
+            bug: report.bug_id,
+            product: report.product_id,
+            type: report.type_id,
+            time: report.work_hours,
+            content: report.report_content,
+            editing: false,
+            modified: false
+        });
+    }
+    return reports;
+}
+
+/**
+ * parse reports from works to create reports.
+ * @param works the works of submit page.
+ */
+function api_parse_reports_for_create(date, user, works) {
+    var reports = [];
+    for (var i = 0; i < works.length; i++){
+        var report = works[i];
+        reports.push({
+            report_id: (report.id? report.id:0),
+            bug_id: report.bug,
+            product_id: report.product,
+            type_id: report.type,
+            work_hours: report.time,
+            report_content: report.content,
+            priority: 0
+        });
+    }
+    return {
+        user: user,
+        date: date,
+        items: reports
     };
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // application level data conversion
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-function create_empty_work_item() {
+function create_empty_work_item(user_id) {
     return {
-        bug: 0,
+        id: null,
+        user: user_id,
+        bug: null,
         product: null,
         type: null,
         time: null,
         content: null,
-        editing: true
+        editing: true,
+        modified: true
     };
+}
+function has_editing_work_item(works) {
+    for (var i = 0; i < works.length; i++) {
+        var work = works[i];
+        if (work.editing || work.modified) {
+            return true;
+        }
+    }
+    return false;
+}
+function reset_report_work_item(works) {
+    for (var i = 0; i < works.length; i++) {
+        var work = works[i];
+        work.editing = false;
+        work.modified = false;
+    }
+}
+function object_is_empty(obj) {
+    return obj == null || obj == undefined || obj == "";
 }

@@ -1,15 +1,17 @@
 <div class="container">
     <div>
-        <div class="input-prepend">
+        <div class="input-prepend" ng-show="users.first">
             <span class="add-on">我是</span>
             <select class="span2" ng-model="report_reg.user_id"
                     ng-options="o.name as o.value for o in users.users"
                     ng-click="on_change_user()">
             </select>
         </div>
-        <div class="input-prepend input-append">
+        <div class="input-prepend input-append" ng-show="products.first && types.first">
             <span class="add-on">日报日期</span>
             <input type="text" class="input-medium" placeholder="格式为：2014-12-12" ng-model="report_reg.date">
+            <button class="btn" type="button" ng-click="on_change_date_previous()">前一天</button>
+            <button class="btn" type="button" ng-click="on_change_date_next()">后一天</button>
             <button class="btn" type="button" ng-click="on_change_date_today()">今天</button>
             <button class="btn" type="button" ng-click="on_change_date_yesterday()">昨天</button>
             <button class="btn" type="button" ng-click="on_change_date_previous_friday()">上周五</button>
@@ -18,40 +20,48 @@
     <table class="table table-hover">
         <tr>
             <th>Issue</th>
-            <th>产品</th>
-            <th>类型</th>
-            <th>时长</th>
+            <th>{{const_product}}</th>
+            <th>{{const_type}}</th>
+            <th>时间</th>
             <th>描述</th>
             <th>操作</th>
         </tr>
-        <tr ng-repeat="work in works">
+        <tr ng-repeat="work in report_reg.works">
             <td class="span1">
                 <div ng-show="!work.editing">
                     {{work.bug}}
                 </div>
-                <input type="text" class="input-mini" ng-show="work.editing" ng-model="work.bug">
+                <div class="control-group {{work.bug |filter_div_null_class}}" ng-show="work.editing">
+                    <input type="text" class="input-mini" placeholder="Issue号" ng-model="work.bug">
+                </div>
             </td>
             <td class="span2">
                 <div ng-show="!work.editing">
-                    {{work.product}}
+                    {{products.kv[work.product]}}
                 </div>
-                <select class="span2" ng-show="work.editing" ng-model="work.product"
-                    ng-options="o.name as o.value for o in products.products">
-                </select>
+                <div class="control-group {{work.product |filter_div_empty_class}}" ng-show="work.editing">
+                    <select class="span2" ng-model="work.product"
+                        ng-options="o.name as o.value for o in products.products">
+                    </select>
+                </div>
             </td>
             <td class="span2">
                 <div ng-show="!work.editing">
-                    {{work.type}}
+                    {{types.kv[work.type]}}
                 </div>
-                <select class="span2" ng-show="work.editing" ng-model="work.type"
+                <div class="control-group {{work.type |filter_div_empty_class}}" ng-show="work.editing">
+                    <select class="span2" ng-model="work.type"
                         ng-options="o.name as o.value for o in types.types">
-                </select>
+                    </select>
+                </div>
             </td>
             <td class="span1">
                 <div ng-show="!work.editing">
                     {{work.time}}小时
                 </div>
-                <input type="text" class="input-mini" ng-show="work.editing" ng-model="work.time">
+                <div class="control-group {{work.time |filter_div_empty_class}}" ng-show="work.editing">
+                    <input type="text" class="input-mini" placeholder="所花时间" ng-model="work.time">
+                </div>
             </td>
             <td class="span6">
                 <div ng-show="!work.editing">
@@ -62,23 +72,28 @@
                         <a ng-click="on_modify_work(work)" href="javascript:void(0)"><i class="icon-pencil"></i></a>
                     </abbr>
                 </div>
-                <textarea class="work_content" rows="3"
-                          ng-show="work.editing" ng-model="work.content"
-                          placeholder="请输入内容...">
-                </textarea>
+                <div class="control-group {{work.content |filter_div_empty_class}}" ng-show="work.editing">
+                    <textarea class="work_content" rows="3" placeholder="请输入内容..." ng-model="work.content"></textarea>
+                </div>
             </td>
             <td class="span2">
-                <abbr title="完成编辑该工作项" class="initialism" ng-show="work.editing">
-                    <a ng-click="on_finish_work(work)" href="javascript:void(0)"><i class="icon-ok"></i>完成</a>
-                </abbr>
-                <abbr title="删除该工作项" class="initialism" ng-show="!work.editing">
-                    <a ng-click="on_remove_work(work)" href="javascript:void(0)"><i class="icon-remove"></i>删除</a>
-                </abbr>
+                <div ng-show="work.editing">
+                    <abbr title="完成编辑该工作项" class="initialism">
+                        <a ng-click="on_finish_work(work)" href="javascript:void(0)"><i class="icon-ok"></i>完成</a>
+                    </abbr>
+                    <br/>
+                    <br/>
+                </div>
+                <div>
+                    <abbr title="删除该工作项" class="initialism">
+                        <a ng-click="on_remove_work(work)" href="javascript:void(0)"><i class="icon-remove"></i>删除</a>
+                    </abbr>
+                </div>
             </td>
         </tr>
     </table>
     <div>
         <button type="button" class="btn" ng-click="on_add_empty_work()">增加工作项</button>
-        <button type="button" class="btn">提交日报</button>
+        <button type="button" class="btn" ng-click="on_submit_work()">提交日报</button>
     </div>
 </div>

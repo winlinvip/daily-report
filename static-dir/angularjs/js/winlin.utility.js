@@ -5,7 +5,7 @@
  * depends: jquery1.10
  * https://code.csdn.net/snippets/147103
  * @see: http://blog.csdn.net/win_lin/article/details/17994347
- * v 1.0.4
+ * v 1.0.6
  */
 
 /**
@@ -19,6 +19,35 @@ function padding(number, length, prefix) {
         return String(number);
     }
     return padding(prefix+number, length, prefix);
+}
+
+/**
+ * extends system array, to remove all specified elem.
+ * @param arr the array to remove elem from.
+ * @param elem the elem to remove.
+ * @remark all elem will be removed.
+ * for example,
+ *      arr = [10, 15, 20, 30, 20, 40]
+ *      system_array_remove(arr, 10) // arr=[15, 20, 30, 20, 40]
+ *      system_array_remove(arr, 20) // arr=[15, 30, 40]
+ */
+function system_array_remove(arr, elem) {
+    if (!arr) {
+        return;
+    }
+
+    var removed = true;
+    var i = 0;
+    while (removed) {
+        removed = false;
+        for (; i < arr.length; i++) {
+            if (elem == arr[i]) {
+                arr.splice(i, 1);
+                removed = true;
+                break;
+            }
+        }
+    }
 }
 
 /**
@@ -180,6 +209,18 @@ function absolute_seconds_to_YYYYmmdd(seconds) {
         + "-" + padding(date.getDate(), 2, '0');
 
     return ret;
+}
+
+/**
+ * parse the date in str to Date object.
+ * @param str the date in str, format as "YYYY-mm-dd", for example, 2014-12-11
+ * @returns a date object.
+ * @usage YYYYmmdd_parse("2014-12-11")
+ */
+function YYYYmmdd_parse(str) {
+    var date = new Date();
+    date.setTime(Date.parse(str));
+    return date;
 }
 
 /**

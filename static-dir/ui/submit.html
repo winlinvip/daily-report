@@ -360,7 +360,7 @@
             
             trace("正在查询" + user_name + "在" + date + "的日报");
             
-            var url = generate_api_key("/reports?summary=0&"+"start_time=" + date + "&end_time=" + date + "&user_id=" + user_id);
+            var url = generate_api_key("/reports?summary=0&query_all=1&"+"start_time=" + date + "&end_time=" + date + "&user_id=" + user_id);
             $.getJSON(get_service_url(url), function(user_data){
                 if(user_data.length <= 0){
                     trace("用户" + user_name + "在" + date + "没有提交过日报");
