@@ -629,7 +629,10 @@ def do_reload():
 # static dir specifies the dir which store static html/js/css/images files.
 static_dir = os.path.join(get_work_dir(), "static-dir");
 # the js file path, must under the static dir.
-js_file_path = os.path.join(static_dir, "ui", "conf.js");
+js_dir = os.path.join(static_dir, "dynamic-js")
+if not os.path.exists(js_dir):
+    os.mkdir(js_dir)
+js_file_path = os.path.join(js_dir, "conf.js");
 # reload config, init log and generate js config file
 _config = do_reload();
 
