@@ -3,13 +3,18 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta property="qc:admins" content="354537152576306614576375741141525072471645060454" />
     <title>DailyReport</title>
+    <script type="text/javascript" src="ui/conf.js"></script>
     <style type="text/css">
     body{
         font-size: 12px;
     }
     </style>
     <script type="text/javascript">
-        window.location.href = "./ui/login.html";
+        if (use_angularjs) {
+            window.location.href = "./angularjs/";
+        } else {
+            window.location.href = "./ui/";
+        }
     </script>
 </head>
 <body>
