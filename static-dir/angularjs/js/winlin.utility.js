@@ -1,16 +1,19 @@
+// winlin.utility.js
+
 /**
+ * common utilities
  * depends: jquery1.10
  * https://code.csdn.net/snippets/147103
  * @see: http://blog.csdn.net/win_lin/article/details/17994347
- * v 1.0.1
+ * v 1.0.4
  */
 
 /**
-* padding the output.
-* padding(3, 5, '0') is 00003
-* padding(3, 5, 'x') is xxxx3
-* @see http://blog.csdn.net/win_lin/article/details/12065413
-*/
+ * padding the output.
+ * padding(3, 5, '0') is 00003
+ * padding(3, 5, 'x') is xxxx3
+ * @see http://blog.csdn.net/win_lin/article/details/12065413
+ */
 function padding(number, length, prefix) {
     if(String(number).length >= length){
         return String(number);
@@ -19,27 +22,27 @@ function padding(number, length, prefix) {
 }
 
 /**
-* parse the query string to object.
-* parse the url location object as: host(hostname:http_port), pathname(dir/filename)
-* for example, url http://192.168.1.168:1980/ui/players.html?vhost=player.vhost.com&app=test&stream=livestream
-* parsed to object:
-{
-    host        : "192.168.1.168:1980",
-    hostname    : "192.168.1.168",
-    http_port   : 1980,
-    pathname    : "/ui/players.html",
-    dir         : "/ui",
-    filename    : "/players.html",
-    
-    vhost       : "player.vhost.com",
-    app         : "test",
-    stream      : "livestream"
-}
-* @see: http://blog.csdn.net/win_lin/article/details/17994347
-*/
+ * parse the query string to object.
+ * parse the url location object as: host(hostname:http_port), pathname(dir/filename)
+ * for example, url http://192.168.1.168:1980/ui/players.html?vhost=player.vhost.com&app=test&stream=livestream
+ * parsed to object:
+ {
+     host        : "192.168.1.168:1980",
+     hostname    : "192.168.1.168",
+     http_port   : 1980,
+     pathname    : "/ui/players.html",
+     dir         : "/ui",
+     filename    : "/players.html",
+
+     vhost       : "player.vhost.com",
+     app         : "test",
+     stream      : "livestream"
+ }
+ * @see: http://blog.csdn.net/win_lin/article/details/17994347
+ */
 function parse_query_string(){
     var obj = {};
-    
+
     // add the uri object.
     // parse the host(hostname:http_port), pathname(dir/filename)
     obj.host = window.location.host;
@@ -53,10 +56,10 @@ function parse_query_string(){
         obj.dir = obj.pathname.substr(0, obj.pathname.lastIndexOf("/"));
         obj.filename = obj.pathname.substr(obj.pathname.lastIndexOf("/"));
     }
-    
+
     // pure user query object.
     obj.user_query = {};
-    
+
     // parse the query string.
     var query_string = String(window.location.search).replace(" ", "").split("?")[1];
     if(query_string == undefined){
@@ -65,53 +68,53 @@ function parse_query_string(){
             return obj;
         }
     }
-    
+
     var queries = query_string.split("&");
     $(queries).each(function(){
         var query = this.split("=");
         obj[query[0]] = query[1];
         obj.user_query[query[0]] = query[1];
     });
-    
+
     return obj;
 }
 
 /**
-* get the agent.
-* @return an object specifies some browser.
-*   for example, get_browser_agents().MSIE
-* @see: http://blog.csdn.net/win_lin/article/details/17994347
-*/
+ * get the agent.
+ * @return an object specifies some browser.
+ *   for example, get_browser_agents().MSIE
+ * @see: http://blog.csdn.net/win_lin/article/details/17994347
+ */
 function get_browser_agents() {
     var agent = navigator.userAgent;
-    
+
     /**
-    WindowsPC platform, Win7:
-        chrome 31.0.1650.63:
-            Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 
-            (KHTML, like Gecko) Chrome/31.0.1650.63 Safari/537.36
-        firefox 23.0.1:
-            Mozilla/5.0 (Windows NT 6.1; WOW64; rv:23.0) Gecko/20100101 
-            Firefox/23.0
-        safari 5.1.7(7534.57.2):
-            Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/534.57.2 
-            (KHTML, like Gecko) Version/5.1.7 Safari/534.57.2
-        opera 15.0.1147.153:
-            Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 
-            (KHTML, like Gecko) Chrome/28.0.1500.95 Safari/537.36 
-            OPR/15.0.1147.153
-        360 6.2.1.272: 
-            Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.1; WOW64; 
-            Trident/6.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; 
-            .NET CLR 3.0.30729; Media Center PC 6.0; InfoPath.2; .NET4.0C; 
-            .NET4.0E)
-        IE 10.0.9200.16750(update: 10.0.12):
-            Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.1; WOW64; 
-            Trident/6.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; 
-            .NET CLR 3.0.30729; Media Center PC 6.0; InfoPath.2; .NET4.0C; 
-            .NET4.0E)
-    */
-    
+     WindowsPC platform, Win7:
+     chrome 31.0.1650.63:
+     Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36
+     (KHTML, like Gecko) Chrome/31.0.1650.63 Safari/537.36
+     firefox 23.0.1:
+     Mozilla/5.0 (Windows NT 6.1; WOW64; rv:23.0) Gecko/20100101
+     Firefox/23.0
+     safari 5.1.7(7534.57.2):
+     Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/534.57.2
+     (KHTML, like Gecko) Version/5.1.7 Safari/534.57.2
+     opera 15.0.1147.153:
+     Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36
+     (KHTML, like Gecko) Chrome/28.0.1500.95 Safari/537.36
+     OPR/15.0.1147.153
+     360 6.2.1.272:
+     Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.1; WOW64;
+     Trident/6.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729;
+     .NET CLR 3.0.30729; Media Center PC 6.0; InfoPath.2; .NET4.0C;
+     .NET4.0E)
+     IE 10.0.9200.16750(update: 10.0.12):
+     Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.1; WOW64;
+     Trident/6.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729;
+     .NET CLR 3.0.30729; Media Center PC 6.0; InfoPath.2; .NET4.0C;
+     .NET4.0E)
+     */
+
     return {
         // platform
         Android: agent.indexOf("Android") != -1,
@@ -121,7 +124,7 @@ function get_browser_agents() {
         Chrome: agent.indexOf("Chrome") != -1,
         Firefox: agent.indexOf("Firefox") != -1,
         QQBrowser: agent.indexOf("QQBrowser") != -1,
-        MSIE: agent.indexOf("MSIE") != -1, 
+        MSIE: agent.indexOf("MSIE") != -1,
         // Android Browsers
         Opera: agent.indexOf("Presto") != -1,
         MQQBrowser: agent.indexOf("MQQBrowser") != -1
@@ -132,6 +135,7 @@ function get_browser_agents() {
  * format relative seconds to HH:MM:SS,
  * for example, 210s formated to 00:03:30
  * @see: http://blog.csdn.net/win_lin/article/details/17994347
+ * @usage relative_seconds_to_HHMMSS(210)
  */
 function relative_seconds_to_HHMMSS(seconds){
     var date = new Date();
@@ -148,6 +152,7 @@ function relative_seconds_to_HHMMSS(seconds){
  * format absolute seconds to HH:MM:SS,
  * for example, 1389146480s (2014-01-08 10:01:20 GMT+0800) formated to 10:01:20
  * @see: http://blog.csdn.net/win_lin/article/details/17994347
+ * @usage absolute_seconds_to_HHMMSS(new Date().getTime() / 1000)
  */
 function absolute_seconds_to_HHMMSS(seconds){
     var date = new Date();
@@ -164,6 +169,7 @@ function absolute_seconds_to_HHMMSS(seconds){
  * format absolute seconds to YYYY-mm-dd,
  * for example, 1389146480s (2014-01-08 10:01:20 GMT+0800) formated to 2014-01-08
  * @see: http://blog.csdn.net/win_lin/article/details/17994347
+ * @usage absolute_seconds_to_YYYYmmdd(new Date().getTime() / 1000)
  */
 function absolute_seconds_to_YYYYmmdd(seconds) {
     var date = new Date();
@@ -183,8 +189,8 @@ function absolute_seconds_to_YYYYmmdd(seconds) {
  * @param refresh_interval the default refresh interval ms.
  * @see: http://blog.csdn.net/win_lin/article/details/17994347
  * the pfn can be implements as following:
-        var async_refresh = new AsyncRefresh(pfn, 3000);
-        function pfn() {
+ var async_refresh = new AsyncRefresh(pfn, 3000);
+ function pfn() {
             if (!async_refresh.refresh_is_enabled()) {
                 async_refresh.request(100);
                 return;
@@ -248,7 +254,7 @@ AsyncRefresh.prototype.request = function(timeout) {
  * @remakr for angularjs. if user only need jquery, maybe AsyncRefresh is better.
  * @see: http://blog.csdn.net/win_lin/article/details/17994347
  * Usage:
-        vlbControllers.controller('CServers', ['$scope', 'MServer', function($scope, MServer){
+ bsmControllers.controller('CServers', ['$scope', 'MServer', function($scope, MServer){
             async_refresh2.refresh_change(function(){
                 // 获取服务器列表
                 MServer.servers_load({}, function(data){
@@ -259,7 +265,7 @@ AsyncRefresh.prototype.request = function(timeout) {
 
             async_refresh2.request(0);
         }]);
-        vlbControllers.controller('CStreams', ['$scope', 'MStream', function($scope, MStream){
+ bsmControllers.controller('CStreams', ['$scope', 'MStream', function($scope, MStream){
             async_refresh2.refresh_change(function(){
                 // 获取流列表
                 MStream.streams_load({}, function(data){
@@ -272,13 +278,29 @@ AsyncRefresh.prototype.request = function(timeout) {
         }]);
  */
 function AsyncRefresh2() {
+    /**
+     * the function callback before call the pfn.
+     * the protype is function():bool, which return true to invoke, false to abort the call.
+     * null to ignore this callback.
+     *
+     * for example, user can abort the refresh by find the class popover:
+     *      async_refresh2.on_before_call_pfn = function() {
+     *          if ($(".popover").length > 0) {
+     *              async_refresh2.request();
+     *              return false;
+     *          }
+     *          return true;
+     *      };
+     */
+    this.on_before_call_pfn = null;
+
     // use a anonymous function to call, and check the enabled when actually invoke.
     this.__call = {
         pfn: null,
         timeout: 0,
         __enabled: false,
         __handler: null
-    }
+    };
 }
 // singleton
 var async_refresh2 = new AsyncRefresh2();
@@ -290,9 +312,15 @@ var async_refresh2 = new AsyncRefresh2();
 AsyncRefresh2.prototype.initialize = function(pfn, timeout) {
     this.refresh_change(pfn, timeout);
 }
+/**
+ * stop refresh, the refresh pfn is set to null.
+ */
 AsyncRefresh2.prototype.stop = function() {
     this.refresh_change(null, null);
 }
+/**
+ * change refresh pfn, the old pfn will set to disabled.
+ */
 AsyncRefresh2.prototype.refresh_change = function(pfn, timeout) {
     // cancel the previous call.
     if (this.__call.__handler) {
@@ -314,6 +342,7 @@ AsyncRefresh2.prototype.refresh_change = function(pfn, timeout) {
  * @param timeout [optional] if not specified, use the timeout in initialize or refresh_change.
  */
 AsyncRefresh2.prototype.request = function(timeout) {
+    var self = this;
     var this_call = this.__call;
 
     // clear previous timeout.
@@ -336,6 +365,15 @@ AsyncRefresh2.prototype.request = function(timeout) {
         if (!this_call.__enabled) {
             return;
         }
+
+        // callback if the handler installled.
+        if (self.on_before_call_pfn) {
+            if (!self.on_before_call_pfn()) {
+                return;
+            }
+        }
+
+        // do the actual call.
         this_call.pfn();
     }, timeout);
 }
@@ -345,7 +383,7 @@ AsyncRefresh2.prototype.request = function(timeout) {
  * [a, b] in [10, 11, 9]
  * then sort to: [9, 10, 11]
  * Usage, for example:
-        obj.data.data.sort(function(a, b){
+ obj.data.data.sort(function(a, b){
             return array_sort_asc(parseInt(a.metadata.meta_id), parseInt(b.metadata.meta_id));
         });
  * @see: http://blog.csdn.net/win_lin/article/details/17994347
@@ -360,5 +398,8 @@ function array_sort_asc(elem_a, elem_b) {
 
 // other components.
 /**
-* pager, see: http://blog.csdn.net/win_lin/article/details/17628631
-*/
+ * jquery/bootstrap pager.
+ * depends: jquery1.10, boostrap2
+ * https://code.csdn.net/snippets/146160
+ * @see: http://blog.csdn.net/win_lin/article/details/17628631
+ */

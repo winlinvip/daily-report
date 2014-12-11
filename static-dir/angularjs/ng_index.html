@@ -18,6 +18,9 @@
         body {
             padding-top: 55px;
         }
+        .work_content {
+            width: 95%;
+        }
     </style>
     <script type="text/javascript">
         $(function() {
@@ -27,9 +30,6 @@
 
             // singleton log to render.
             logs.render($("#log"));
-
-            // to declare the singletons
-            async_refresh2.initialize(null, null);
         });
     </script>
 </head>
@@ -37,7 +37,7 @@
 <div class="navbar navbar-fixed-top">
     <div class="navbar-inner">
         <div class="container">
-            <a class="brand" href="javascript:void(0)" title="VLB(Virtual Live Broadcaster)" ng-bind="nav_brand_title"></a>
+            <a class="brand" href="javascript:void(0)" title="DailyReport" ng-bind="nav_brand_title"></a>
             <div class="pull-left nav-collapse collapse">
                 <ul class="nav nav-tabs">
                     <li ng-class='is_nav_selected(navs.submit) |main_nav_active'>
