@@ -14,7 +14,7 @@ echo "Please modify the config.conf then start daily-report" && ./daily-report.p
 echo "Success: http://yourserver:3001"
 ```
 
-## 实例
+## Show
 
 我的研发团队在2013年和2014使用这个产品后的分析结果。
 
