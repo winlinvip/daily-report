@@ -8,11 +8,10 @@ Open Source Daily Report, support team time analysis.
 ```
 git clone https://github.com/winlinvip/daily-report.git &&
 cd daily-report && 
-echo "create database for daily report" &&
-mysql -uroot -pyourpwd < daily-report.sql &&
-echo "please modify the config.conf" &&
-./daily-report.py &&
-echo "to access daily report: http://yourserver:3001"
+echo "Install depends python modules" && (cd 3rdparty && bash install.sh) &&
+echo "Create database for daily report" && mysql -uroot -pyourpwd < daily-report.sql &&
+echo "Please modify the config.conf then start daily-report" && ./daily-report.py &&
+echo "Success: http://yourserver:3001"
 ```
 
 ## ÊµÀý
