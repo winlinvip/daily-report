@@ -7,9 +7,11 @@ Open Source Daily Report, support team time analysis.
 
 ```
 git clone https://github.com/winlinvip/daily-report.git &&
-cd daily-report && mysql -uroot -pyourpwd < daily-report.sql &&
+cd daily-report && 
+echo "create database for daily report" &&
+mysql -uroot -pyourpwd < daily-report.sql &&
 echo "please modify the config.conf" &&
-cd daily-report && daily-report.py &&
+./daily-report.py &&
 echo "to access daily report: http://yourserver:3001"
 ```
 
