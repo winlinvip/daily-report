@@ -3,13 +3,13 @@
  */
 
 // the application, system main object.
-var vlbApp = angular.module('vlbApp', ['ngRoute', 'vlbControllers', 'vlbFilters', 'vlbServices']);
+var osdrApp = angular.module('osdrApp', ['ngRoute', 'osdrControllers', 'osdrFilters', 'osdrServices']);
 // the controllers, used to generate variety controllers for views.
-var vlbControllers = angular.module('vlbControllers', []);
+var osdrControllers = angular.module('osdrControllers', []);
 // the filters, for system to regenerate data.
-var vlbFilters = angular.module('vlbFilters', []);
+var osdrFilters = angular.module('osdrFilters', []);
 // the services, system model, RESTful data from backend api.
-var vlbServices = angular.module('vlbServices', ['ngResource']);
+var osdrServices = angular.module('osdrServices', ['ngResource']);
 
 // links,
 var links = {
@@ -18,16 +18,16 @@ var links = {
     },
     submit: {
         mount: "/submit", link: "#/submit",
-        page: "views/submit.html", controller: "CChannels", text: "填写日报"
+        page: "views/submit.html", controller: "CSubmit", text: "填写日报"
     },
     view: {
         mount: "/view", link: "#/view",
-        page: "views/view.html", controller: "CPrograms", text: "查看日报"
+        page: "views/view.html", controller: "CView", text: "查看日报"
     }
 };
 
 // config the route
-vlbApp.config(['$routeProvider', function($routeProvider) {
+osdrApp.config(['$routeProvider', function($routeProvider) {
         $routeProvider
         .when(links.submit.mount, {
             templateUrl: links.submit.page, controller: links.submit.controller
@@ -75,14 +75,14 @@ vlbApp.config(['$routeProvider', function($routeProvider) {
         return false;
     }
 }]);
-// controller: CChannels, for the view submit.html.
-vlbControllers.controller('CChannels', ['$scope', '$routeParams', 'MChannel', function($scope, $routeParams, MChannel){
+// controller: CSubmit, for the view submit.html.
+osdrControllers.controller('CSubmit', ['$scope', '$routeParams', 'MChannel', function($scope, $routeParams, MChannel){
     $scope.$parent.nav_active_submit();
     async_refresh2.stop();
     logs.info("请填写日报");
 }]);
-// controller: CPrograms, for the view view.html.
-vlbControllers.controller('CPrograms', ['$scope', '$routeParams', '$location', 'MProgram', function($scope, $routeParams, $location, MProgram){
+// controller: CView, for the view view.html.
+osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MProgram', function($scope, $routeParams, $location, MProgram){
     $scope.$parent.nav_active_view();
 
     async_refresh2.refresh_change(function(){
@@ -99,7 +99,8 @@ vlbControllers.controller('CPrograms', ['$scope', '$routeParams', '$location', '
 
 // config the filter
 // the filter for the main app, the index page.
-vlbFilters.filter('sample_filter', function(){
+osdrFilters
+.filter('sample_filter', function(){
     return function(input) {
         return input? "not-null":"null";
     };
@@ -108,20 +109,21 @@ vlbFilters.filter('sample_filter', function(){
     return function(is_active) {
         return is_active? "active": null;
     };
-});
+})
+;
 
 // config the services
-vlbServices.factory('MChannel', ['$resource', function($resource){
+osdrServices.factory('MChannel', ['$resource', function($resource){
     return $resource('/api/v1/channels', {}, {
         channels_load: {method: 'GET'}
     });
 }]);
-vlbServices.factory('MProgram', ['$resource', function($resource){
+osdrServices.factory('MProgram', ['$resource', function($resource){
     return $resource('/api/v1/programs', {}, {
         programs_load: {method: 'GET'}
     });
 }]);
-vlbServices.factory('MHttpInterceptor', function($q){
+osdrServices.factory('MHttpInterceptor', function($q){
     // register the interceptor as a service
     // @see: https://code.angularjs.org/1.2.0-rc.3/docs/api/ng.$http
     // @remark: the function($q) should never add other params.
