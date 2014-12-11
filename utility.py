@@ -45,7 +45,7 @@ def get_work_dir():
 '''
 reload config from config file.
 '''
-def reload_config(config_file, js_file_path):
+def reload_config(config_file, js_file_path, version):
     # global config.
     _config = _parse_config(config_file);
     _initialize_log(_config["log"]["log_to_console"], _config["log"]["log_to_file"], _config["log"]["log_file"]);
@@ -58,7 +58,7 @@ def reload_config(config_file, js_file_path):
         %(work_dir, _config["system"]["port"], log["log_file"], log["log_to_console"], log["log_to_file"]));
         
     # generate js conf by config
-    _generate_js_config_file(_config, js_file_path);
+    _generate_js_config_file(_config, js_file_path, version);
         
     return _config;
 
@@ -90,9 +90,7 @@ def _generate_js_config_node(nodes, _config):
             
     return js_functions;
             
-def _generate_js_config_file(_config, js_file_path):
-    js_functions = "";
-    
+def _generate_js_config_file(_config, js_file_path, version):
     # generate config from exists config.
     if "js_config" not in _config:
         _config["js_config"] = {};
@@ -105,6 +103,17 @@ def _generate_js_config_file(_config, js_file_path):
         _config["js_config"]["enable_auth()"] = "return false;";
         _config["js_config"]["get_qq_oauth_app_id()"] = "return 'xxx';";
         _config["js_config"]["get_qq_oauth_redirect_url()"] = "return 'http://xxx';";
+
+    js_functions = "";
+
+    # use angularjs ui.
+    if "angularjs" in _config["ui"] and _config["ui"]["angularjs"]:
+        js_functions += "var use_angularjs = true;\n"
+    else:
+        js_functions += "var use_angularjs = false;\n"
+
+    # system version
+    js_functions += 'var version = "%s";\n'%version
     
     # foreach all nodes, write the js_config node to file.
     # the js_config must be a array which contains js fucntions.

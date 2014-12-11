@@ -45,6 +45,11 @@
         }
         else{
             $("#login").html("Welcome to " + get_system_title() + "!<br/>");
+            if (use_angularjs) {
+                $("#login").append('<a href="../angularjs/ng_index.html#/submit">提交日报</a><br/>');
+            } else {
+                $("#login").append('<a href="submit.html">提交日报</a><br/>');
+            }
         }
     </script>
 </body>

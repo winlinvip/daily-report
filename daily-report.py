@@ -14,7 +14,7 @@ assert sys.getdefaultencoding().lower() == "utf-8";
 from utility import error, trace, get_work_dir, reload_config, send_mail, enable_crossdomain, sql_escape, sql_exec, utility_init;
 from auth import SESSION_KEY, authorize_get_exception_user_id, authorize_user, check_auth, crossdomain_session, require_auth, auth_init;
 
-version="1.0.1"
+version="2.0.0"
 
 class ErrorCode:
     Success = 0x00;
@@ -621,7 +621,7 @@ if len(sys.argv) > 1:
 
 # reload the config.
 def do_reload():
-    _config = reload_config(os.path.join(get_work_dir(), config_file), js_file_path);
+    _config = reload_config(os.path.join(get_work_dir(), config_file), js_file_path, version);
     auth_init(_config);
     utility_init(_config);
     return _config;

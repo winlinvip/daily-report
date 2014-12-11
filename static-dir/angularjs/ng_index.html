@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html ng-app="vlbApp">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>观止VLB</title>
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css"/>
+    <script type="text/javascript" src="js/jquery-1.10.2.min.js"></script>
+    <script type="text/javascript" src="js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="js/angular.min.js"></script>
+    <script type="text/javascript" src="js/angular-route.min.js"></script>
+    <script type="text/javascript" src="js/angular-resource.min.js"></script>
+    <script type="text/javascript" src="js/winlin.utility.js"></script>
+    <script type="text/javascript" src="js/osdr.logs.js"></script>
+    <script type="text/javascript" src="js/osdr.utility.js"></script>
+    <script type="text/javascript" src="js/osdr.ng.router.js"></script>
+    <script type="text/javascript" src="../ui/conf.js"></script>
+    <style>
+        body {
+            padding-top: 55px;
+        }
+    </style>
+    <script type="text/javascript">
+        $(function() {
+            if (!use_angularjs) {
+                window.location.href = "../ui/";
+            }
+
+            // singleton log to render.
+            logs.render($("#log"));
+
+            // to declare the singletons
+            async_refresh2.initialize(null, null);
+        });
+    </script>
+</head>
+<body ng-controller="CMain">
+<div class="navbar navbar-fixed-top">
+    <div class="navbar-inner">
+        <div class="container">
+            <a class="brand" href="javascript:void(0)" title="VLB(Virtual Live Broadcaster)" ng-bind="nav_brand_title"></a>
+            <div class="pull-left nav-collapse collapse">
+                <ul class="nav nav-tabs">
+                    <li ng-class='is_nav_selected(navs.submit) |main_nav_active'>
+                        <a ng-href="{{navs.submit.url}}" target="{{navs.submit.target}}" ng-bind="navs.submit.text"></a>
+                    </li>
+                    <li ng-class='is_nav_selected(navs.view) |main_nav_active'>
+                        <a ng-href="{{navs.view.url}}" target="{{navs.view.target}}" ng-bind="navs.view.text"></a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="log"></div>
+<div ng-view></div>
+<div id="footer">
+    <div class="container">
+        <hr>
+        <footer>
+            <p>CopyRight&copy; <a href="https://github.com/winlinvip/daily-report">OpenSourceDailyReport</a>, 2013-2015.</p>
+        </footer>
+    </div>
+</div>
+</body>
+</html>
+

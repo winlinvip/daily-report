@@ -187,6 +187,10 @@
         
         // main function.
         $(function(){
+            if (use_angularjs) {
+                window.location.href = "../angularjs/ng_index.html#/submit";
+            }
+
             document.title = get_system_title();
             $("#body").hide();
             

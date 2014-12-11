@@ -400,7 +400,7 @@
                     MSIE: agent.indexOf("MSIE") != -1, 
                     // Android Browsers
                     Opera: agent.indexOf("Presto") != -1,
-                    MQQBrowser: agent.indexOf("MQQBrowser") != -1,
+                    MQQBrowser: agent.indexOf("MQQBrowser") != -1
                 };
             }()
         };
@@ -409,6 +409,10 @@
         
         // main function
         $(function(){
+            if (use_angularjs) {
+                window.location.href = "../angularjs/ng_index.html#/view";
+            }
+
             document.title = get_system_title();
             $("#body").hide();
             
