@@ -213,8 +213,7 @@ function api_types_for_select(data) {
  *              type: 300,
  *              time: 8,
  *              content: "编写代码",
- *              editing: false,
- *              modified: false
+ *              editing: false
  *          }
  *      ]
  */
@@ -230,8 +229,7 @@ function api_reports_for_reg(products, types, data) {
             type: report.type_id,
             time: report.work_hours,
             content: report.report_content,
-            editing: false,
-            modified: false
+            editing: false
         });
     }
     return reports;
@@ -274,24 +272,13 @@ function create_empty_work_item(user_id) {
         type: null,
         time: null,
         content: null,
-        editing: true,
-        modified: true
+        editing: true
     };
-}
-function has_editing_work_item(works) {
-    for (var i = 0; i < works.length; i++) {
-        var work = works[i];
-        if (work.editing || work.modified) {
-            return true;
-        }
-    }
-    return false;
 }
 function reset_report_work_item(works) {
     for (var i = 0; i < works.length; i++) {
         var work = works[i];
         work.editing = false;
-        work.modified = false;
     }
 }
 function object_is_empty(obj) {

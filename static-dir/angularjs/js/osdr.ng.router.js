@@ -92,17 +92,19 @@ osdrControllers.controller('CLogin', ['$scope', '$routeParams', 'MUser', functio
     logs.info("请登录系统");
 }]);
 // controller: CSubmit, for the view submit.html.
-osdrControllers.controller('CSubmit', ['$scope', '$routeParams', 'MUser', 'MProduct', 'MTypes', 'MReport',
-    function($scope, $routeParams, MUser, MProduct, MTypes, MReport){
+osdrControllers.controller('CSubmit', ['$scope', '$routeParams', 'MUser', 'MProduct', 'MTypes', 'MReport', 'MRedmine',
+    function($scope, $routeParams, MUser, MProduct, MTypes, MReport, MRedmine){
     // add new report object.
     $scope.report_reg = {
         user_id: null,
         date: absolute_seconds_to_YYYYmmdd(new Date().getTime() / 1000),
+        modified: false,
         works: []
     };
     // consts
     $scope.const_product = get_product_label();
     $scope.const_type = get_type_label();
+    $scope.enabled_redmine = enable_redmine_retieve();
     // the users return by server.
     $scope.users = {};
     // the products return by server.
@@ -115,10 +117,9 @@ osdrControllers.controller('CSubmit', ['$scope', '$routeParams', 'MUser', 'MProd
     };
     // check
     $scope.check_for_change_date = function() {
-        if (has_editing_work_item($scope.report_reg.works)) {
-            logs.warn(0, "您有未保存的工作项，不能切换日期。您可以选择：<br/>" +
-                "<li>手动修改日报日期后提交</li>" +
-                "<li>或提交后修改后的日报后切换日期</li>" +
+        if ($scope.report_reg.modified) {
+            logs.warn(0, "您修改了日报尚未提交，不能切换日期。您可以选择：<br/>" +
+                "<li>手动修改日期后提交日报</li>" +
                 "<li>或刷新页面，放弃所做的所有修改</li>");
             return false;
         }
@@ -203,20 +204,36 @@ osdrControllers.controller('CSubmit', ['$scope', '$routeParams', 'MUser', 'MProd
     };
     // when remove specified work item
     $scope.on_remove_work = function(work) {
+        $scope.report_reg.modified = true;
         system_array_remove($scope.report_reg.works, work);
         logs.info("删除工作项" + (work.id? work.id:""));
     };
     $scope.on_modify_work = function(work) {
-        if (!work.product && $scope.products) {
-            work.product = $scope.products.first;
-        }
         work.editing = true;
+        $scope.report_reg.modified = true;
+        logs.info("修改工作项" + (work.id? work.id:""));
     };
     $scope.on_finish_work = function(work) {
         if (!$scope.check_for_work(work)) return;
         work.editing = false;
-        work.modified = true;
+        $scope.report_reg.modified = true;
         logs.info("完成编辑工作项" + (work.id? work.id:""));
+    };
+    $scope.on_retrieve_work = function(work) {
+        MRedmine.redmine_load({
+            id: work.bug
+        }, function(data){
+            var report_content = data.issue.subject;
+            if (report_content.lastIndexOf("。") == -1) {
+                report_content += "。";
+            }
+            if(data.issue.status.name != "新建" && data.issue.status.name != "进行中"){
+                report_content += data.issue.status.name + "。";
+            }
+            work.content = report_content;
+            $scope.report_reg.modified = true;
+            logs.info("获取Issue信息成功");
+        });
     };
     $scope.on_add_empty_work = function() {
         $scope.report_reg.works.push(create_empty_work_item($scope.users.first));
@@ -237,6 +254,8 @@ osdrControllers.controller('CSubmit', ['$scope', '$routeParams', 'MUser', 'MProd
         );
         MReport.reports_create(params, function(data){
             reset_report_work_item($scope.report_reg.works);
+            $scope.report_reg.modified = false;
+            alert("日报填写成功");
             logs.info("日报填写成功");
         });
     };
@@ -310,6 +329,16 @@ osdrFilters
         return (v == null || v == undefined)? "error": "";
     };
 })
+.filter('filter_bug_url', function() {
+    return function(bug_id) {
+        return get_redmine_issue_url() + "/" + bug_id;
+    };
+})
+.filter('filter_redmine_url', function() {
+    return function(bug_id) {
+        return get_origin_redmine_url() + "/" + bug_id;
+    };
+})
 ;
 
 // config the services
@@ -332,6 +361,11 @@ osdrServices.factory('MReport', ['$resource', function($resource){
     return $resource('/reports', {}, {
         reports_load: {method: 'GET'},
         reports_create: {method: 'POST'}
+    });
+}]);
+osdrServices.factory('MRedmine', ['$resource', function($resource){
+    return $resource('/redmines/:id', {}, {
+        redmine_load: {method: 'GET'}
     });
 }]);
 osdrServices.factory('MHttpInterceptor', function($q, $location){

@@ -10,11 +10,11 @@
         <div class="input-prepend input-append" ng-show="products.first && types.first">
             <span class="add-on">日报日期</span>
             <input type="text" class="input-medium" placeholder="格式为：2014-12-12" ng-model="report_reg.date">
-            <button class="btn" type="button" ng-click="on_change_date_previous()">前一天</button>
-            <button class="btn" type="button" ng-click="on_change_date_next()">后一天</button>
             <button class="btn" type="button" ng-click="on_change_date_today()">今天</button>
             <button class="btn" type="button" ng-click="on_change_date_yesterday()">昨天</button>
             <button class="btn" type="button" ng-click="on_change_date_previous_friday()">上周五</button>
+            <button class="btn" type="button" ng-click="on_change_date_previous()">上一天</button>
+            <button class="btn" type="button" ng-click="on_change_date_next()">下一天</button>
         </div>
     </div>
     <table class="table table-hover">
@@ -29,7 +29,12 @@
         <tr ng-repeat="work in report_reg.works">
             <td class="span1">
                 <div ng-show="!work.editing">
-                    {{work.bug}}
+                    <div ng-show="!enabled_redmine">
+                        {{work.bug}}
+                    </div>
+                    <div ng-show="enabled_redmine">
+                        <a href="{{work.bug |filter_redmine_url}}" target="_blank">{{work.bug}}</a>
+                    </div>
                 </div>
                 <div class="control-group {{work.bug |filter_div_null_class}}" ng-show="work.editing">
                     <input type="text" class="input-mini" placeholder="Issue号" ng-model="work.bug">
@@ -68,27 +73,29 @@
                     <span>
                         {{work.content}}
                     </span><br/>
-                    <abbr title="修改该工作项" class="initialism">
-                        <a ng-click="on_modify_work(work)" href="javascript:void(0)"><i class="icon-pencil"></i></a>
+                    <abbr title="修改该工作项" class="initialism span1">
+                        <a ng-click="on_modify_work(work)" href="javascript:void(0)"><i class="icon-pencil"></i>修改</a>
+                    </abbr>
+                    <abbr title="从Redmine获取IssueId对应的工作项内容" class="initialism span3" ng-show="enabled_redmine">
+                        <a ng-click="on_retrieve_work(work)" href="javascript:void(0)"><i class="icon-refresh"></i>获取内容</a>
                     </abbr>
                 </div>
                 <div class="control-group {{work.content |filter_div_empty_class}}" ng-show="work.editing">
                     <textarea class="work_content" rows="3" placeholder="请输入内容..." ng-model="work.content"></textarea>
                 </div>
-            </td>
-            <td class="span2">
                 <div ng-show="work.editing">
-                    <abbr title="完成编辑该工作项" class="initialism">
+                    <abbr title="完成编辑该工作项" class="initialism span1">
                         <a ng-click="on_finish_work(work)" href="javascript:void(0)"><i class="icon-ok"></i>完成</a>
                     </abbr>
-                    <br/>
-                    <br/>
-                </div>
-                <div>
-                    <abbr title="删除该工作项" class="initialism">
-                        <a ng-click="on_remove_work(work)" href="javascript:void(0)"><i class="icon-remove"></i>删除</a>
+                    <abbr title="从Redmine获取IssueId对应的工作项内容" class="initialism" ng-show="enabled_redmine">
+                        <a ng-click="on_retrieve_work(work)" href="javascript:void(0)"><i class="icon-refresh"></i>从Redmine获取Issue内容</a>
                     </abbr>
                 </div>
+            </td>
+            <td class="span2">
+                <abbr title="删除该工作项" class="initialism">
+                    <a ng-click="on_remove_work(work)" href="javascript:void(0)"><i class="icon-remove"></i>删除</a>
+                </abbr>
             </td>
         </tr>
     </table>
