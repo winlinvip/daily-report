@@ -23,6 +23,42 @@
         </div>
     </div>
     <div class="accordion">
+        <div class="accordion-group" ng-repeat="user in reports.users">
+            <div class="accordion-heading text-center">
+                <a class="accordion-toggle" data-toggle="collapse" href="javascript:void(0)">
+                    <b>{{user.text}}-{{user.name}}日报</b>
+                </a>
+            </div>
+            <div class="accordion-body collapse in">
+                <div class="accordion-inner">
+                    <div class="row">
+                        <div class="span6">
+                            <div>{{user.text}}-{{user.name}}日报</div>
+                            <ol>
+                                <li ng-repeat="work in user.works">
+                                    <span ng-show="work.bug"><a href="{{work.bug |filter_redmine_url}}" target="_blank">refs #{{work.bug}}:</a></span>
+                                    <span ng-show="!work.bug">refs #{{work.bug}}:</span>
+                                    <span ng-show="work.time>=3"><b>{{work.time}}小时</b></span>
+                                    <span ng-show="work.time<3">{{work.time}}小时</span>
+                                    ({{work.product}}/{{work.type}}), <br/>
+                                    {{work.content}}
+                                </li>
+                            </ol>
+                            <div>
+                                总计: {{user.summary.total}}{{const_time_unit}},
+                                提交时间: {{user.summary.insert}},
+                                最后更新: {{user.summary.modify}}
+                            </div>
+                        </div>
+                        <div class="span5">
+                            <div class="span2"><div osdr-pie osdr-labels="user.product.labels" osdr-values="user.product.values"></div></div>
+                            <div class="span2"><div osdr-pie osdr-labels="user.type.labels" osdr-values="user.type.values"></div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="accordion-group" ng-repeat="summary in reports.summaries">
             <div class="accordion-heading text-center">
                 <a class="accordion-toggle" data-toggle="collapse" href="javascript:void(0)">
@@ -35,9 +71,20 @@
                     已填写日报人数：{{summary.ok}}人 {{summary.ok_users |cmjoin |unsafe}}<br/>
                     未填写日报人数：{{summary.failed}}人 {{summary.failed_users |cmjoin |unsafe}}<br/>
                     延迟提交日报名单：{{summary.delay}}人
-                    <div ng-repeat="user in summay.delay_users">
-                        {{user.name}} 提交时间:{{user.submit_time}} 最后更新:{{user.last_modify}}
-                    </div>
+                    <small>
+                        <table class="table table-bordered" ng-show="summary.delay">
+                            <tr>
+                                <th>用户名</th>
+                                <th>提交时间</th>
+                                <th>最后更新</th>
+                            </tr>
+                            <tr ng-repeat="user in summary.delay_users">
+                                <td>{{user.name}}</td>
+                                <td>{{user.submit_time}}</td>
+                                <td>{{user.last_modify}}</td>
+                            </tr>
+                        </table>
+                    </small>
                 </div>
             </div>
         </div>

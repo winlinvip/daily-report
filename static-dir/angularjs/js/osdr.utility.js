@@ -116,7 +116,7 @@ function api_users_for_select(data) {
     }
     return {
         users: users,
-        kvs: kvs,
+        kv: kvs,
         first: (users.length > 0? users[0].name : null)
     };
 }

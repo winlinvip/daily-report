@@ -311,6 +311,8 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
         all: true,
         date: absolute_seconds_to_YYYYmmdd(new Date().getTime() / 1000)
     };
+    // consts
+    $scope.const_time_unit = get_view_sum_unit_label();
     // the groups from server.
     $scope.groups = {};
     // the users of group in query.
@@ -338,6 +340,7 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
         $scope.reports.months = [];
         $scope.reports.days = [];
         $scope.reports.summaries = [];
+        $scope.reports.users = [];
 
         MUser.users_load({
             query_all: $scope.query.all,
@@ -700,6 +703,7 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
         $scope.render_month();
         $scope.render_day();
         $scope.render_summary();
+        $scope.render_user();
     };
     $scope.render_year = function() {
         logs.info("展示年度汇总数据");
@@ -964,6 +968,138 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
             delay_users: delay_users
         };
         $scope.reports.summaries.push(summary);
+    };
+    $scope.render_user = function() {
+        logs.info("展示用户详细数据");
+        $scope.reports.user_data.sort(user_id_sort);
+
+        if($scope.reports.user_data.length <= 0){
+            return;
+        }
+
+        for(var i = 0; i < $scope.reports.user_data.length; i++){
+            var user_data = $scope.reports.user_data[i];
+            user_data.sort(report_sort);
+
+            var user = {
+                text: YYYYmmdd_parse($scope.query.date).getFullYear(),
+                works: [],
+                summary: {
+                    total: null,
+                    insert: null,
+                    modify: null
+                },
+                product: {
+                    text: null,
+                    labels: [],
+                    values: [],
+                    total_value: 0
+                },
+                type: {
+                    text: null,
+                    labels: [],
+                    values: [],
+                    total_value: 0
+                }
+            };
+
+            for(var i = 0; i < user_data.length; i++) {
+                var o = user_data[i];
+                user.name = $scope.users.kv[o.user_id];
+                user.works.push({
+                    bug: o.bug_id,
+                    time: o.work_hours,
+                    type: $scope.types.kv[o.type_id],
+                    product: $scope.products.kv[o.product_id],
+                    content: o.report_content
+                });
+            }
+
+            if(1){
+                var total_value = 0;
+                var products_merged = {};
+                for(var i = 0; i < user_data.length; i++){
+                    var o = user_data[i];
+                    products_merged[$scope.products.kv[o.product_id]] = 0;
+                }
+                for(var i = 0; i < user_data.length; i++){
+                    var o = user_data[i];
+                    total_value += o.work_hours;
+                    products_merged[$scope.products.kv[o.product_id]] += o.work_hours;
+                }
+
+                // dump to object array for sort
+                var products_merged_object_array = [];
+                for(var key in products_merged){
+                    products_merged_object_array.push({name:key, work_hours:products_merged[key]});
+                }
+                products_merged_object_array.sort(work_hours_sort);
+
+                // summaries
+                user_data.sort(report_first_insert_sort);
+                var first_insert = user_data[0].insert_date;
+                user_data.sort(report_modify_date_sort);
+                var last_modify = user_data[0].modify_date;
+                user.summary.total = Number(Number(total_value).toFixed(1));
+                user.summary.insert = first_insert;
+                user.summary.modify = last_modify;
+
+                var values = [];
+                var labels = [];
+                for(var i = 0; i < products_merged_object_array.length; i++){
+                    var key = products_merged_object_array[i].name;
+                    var work_hours = products_merged_object_array[i].work_hours;
+
+                    labels.push(key);
+                    var percent = work_hours * 100 / total_value;
+                    percent = Number(Number(percent).toFixed(1));
+                    values.push(percent);
+                }
+
+                user.product.total_value = total_value;
+                user.product.labels = labels;
+                user.product.values = values;
+            }
+
+            if(1){
+                var total_value = 0;
+                var types_merged = {};
+                for(var i = 0; i < user_data.length; i++){
+                    var o = user_data[i];
+                    types_merged[$scope.types.kv[o.type_id]] = 0;
+                }
+                for(var i = 0; i < user_data.length; i++){
+                    var o = user_data[i];
+                    total_value += o.work_hours;
+                    types_merged[$scope.types.kv[o.type_id]] += o.work_hours;
+                }
+
+                // dump to object array for sort
+                var types_merged_object_array = [];
+                for(var key in types_merged){
+                    types_merged_object_array.push({name:key, work_hours:types_merged[key]});
+                }
+                types_merged_object_array.sort(work_hours_sort);
+
+                var values = [];
+                var labels = [];
+                for(var i = 0; i < types_merged_object_array.length; i++){
+                    var key = types_merged_object_array[i].name;
+                    var work_hours = types_merged_object_array[i].work_hours;
+
+                    labels.push(key);
+                    var percent = work_hours * 100 / total_value;
+                    percent = Number(Number(percent).toFixed(1));
+                    values.push(percent);
+                }
+
+                user.type.total_value = total_value;
+                user.type.labels = labels;
+                user.type.values = values;
+            }
+
+            $scope.reports.users.push(user);
+        }
     };
 
     // loads groups info.
