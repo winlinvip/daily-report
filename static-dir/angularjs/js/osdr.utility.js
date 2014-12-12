@@ -99,17 +99,24 @@ function osdr_on_error($location, code, status, desc) {
  *              {name:200, value:"tom"},
  *              {name:201, value:"kate"}
  *          ],
+ *          kvs: {
+ *              200: "tom",
+ *              201: "kate"
+ *          },
  *          first: 200 // null for empty users.
  *      }
  */
 function api_users_for_select(data) {
     var users = [];
+    var kvs = {};
     for (var i = 0; i < data.users.length; i++){
         var user = data.users[i];
         users.push({name:user.id, value:user.value});
+        kvs[user.id] = user.value;
     }
     return {
         users: users,
+        kvs: kvs,
         first: (users.length > 0? users[0].name : null)
     };
 }
@@ -130,12 +137,16 @@ function api_users_for_select(data) {
  *              {name:200, value:"Player"},
  *              {name:201, value:"Server"}
  *          ],
+ *          kvs: {
+ *              200: "Player",
+ *              201: "Server"
+ *          },
  *          first: 200 // null for empty products.
  *      }
  */
 function api_products_for_select(data) {
     var products = [];
-    var kvs = [];
+    var kvs = {};
     for (var i = 0; i < data.data.length; i++){
         var product = data.data[i];
         products.push({name:product.id, value:product.value});
@@ -164,12 +175,16 @@ function api_products_for_select(data) {
  *              {name:200, value:"Coding"},
  *              {name:201, value:"Testing"}
  *          ],
+ *          kvs: {
+ *              200: "Coding",
+ *              201: "Testing"
+ *          },
  *          first: 200 // null for empty types.
  *      }
  */
 function api_types_for_select(data) {
     var types = [];
-    var kvs = [];
+    var kvs = {};
     for (var i = 0; i < data.data.length; i++){
         var type = data.data[i];
         types.push({name:type.id, value:type.value});
@@ -179,6 +194,46 @@ function api_types_for_select(data) {
         types: types,
         kv: kvs,
         first: (types.length > 0? types[0].name : null)
+    };
+}
+/**
+ * convert api types to required format for "select" control bind.
+ * @param data is
+ *      {
+ *          code: 0,
+ *          data: [
+ *              {id: 201, value: "客户端"}
+ *          ]
+ *      }
+ * @returns an object is
+ *      {
+ *          groups: [
+ *              {id: -1, value: "所有人"},
+ *              {id: 201, value: "客户端"}
+ *          ],
+ *          kvs: {
+ *              -1: "所有人",
+ *              201: "客户端"
+ *          },
+ *          first: 0 // null for empty groups.
+ *      }
+ */
+function api_groups_for_select(data) {
+    // always appends the all users.
+    var groups = [{name:-1, value:'所有人'}];
+    for (var i = 0; i < data.data.length; i++){
+        var group = data.data[i];
+        groups.push({name:group.id, value:group.value});
+    }
+    var kvs = {};
+    for (var i = 0; i < groups.length; i++){
+        var group = groups[i];
+        kvs[group.id] = group.value;
+    }
+    return {
+        groups: groups,
+        kv: kvs,
+        first: (groups.length > 0? groups[0].name : null)
     };
 }
 
@@ -284,3 +339,99 @@ function reset_report_work_item(works) {
 function object_is_empty(obj) {
     return obj == null || obj == undefined || obj == "";
 }
+
+// sort: big to small, desc
+function work_hours_sort(a, b){
+    return b.work_hours - a.work_hours;
+}
+// sort: user id big to small, desc
+function user_id_sort(a, b){
+    if(a.length > 0 && b.length > 0){
+        return b[0].user_id - a[0].user_id;
+    }
+    return 0;
+}
+// sort: user report id small to big, asc.
+function report_sort(a, b){
+    return a.report_id - b.report_id;
+}
+// sort: user report insert_date small to big, asc.
+function report_first_insert_sort(a, b){
+    return YYYYmmdd_parse(a.insert_date).getTime() - YYYYmmdd_parse(b.insert_date).getTime();
+}
+// sort: user report modify_date small to big, asc.
+function report_modify_date_sort(a, b){
+    return YYYYmmdd_parse(b.modify_date).getTime() - YYYYmmdd_parse(a.modify_date).getTime();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// control level data conversion
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// http://raphaeljs.com/pie.html
+// http://raphaeljs.com/pie.js
+Raphael.fn.pieChart = function (hsb_start, cx, cy, r, values, labels, stroke) {
+    var stroke_width = 2;
+    var text_position_delta = -50;
+    var font_text_size = 12;
+
+    var paper = this,
+        rad = Math.PI / 180,
+        chart = this.set();
+    function sector(cx, cy, r, startAngle, endAngle, params) {
+        var x1 = cx + r * Math.cos(-startAngle * rad),
+            x2 = cx + r * Math.cos(-endAngle * rad),
+            y1 = cy + r * Math.sin(-startAngle * rad),
+            y2 = cy + r * Math.sin(-endAngle * rad);
+        return paper.path(["M", cx, cy, "L", x1, y1, "A", r, r, 0, +(endAngle - startAngle > 180), 0, x2, y2, "z"]).attr(params);
+    }
+
+    // draw bg fill when only 1 element
+    if(values.length == 1){
+        var circle = paper.circle(cx, cy, r);
+        color = Raphael.hsb(hsb_start, .75, 1),
+            circle.attr("fill", color);
+        circle.attr("stroke", stroke);
+        circle.attr("stroke-width", stroke_width);
+
+        var label = labels[0] + '\n' + values[0] + '%';
+        circle.attr("title", label);
+    }
+
+    // draw pie.
+    var angle = 0,
+        total = 0,
+        start = hsb_start,
+        process = function (j) {
+            var value = values[j],
+                angleplus = 360 * value / total,
+                popangle = angle + (angleplus / 2),
+                color = Raphael.hsb(start, .75, 1),
+                ms = 500,
+                delta = text_position_delta,
+                bcolor = Raphael.hsb(start, 1, 1),
+                label = labels[j] + '\n' + value + '%',
+                p = sector(cx, cy, r, angle, angle + angleplus, {fill: "90-" + bcolor + "-" + color, stroke: stroke, "stroke-width": stroke_width, "title": label}),
+                label_color = Raphael.hsb(start, 1, 0.5),
+                txt_cx = cx + (r + delta) * Math.cos(-popangle * rad),
+                txt_cy = cy + (r + delta) * Math.sin(-popangle * rad),
+                txt = paper.text(txt_cx, txt_cy, label).attr({fill: label_color, stroke: "none", opacity: 1, "font-size": font_text_size, "title": label});
+            p.mouseover(function () {
+                p.stop().animate({transform: "s1.1 1.1 " + cx + " " + cy}, ms, "elastic");
+                txt.stop().animate({opacity: 1}, ms, "elastic");
+            }).mouseout(function () {
+                    p.stop().animate({transform: ""}, ms, "elastic");
+                    txt.stop().animate({opacity: 1}, ms);
+                });
+            angle += angleplus;
+            chart.push(p);
+            chart.push(txt);
+            start += .1;
+        };
+    for (var i = 0, ii = values.length; i < ii; i++) {
+        total += values[i];
+    }
+    for (i = 0; i < ii; i++) {
+        process(i);
+    }
+    return chart;
+};

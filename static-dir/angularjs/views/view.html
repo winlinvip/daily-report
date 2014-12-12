@@ -1,3 +1,153 @@
 <div class="container">
-
+    <div>
+        <div class="input-prepend" ng-show="groups.first">
+            <span class="add-on">分组</span>
+            <select class="span2" ng-model="query.group"
+                    ng-options="o.name as o.value for o in groups.groups">
+            </select>
+        </div>
+        <div class="input-prepend input-append" ng-show="true">
+            <span class="add-on">日报日期</span>
+            <input type="text" class="input-medium" placeholder="格式为：2014-12-12" ng-model="query.date">
+            <button class="btn" type="button" ng-click="on_change_date_today()">今天</button>
+            <button class="btn" type="button" ng-click="on_change_date_yesterday()">昨天</button>
+            <button class="btn" type="button" ng-click="on_change_date_previous_friday()">上周五</button>
+            <button class="btn" type="button" ng-click="on_change_date_previous()">上一天</button>
+            <button class="btn" type="button" ng-click="on_change_date_next()">下一天</button>
+        </div>
+        <div class="input-append" ng-show="true">
+            <button class="btn" type="button" ng-click="on_query()">查询</button>
+            <label class="checkbox inline">
+                <input type="checkbox" ng-model="query.all">包含离职同事
+            </label>
+        </div>
+    </div>
+    <div class="accordion">
+        <div class="accordion-group" ng-repeat="summary in reports.summaries">
+            <div class="accordion-heading text-center">
+                <a class="accordion-toggle" data-toggle="collapse" href="javascript:void(0)">
+                    <b>{{summary.text}}当天详细</b>
+                </a>
+            </div>
+            <div class="accordion-body collapse in">
+                <div class="accordion-inner">
+                    总人数：{{summary.total}}<br/>
+                    已填写日报人数：{{summary.ok}}人 {{summary.ok_users |cmjoin |unsafe}}<br/>
+                    未填写日报人数：{{summary.failed}}人 {{summary.failed_users |cmjoin |unsafe}}<br/>
+                    延迟提交日报名单：{{summary.delay}}人
+                    <div ng-repeat="user in summay.delay_users">
+                        {{user.name}} 提交时间:{{user.submit_time}} 最后更新:{{user.last_modify}}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="accordion-group" ng-repeat="day in reports.days">
+            <div class="accordion-heading text-center">
+                <a class="accordion-toggle" data-toggle="collapse" href="javascript:void(0)">
+                    <b>{{day.text}}当天汇总</b>
+                </a>
+            </div>
+            <div class="accordion-body collapse in">
+                <div class="accordion-inner">
+                    <div class="row">
+                        <div class="span5">
+                            <div class="row">
+                                <div class="span5 text-center"><b>{{day.product.text}}</b></div>
+                                <div class="span3"><div osdr-pie osdr-labels="day.product.labels" osdr-values="day.product.values"></div></div>
+                                <div class="span2" ng-bind-html="day.product |filter_data_text |brjoin |unsafe"></div>
+                            </div>
+                        </div>
+                        <div class="span5">
+                            <div class="row">
+                                <div class="span5 text-center"><b>{{day.type.text}}</b></div>
+                                <div class="span3"><div osdr-pie osdr-labels="day.type.labels" osdr-values="day.type.values"></div></div>
+                                <div class="span2" ng-bind-html="day.type |filter_data_text |brjoin |unsafe"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="accordion-group" ng-repeat="month in reports.months">
+            <div class="accordion-heading text-center">
+                <a class="accordion-toggle" data-toggle="collapse" href="javascript:void(0)">
+                    <b>{{month.text}}月度汇总</b>
+                </a>
+            </div>
+            <div class="accordion-body collapse in">
+                <div class="accordion-inner">
+                    <div class="row">
+                        <div class="span5">
+                            <div class="row">
+                                <div class="span5 text-center"><b>{{month.product.text}}</b></div>
+                                <div class="span3"><div osdr-pie osdr-labels="month.product.labels" osdr-values="month.product.values"></div></div>
+                                <div class="span2" ng-bind-html="month.product |filter_data_text |brjoin |unsafe"></div>
+                            </div>
+                        </div>
+                        <div class="span5">
+                            <div class="row">
+                                <div class="span5 text-center"><b>{{month.type.text}}</b></div>
+                                <div class="span3"><div osdr-pie osdr-labels="month.type.labels" osdr-values="month.type.values"></div></div>
+                                <div class="span2" ng-bind-html="month.type |filter_data_text |brjoin |unsafe"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="accordion-group" ng-repeat="quarter in reports.quarters">
+            <div class="accordion-heading text-center">
+                <a class="accordion-toggle" data-toggle="collapse" href="javascript:void(0)">
+                    <b>{{quarter.text}}季度汇总</b>
+                </a>
+            </div>
+            <div class="accordion-body collapse in">
+                <div class="accordion-inner">
+                    <div class="row">
+                        <div class="span5">
+                            <div class="row">
+                                <div class="span5 text-center"><b>{{quarter.product.text}}</b></div>
+                                <div class="span3"><div osdr-pie osdr-labels="quarter.product.labels" osdr-values="quarter.product.values"></div></div>
+                                <div class="span2" ng-bind-html="quarter.product |filter_data_text |brjoin |unsafe"></div>
+                            </div>
+                        </div>
+                        <div class="span5">
+                            <div class="row">
+                                <div class="span5 text-center"><b>{{quarter.type.text}}</b></div>
+                                <div class="span3"><div osdr-pie osdr-labels="quarter.type.labels" osdr-values="quarter.type.values"></div></div>
+                                <div class="span2" ng-bind-html="quarter.type |filter_data_text |brjoin |unsafe"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="accordion-group" ng-repeat="year in reports.years">
+            <div class="accordion-heading text-center">
+                <a class="accordion-toggle" data-toggle="collapse" href="javascript:void(0)">
+                    <b>{{year.text}}年度汇总</b>
+                </a>
+            </div>
+            <div class="accordion-body collapse in">
+                <div class="accordion-inner">
+                    <div class="row">
+                        <div class="span5">
+                            <div class="row">
+                                <div class="span5 text-center"><b>{{year.product.text}}</b></div>
+                                <div class="span3"><div osdr-pie osdr-labels="year.product.labels" osdr-values="year.product.values"></div></div>
+                                <div class="span2" ng-bind-html="year.product |filter_data_text |brjoin |unsafe"></div>
+                            </div>
+                        </div>
+                        <div class="span5">
+                            <div class="row">
+                                <div class="span5 text-center"><b>{{year.type.text}}</b></div>
+                                <div class="span3"><div osdr-pie osdr-labels="year.type.labels" osdr-values="year.type.values"></div></div>
+                                <div class="span2" ng-bind-html="year.type |filter_data_text |brjoin |unsafe"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
