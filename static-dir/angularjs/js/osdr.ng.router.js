@@ -301,7 +301,8 @@ osdrControllers.controller('CSubmit', ['$scope', '$routeParams', 'MUser', 'MProd
     logs.info("数据加载中");
 }]);
 // controller: CView, for the view view.html.
-osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MProgram', function($scope, $routeParams, $location, MProgram){
+osdrControllers.controller('CView', ['$scope', '$routeParams', '$location',
+    function($scope, $routeParams, $location) {
     $scope.$parent.nav_active_view();
     logs.info("正在获取日报信息");
 }]);
@@ -309,7 +310,7 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MPr
 // config the filter
 // the filter for the main app, the index page.
 osdrFilters
-.filter('sample_filter', function(){
+.filter('sample_filter', function() {
     return function(input) {
         return input? "not-null":"null";
     };
