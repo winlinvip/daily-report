@@ -1,0 +1,38 @@
+<div class="container">
+    <table class="table table-bordered table-hover" ng-show="groups.length">
+        <tr>
+            <th>编号</th>
+            <th>组ID</th>
+            <th>名称</th>
+            <th>
+                <a href="javascript:void(0)" ng-click="add_group()">
+                    <li class="icon-plus"></li>添加新组
+                </a>
+            </th>
+        </tr>
+        <tr ng-repeat="group in groups">
+            <td class="span1">{{group.index}}</td>
+            <td class="span1">{{group.id? group.id:"待定"}}</td>
+            <td class="span4">
+                <span ng-show="!group.editing">{{group.name}}</span>
+                <div class="control-group {{group.name |filter_div_empty_class}}" ng-show="group.editing">
+                    <input type="text" class="span3" ng-model="group.name" placeholder="请输入组名称">
+                </div>
+            </td>
+            <td>
+                <a href="javascript:void(0)" ng-click="on_modify_group(group)" ng-show="!group.editing" title="修改组信息">
+                    <i class="icon-pencil"></i>修改
+                </a>
+                <a href="javascript:void(0)" ng-click="on_submit_group(group)" ng-show="group.editing" title="保存组信息">
+                    <i class="icon-ok"></i>提交
+                </a>
+                <a href="javascript:void(0)" ng-click="on_cancel_group(group)" ng-show="!group.id" title="取消新建组">
+                    <i class="icon-remove"></i>取消
+                </a>
+                <a href="#{{url}}/{{group.id}}" ng-show="group.id" title="设置组的用户列表">
+                    <i class="icon-wrench"></i>组用户
+                </a>
+            </td>
+        </tr>
+    </table>
+</div>
