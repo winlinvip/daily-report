@@ -312,7 +312,6 @@ function api_parse_reports_for_create(date, user, works) {
 
 function api_parse_users_for_mgmt(data, admins) {
     var users = [];
-    data.data.sort(user_enabled_id_sort_desc);
     for (var i = 0; i < data.data.length; i++) {
         var user = data.data[i];
         users.push({
@@ -321,9 +320,18 @@ function api_parse_users_for_mgmt(data, admins) {
             email: user.email,
             enabled: user.enabled? true:false,
             editing: false,
-            admin: system_array_contains(admins, function(elem){return elem.user_id == user.user_id;}),
-            index: i + 1
+            admin: system_array_contains(admins, function(elem){return elem.user_id == user.user_id;})
         });
+    }
+    users.sort(function(a,b){
+        var v = system_array_sort_desc(a.enabled, b.enabled);
+        if (v) return v;
+        v = system_array_sort_desc(a.admin, b.admin);
+        return v? v:system_array_sort_desc(a.id, b.id);
+    });
+    for (var i = 0; i < users.length; i++) {
+        var user = users[i];
+        user.index = i + 1;
     }
     return users;
 }

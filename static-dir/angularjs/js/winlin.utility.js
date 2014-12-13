@@ -51,6 +51,33 @@ function system_array_remove(arr, elem) {
 }
 
 /**
+ * array sort asc, for example:
+ * [a, b] in [10, 11, 9]
+ * then sort to: [9, 10, 11]
+ * Usage, for example:
+ obj.data.data.sort(function(a, b){
+            return array_sort_asc(a.metadata.meta_id, b.metadata.meta_id);
+        });
+ * @see: http://blog.csdn.net/win_lin/article/details/17994347
+ * @remark, if need desc, use -1*array_sort_asc(a,b)
+ */
+function array_sort_asc(elem_a, elem_b) {
+    if (elem_a > elem_b) {
+        return 1;
+    }
+    return (elem_a < elem_b)? -1 : 0;
+}
+function array_sort_desc(elem_a, elem_b) {
+    return -1 * array_sort_asc(elem_a, elem_b);
+}
+function system_array_sort_asc(elem_a, elem_b) {
+    return array_sort_asc(elem_a, elem_b);
+}
+function system_array_sort_desc(elem_a, elem_b) {
+    return -1 * array_sort_asc(elem_a, elem_b);
+}
+
+/**
  * whether the array contains specified element.
  * @param arr the array to find.
  * @param elem_or_function the element value or compare function.
@@ -444,27 +471,6 @@ AsyncRefresh2.prototype.request = function(timeout) {
         // do the actual call.
         this_call.pfn();
     }, timeout);
-}
-
-/**
- * array sort asc, for example:
- * [a, b] in [10, 11, 9]
- * then sort to: [9, 10, 11]
- * Usage, for example:
-        obj.data.data.sort(function(a, b){
-            return array_sort_asc(a.metadata.meta_id, b.metadata.meta_id);
-        });
- * @see: http://blog.csdn.net/win_lin/article/details/17994347
- * @remark, if need desc, use -1*array_sort_asc(a,b)
- */
-function array_sort_asc(elem_a, elem_b) {
-    if (elem_a > elem_b) {
-        return 1;
-    }
-    return (elem_a < elem_b)? -1 : 0;
-}
-function array_sort_desc(elem_a, elem_b) {
-    return -1 * array_sort_asc(elem_a, elem_b);
 }
 
 // other components.
