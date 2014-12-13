@@ -77,30 +77,6 @@ function osdr_on_error($location, code, status, desc) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // api level data conversion
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/**
- * convert api users to required format for "select" control bind.
- * @param data is
- *      {
- *          code: 0,
- *          users: [
- *              {id: 200, value: "tom"},
- *              {id: 201, value: "kate"}
- *          ],
- *          auth: null
- *      }
- * @returns an object is
- *      {
- *          users: [
- *              {name:200, value:"tom"},
- *              {name:201, value:"kate"}
- *          ],
- *          kvs: {
- *              200: "tom",
- *              201: "kate"
- *          },
- *          first: 200 // null for empty users.
- *      }
- */
 function api_users_for_select(data) {
     var users = [];
     var kvs = {};
@@ -115,30 +91,7 @@ function api_users_for_select(data) {
         first: (users.length > 0? users[0].name : null)
     };
 }
-/**
- * convert api products to required format for "select" control bind.
- * @param data is
- *      {
- *          code: 0,
- *          data: [
- *              {id: 200, value: "Player"},
- *              {id: 201, value: "Server"}
- *          ],
- *          auth: null
- *      }
- * @returns an object is
- *      {
- *          products: [
- *              {name:200, value:"Player"},
- *              {name:201, value:"Server"}
- *          ],
- *          kvs: {
- *              200: "Player",
- *              201: "Server"
- *          },
- *          first: 200 // null for empty products.
- *      }
- */
+
 function api_products_for_select(data) {
     var products = [];
     var kvs = {};
@@ -153,30 +106,7 @@ function api_products_for_select(data) {
         first: (products.length > 0? products[0].name : null)
     };
 }
-/**
- * convert api types to required format for "select" control bind.
- * @param data is
- *      {
- *          code: 0,
- *          data: [
- *              {id: 200, value: "Coding"},
- *              {id: 201, value: "Testing"}
- *          ],
- *          auth: null
- *      }
- * @returns an object is
- *      {
- *          types: [
- *              {name:200, value:"Coding"},
- *              {name:201, value:"Testing"}
- *          ],
- *          kvs: {
- *              200: "Coding",
- *              201: "Testing"
- *          },
- *          first: 200 // null for empty types.
- *      }
- */
+
 function api_types_for_select(data) {
     var types = [];
     var kvs = {};
@@ -191,35 +121,18 @@ function api_types_for_select(data) {
         first: (types.length > 0? types[0].name : null)
     };
 }
-/**
- * convert api types to required format for "select" control bind.
- * @param data is
- *      {
- *          code: 0,
- *          data: [
- *              {id: 201, value: "客户端"}
- *          ]
- *      }
- * @returns an object is
- *      {
- *          groups: [
- *              {id: -1, value: "所有人"},
- *              {id: 201, value: "客户端"}
- *          ],
- *          kvs: {
- *              -1: "所有人",
- *              201: "客户端"
- *          },
- *          first: 0 // null for empty groups.
- *      }
- */
+
 function api_groups_for_select(data) {
     // always appends the all users.
-    var groups = [{name:-1, value:'所有人'}];
+    var groups = [];
     for (var i = 0; i < data.data.length; i++){
         var group = data.data[i];
         groups.push({name:group.id, value:group.value});
     }
+    groups.sort(function(a,b){
+        return system_array_sort_asc(a.value, b.value);
+    });
+    groups.splice(0, 0, {name:-1, value:'所有人'});
     var kvs = {};
     for (var i = 0; i < groups.length; i++){
         var group = groups[i];
@@ -232,41 +145,6 @@ function api_groups_for_select(data) {
     };
 }
 
-/**
- * convert the api reports for reg(sumbit render).
- * @param data is
- *      {
- *          code: 0,
- *          data: [
- *              {
- *                  report_id: 400,
- *                  user_id: 200,
- *                  bug_id: 1670,
- *                  product_id: 100,
- *                  type_id: 300,
- *                  work_hours: 8,
- *                  priority: 0,
- *                  report_content: "编写代码",
- *                  insert_date: "2014-12-09 13:51:32",
- *                  modify_date: "2014-12-09 13:51:32",
- *                  work_date: "2014-12-09 00:00:00"
- *              }
- *          ]
- *      }
- * @returns an array is
- *      [
- *          {
- *              id: 400,
- *              user: 200,
- *              bug: 1670,
- *              product: 100,
- *              type: 300,
- *              time: 8,
- *              content: "编写代码",
- *              editing: false
- *          }
- *      ]
- */
 function api_reports_for_reg(products, types, data) {
     var reports = [];
     for (var i = 0; i < data.data.length; i++){
@@ -285,10 +163,6 @@ function api_reports_for_reg(products, types, data) {
     return reports;
 }
 
-/**
- * parse reports from works to create reports.
- * @param works the works of submit page.
- */
 function api_parse_reports_for_create(date, user, works) {
     var reports = [];
     for (var i = 0; i < works.length; i++){
@@ -334,6 +208,26 @@ function api_parse_users_for_mgmt(data, admins) {
         user.index = i + 1;
     }
     return users;
+}
+
+function api_parse_groups_for_mgmt(data) {
+    var groups = [];
+    for (var i = 0; i < data.data.length; i++) {
+        var group = data.data[i];
+        groups.push({
+            id: group.group_id,
+            name: group.group_name,
+            editing: false
+        });
+    }
+    groups.sort(function(a,b){
+        return system_array_sort_asc(a.name, b.name);
+    });
+    for (var i = 0; i < groups.length; i++) {
+        var group = groups[i];
+        group.index = i + 1;
+    }
+    return groups;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

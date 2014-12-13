@@ -121,7 +121,61 @@ osdrApp.config(['$routeProvider', function($routeProvider) {
 // controller: CGroup, for the view group.html.
 osdrControllers.controller('CGroup', ['$scope', '$routeParams', 'MAdmin', function($scope, $routeParams, MAdmin){
     $scope.url = links.group.mount;
-    $scope.user = null;
+    $scope.groups = [];
+
+    // user actions.
+    $scope.on_modify_group = function(group){
+        logs.info("编辑组信息");
+        group.editing = true;
+    };
+    $scope.on_cancel_group = function(group){
+        logs.info("取消新建组");
+        system_array_remove($scope.groups, group);
+    };
+    $scope.on_submit_group = function(group){
+        if (!group.name) {
+            logs.warn(0, "请输入组名称");
+            return;
+        }
+
+        if (!group.id) {
+            logs.info("添加新组");
+            MAdmin.admins_load({
+                action: "create_group",
+                name: group.name
+            }, function(data){
+                group.id = parseInt(data.data);
+                group.editing = false;
+                logs.info("组创建成功");
+            });
+            return;
+        }
+
+        logs.info("修改组信息");
+        MAdmin.admins_load({
+            action: "set_group",
+            id: group.id,
+            name: group.name
+        }, function(data){
+            group.editing = false;
+            logs.info("修改组信息成功");
+        });
+    };
+    $scope.add_group = function(){
+        logs.info("添加新组");
+        $scope.groups.splice(0, 0, {
+            editing: true,
+            name: null,
+            index: $scope.groups.length + 1
+        });
+    };
+
+    MAdmin.admins_load({
+        action: "get_groups"
+    }, function(data){
+        $scope.groups = api_parse_groups_for_mgmt(data);
+        logs.info("组信息加载成功");
+    });
 
     $scope.$parent.nav_active_group();
     logs.info("正在加载组信息");
@@ -1437,6 +1491,12 @@ osdrFilters
 .filter('filter_div_null_class', function() {
     return function(v) {
         return (v == null || v == undefined)? "error": "";
+    };
+})
+.filter('filter_user_tr_class', function() {
+    return function(user) {
+        if (!user.enabled) return "error";
+        return user.admin? "success": "";
     };
 })
 .filter('filter_bug_url', function() {

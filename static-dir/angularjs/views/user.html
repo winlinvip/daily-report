@@ -1,5 +1,5 @@
 <div class="container">
-    <table class="table table-bordered table-hover">
+    <table class="table table-bordered table-hover" ng-show="users.length">
         <tr>
             <th>编号</th>
             <th>ID</th>
@@ -13,7 +13,7 @@
                 </a>
             </th>
         </tr>
-        <tr ng-repeat="user in users" class="{{user.enabled |filter_div_empty_class}}">
+        <tr ng-repeat="user in users" class="{{user |filter_user_tr_class}}">
             <td class="span1">{{user.index}}</td>
             <td class="span1">{{user.id? user.id:"待定"}}</td>
             <td class="span2">
@@ -45,7 +45,7 @@
                 <a href="javascript:void(0)" ng-click="on_submit_user(user)" ng-show="user.editing" title="保存用户信息">
                     <i class="icon-ok"></i>提交
                 </a>
-                <a href="javascript:void(0)" ng-click="on_cancel_user(user)" ng-show="!user.id" title="保存用户信息">
+                <a href="javascript:void(0)" ng-click="on_cancel_user(user)" ng-show="!user.id" title="取消新建用户">
                     <i class="icon-remove"></i>取消
                 </a>
                 <a href="javascript:void(0)" ng-click="on_disable_user(user)" ng-show="user.enabled && user.id" title="禁用后用户不能登录系统">
