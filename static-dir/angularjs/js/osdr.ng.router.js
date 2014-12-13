@@ -90,7 +90,33 @@ osdrApp.config(['$routeProvider', function($routeProvider) {
     }
 }]);
 // controller: CLogin, for the view login.html.
-osdrControllers.controller('CLogin', ['$scope', '$routeParams', 'MUser', function($scope, $routeParams, MUser){
+osdrControllers.controller('CLogin', ['$scope', '$routeParams', function($scope, $routeParams){
+    var qq_auth_url = function() {
+        // 应用的APPID
+        var appID = get_qq_oauth_app_id();
+        // 成功授权后的回调地址
+        var redirectURI = get_qq_oauth_redirect_url();
+        // 透传的状态
+        var state = get_qq_oauth_state();
+
+        var path = 'https://graph.qq.com/oauth2.0/authorize?';
+        var queryParams = ['client_id=' + appID,
+            'redirect_uri=' + redirectURI,
+            'scope=' + 'get_user_info',
+            'response_type=token',
+            'state=' + state];
+
+        var query = queryParams.join('&');
+        var url = path + query;
+
+        return url;
+    };
+
+    $scope.auth = enable_auth();
+    $scope.title = get_system_title();
+    $scope.url = qq_auth_url();
+    $scope.use_angularjs = use_angularjs;
+
     logs.info("请登录系统");
 }]);
 // controller: CSubmit, for the view submit.html.

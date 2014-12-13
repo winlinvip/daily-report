@@ -82,8 +82,12 @@
             if(is_crossdomain()){
                 $.cookie("api_key", api_key);
             }
-            
-            window.location.href = "submit.html";
+
+            if (use_angularjs) {
+                window.location.href = "../angularjs/";
+            } else {
+                window.location.href = "./";
+            }
         }
         
         function on_click_submit_info(){

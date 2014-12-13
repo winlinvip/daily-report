@@ -23,11 +23,11 @@
             var redirectURI = get_qq_oauth_redirect_url();
             // 透传的状态
             var state = get_qq_oauth_state();
-            
+
             var path = 'https://graph.qq.com/oauth2.0/authorize?';
             var queryParams = ['client_id=' + appID,
                 'redirect_uri=' + redirectURI,
-                'scope=' + 'get_user_info', 
+                'scope=' + 'get_user_info',
                 'response_type=token',
                 'state=' + state];
 

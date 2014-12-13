@@ -1,0 +1,14 @@
+<div class="container">
+    <div>Welcome to {{title}}!</div>
+    <div ng-show="auth">
+        <a href='{{url}}'><img src='img/login.png'/></a>
+    </div>
+    <div ng-show="!auth">
+        <div ng-show="use_angularjs">
+            <a href="#/submit">提交日报</a>
+        </div>
+        <div ng-show="!use_angularjs">
+            <a href="../ui/submit.html">提交日报</a>
+        </div>
+    </div>
+</div>
