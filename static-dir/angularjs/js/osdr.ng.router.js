@@ -105,6 +105,25 @@ osdrControllers.controller('CUser', ['$scope', '$routeParams', 'MAdmin', functio
     $scope.users = [];
     // utility functions.
     var update_user_info = function(user, callback) {
+        if (!user.name) {
+            logs.warn(0, "请输入用户名");
+            return;
+        }
+        // create user.
+        if (!user.id) {
+            MAdmin.admins_load({
+                action: "create_user",
+                name: user.name,
+                email: user.email,
+                enabled: user.enabled
+            }, function(data){
+                logs.info("创建用户成功, id=" + data.data);
+                user.id = parseInt(data.data);
+                if (callback) callback();
+            });
+            return;
+        }
+        // update user
         MAdmin.admins_load({
             action: "set_user",
             name: user.name,
@@ -117,6 +136,19 @@ osdrControllers.controller('CUser', ['$scope', '$routeParams', 'MAdmin', functio
         });
     };
     // for user actions.
+    $scope.add_user = function() {
+        $scope.users.splice(0, 0, {
+            editing: true,
+            enabled: true,
+            email: null,
+            name: null,
+            index: $scope.users.length + 1
+        });
+    };
+    $scope.on_cancel_user = function(user) {
+        system_array_remove($scope.users, user);
+        logs.info("取消添加用户");
+    };
     $scope.on_modify_user = function(user) {
         user.editing = true;
     };

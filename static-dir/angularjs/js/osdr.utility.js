@@ -57,7 +57,7 @@ function osdr_on_error($location, code, status, desc) {
 
     // process the system error.
     if (code == Errors.UIUnAuthoriezed) {
-        alert("请登录");
+        alert("您没有登录，或者权限不够，请登录");
         jmp_to_user_login_page($location);
         return code;
     }
@@ -319,7 +319,7 @@ function api_parse_users_for_mgmt(data) {
             id: user.user_id,
             name: user.user_name,
             email: user.email,
-            enabled: user.enabled,
+            enabled: user.enabled? true:false,
             editing: false,
             index: i + 1
         });

@@ -11,8 +11,8 @@ reload(sys);
 exec("sys.setdefaultencoding('utf-8')");
 assert sys.getdefaultencoding().lower() == "utf-8";
 
-from utility import error, trace, get_work_dir, reload_config, send_mail, enable_crossdomain, sql_escape, sql_exec, utility_init;
-from auth import SESSION_KEY, authorize_get_exception_user_id, authorize_user, check_auth, crossdomain_session, require_auth, auth_init;
+from utility import error, trace, get_work_dir, reload_config, send_mail, enable_crossdomain, sql_exec, utility_init;
+from auth import SESSION_KEY, authorize_get_exception_user_id, authorize_user, check_auth, crossdomain_session, require_auth, require_admin, auth_init;
 
 version="2.0.0"
 
@@ -34,13 +34,13 @@ class RESTAuth(object):
                 "and enabled=true");
         for record in records:
             users.append({"id":record["user_id"], "value":record["user_name"]});
-        return json.dumps({"error":ErrorCode.NotAssociated, 
+        return json.dumps({"code":ErrorCode.NotAssociated, "error":ErrorCode.NotAssociated,
             "access_token":access_token, "qq_oauth_openid":qq_oauth_openid, "users":users, 
             "error_description":"user not found, please associate one"});
             
     def qq_oauth_get_associated(self, qq_oauth_openid):
         return sql_exec("select u.user_id,u.user_name from dr_user u, dr_authenticate a "
-            "where u.enabled=true and u.user_id=a.user_id and a.qq_oauth_openid='%s'"%(qq_oauth_openid));
+            "where u.enabled=true and u.user_id=a.user_id and a.qq_oauth_openid=%s", (qq_oauth_openid));
             
     def qq_oauth_auto_register(self, access_token, qq_oauth_openid):
         auth = _config["auth"];
@@ -62,27 +62,27 @@ class RESTAuth(object):
             res_json = json.loads(json_data);
         except Exception,e:
             error("ex=%s, info=%s"%(e, traceback.format_exc()));
-            return json.dumps({"error":ErrorCode.Failed, "error_description":"userinfo to json error"});
+            return json.dumps({"code":ErrorCode.Failed, "error":ErrorCode.Failed, "error_description":"userinfo to json error"});
             
         # check userinfo
         if "error" in res_json:
-            return json.dumps({"error":ErrorCode.Failed, "error_description":"request userinfo error, response=%s"%(data)});
+            return json.dumps({"code":ErrorCode.Failed, "error":ErrorCode.Failed, "error_description":"request userinfo error, response=%s"%(data)});
         if "nickname" not in res_json:
-            return json.dumps({"error":ErrorCode.Failed, "error_description":"request nickname invalid, response=%s"%(data)});
+            return json.dumps({"code":ErrorCode.Failed, "error":ErrorCode.Failed, "error_description":"request nickname invalid, response=%s"%(data)});
         nickname = res_json["nickname"];
         trace("nickname=%s access_token=%s qq_oauth_openid=%s"%(nickname, access_token, qq_oauth_openid));
         
         # check exists.
         user_name = nickname;
-        records = sql_exec("select user_id from dr_user where user_name='%s' and enabled=true"%(user_name));
+        records = sql_exec("select user_id from dr_user where user_name=%s and enabled=true", (user_name));
         
         # exists, change nickname with random postfix.
         if len(records) != 0:
             user_name = "%s%s"%(nickname, int(random.random()*1000000));
         
         # register user
-        sql_exec("insert into dr_user(user_name) values('%s')"%(user_name));
-        records = sql_exec("select user_id from dr_user where user_name='%s'"%(user_name));
+        sql_exec("insert into dr_user(user_name) values(%s)", (user_name));
+        records = sql_exec("select user_id from dr_user where user_name=%s", (user_name));
         user_id = records[0]["user_id"];
         trace("auto insert user, access_token=%s, qq_oauth_openid=%s, user_id=%s"%(access_token, qq_oauth_openid, user_id));
         
@@ -107,7 +107,8 @@ class RESTAuth(object):
         cherrypy.session[SESSION_KEY] = user_id;
         
         res = json.dumps({
-            "error":ErrorCode.Success, 
+            "code":ErrorCode.Success,
+            "error":ErrorCode.Success,
             "user_id":user_id, 
             "error_description":"validate success", 
             "api_key":str(cherrypy.session.id) # the api_key used to hack the cookie.
@@ -116,8 +117,8 @@ class RESTAuth(object):
         return res;
     
     def qq_oauth_register_associate(self, access_token, qq_oauth_openid, user_id):
-        sql_exec("delete from dr_authenticate where user_id=%s and qq_oauth_openid='%s'"%(user_id, qq_oauth_openid));
-        sql_exec("insert into dr_authenticate (user_id, qq_oauth_openid, qq_oauth_access_token) values('%s', '%s', '%s')"%(user_id, qq_oauth_openid, access_token));
+        sql_exec("delete from dr_authenticate where user_id=%s and qq_oauth_openid=%s", (user_id, qq_oauth_openid));
+        sql_exec("insert into dr_authenticate (user_id, qq_oauth_openid, qq_oauth_access_token) values(%s, %s, %s)", (user_id, qq_oauth_openid, access_token));
         trace("associate user id=%s to auth qq_oauth_openid=%s access_token=%s"%(user_id, qq_oauth_openid, access_token));
     
     def qq_oauth_access(self, access_token):
@@ -139,22 +140,22 @@ class RESTAuth(object):
             res_json = json.loads(json_data);
         except Exception,e:
             error(sys.exc_info);
-            return json.dumps({"error":ErrorCode.Failed, "error_description":"qq_oauth_openid to json error"});
+            return json.dumps({"code":ErrorCode.Failed, "error":ErrorCode.Failed, "error_description":"qq_oauth_openid to json error"});
             
         # check qq_oauth_openid
         if "error" in res_json:
-            return json.dumps({"error":ErrorCode.Failed, "error_description":"request qq_oauth_openid error, response=%s"%(data)});
+            return json.dumps({"code":ErrorCode.Failed, "error":ErrorCode.Failed, "error_description":"request qq_oauth_openid error, response=%s"%(data)});
         if "openid" not in res_json:
-            return json.dumps({"error":ErrorCode.Failed, "error_description":"request qq_oauth_openid invalid, response=%s"%(data)});
+            return json.dumps({"code":ErrorCode.Failed, "error":ErrorCode.Failed, "error_description":"request qq_oauth_openid invalid, response=%s"%(data)});
         qq_oauth_openid = res_json["openid"];
         trace("qq_oauth_openid=%s access_token=%s"%(qq_oauth_openid, access_token));
         
         return self.qq_oauth_cache_qq_oauth_openid(access_token, qq_oauth_openid);
         
     def qq_oauth_associate(self, req_json):
-        access_token = sql_escape(req_json["access_token"]);
-        qq_oauth_openid = sql_escape(req_json["qq_oauth_openid"]);
-        user_id = sql_escape(req_json["user"]);
+        access_token = req_json["access_token"];
+        qq_oauth_openid = req_json["qq_oauth_openid"];
+        user_id = req_json["user"];
         
         self.qq_oauth_register_associate(access_token, qq_oauth_openid, user_id);
         
@@ -189,7 +190,7 @@ class RESTAuth(object):
             req_json = json.loads(req_json_str);
         except Exception,e:
             error(sys.exc_info);
-            return json.dumps({"error":ErrorCode.Failed, "error_description":"to json error"});
+            return json.dumps({"code":ErrorCode.Failed, "error":ErrorCode.Failed, "error_description":"to json error"});
             
         # valid for QQ-OAuth
         if auth["strategy"] == "qq_oauth":
@@ -210,9 +211,40 @@ class RESTGroup(object):
         ret = [];
         for record in records:
             ret.append({"id":record["group_id"], "value":record["group_name"]});
+
+        return json.dumps({"code":ErrorCode.Success, "data":ret});
         
-        return json.dumps(ret);
-        
+    def OPTIONS(self):
+        enable_crossdomain();
+
+class RESTAdmin(object):
+    exposed = True;
+
+    @require_auth(require_admin)
+    def POST(self):
+        enable_crossdomain();
+        (code, ret) = (ErrorCode.Success, []);
+        req_str = cherrypy.request.body.read();
+        try:
+            req = json.loads(req_str);
+        except Exception,e:
+            error(sys.exc_info);
+            return json.dumps({"code":ErrorCode.Failed, "error":ErrorCode.Failed, "error_description":"to json error"});
+
+        if req["action"] == "get_users":
+            ret = sql_exec("select * from dr_user");
+        elif req["action"] == "set_user":
+            ret = sql_exec("update dr_user set user_name=%s,email=%s,enabled=%s where user_id=%s",
+                (req["name"], req["email"], req["enabled"], req["id"]));
+        elif req["action"] == "create_user":
+            ret = sql_exec("insert into dr_user (user_name,email,enabled) values(%s,%s,%s)",
+                (req["name"], req["email"], req["enabled"]),True);
+        else:
+            error("invalid action for admin: %s, req=%s"%(req["action"], req_str));
+            code = ErrorCode.Failed;
+
+        return json.dumps({"code":code, "data":ret});
+
     def OPTIONS(self):
         enable_crossdomain();
 
@@ -226,8 +258,8 @@ class RESTProduct(object):
         ret = [];
         for record in records:
             ret.append({"id":record["product_id"], "value":record["product_name"]});
-        
-        return json.dumps(ret);
+
+        return json.dumps({"code":ErrorCode.Success, "data":ret});
         
     def OPTIONS(self):
         enable_crossdomain();
@@ -242,7 +274,7 @@ class RESTWorkType(object):
         ret = [];
         for record in records:
             ret.append({"id":record["type_id"], "value":record["type_name"]});
-        return json.dumps(ret);
+        return json.dumps({"code":ErrorCode.Success, "data":ret});
         
     def OPTIONS(self):
         enable_crossdomain();
@@ -254,32 +286,32 @@ class RESTUser(object):
     def GET(self, group="", query_all="false"):
         enable_crossdomain();
         
-        if query_all == True or query_all == "true":
+        if query_all == True or query_all == "true" or str(query_all) == "1":
             query_all = True
         else:
             query_all = False
         
         # if not null, must be a digit.
-        if group != "" and not group.isdigit():
+        if group != "" and str(group) != "-1" and not str(group).isdigit():
             error("group must be digit, actual is %s"%(group));
             raise cherrypy.HTTPError(400, "group must be digit");
         
         records = [];
         if query_all:
-            if group == "":
+            if group == "" or str(group) == "-1":
                 records = sql_exec("select user_id,user_name from dr_user");
             else:
                 records = sql_exec("select u.user_id,u.user_name "
                     "from dr_user u,dr_group g,dr_rs_group_user rs "
-                    "where rs.user_id = u.user_id and g.group_id = rs.group_id and g.group_id = %s"%(group));
+                    "where rs.user_id = u.user_id and g.group_id = rs.group_id and g.group_id = %s", (group));
         else:
-            if group == "":
+            if group == "" or str(group) == "-1":
                 records = sql_exec("select user_id,user_name from dr_user where enabled=true");
             else:
                 records = sql_exec("select u.user_id,u.user_name "
                     "from dr_user u,dr_group g,dr_rs_group_user rs "
                     "where u.enabled=true "
-                        "and rs.user_id = u.user_id and g.group_id = rs.group_id and g.group_id = %s"%(group));
+                        "and rs.user_id = u.user_id and g.group_id = rs.group_id and g.group_id = %s", (group));
         
         user_id = None;
         auth = _config["auth"];
@@ -298,9 +330,11 @@ class RESTUser(object):
             returned_user_id = record["user_id"];
             if returned_user_id in exception_users:
                 continue;
-            ret.append({"id":returned_user_id, "value":record["user_name"]});
+            ret.append({
+                "id":returned_user_id, "value":record["user_name"]
+            });
             
-        return json.dumps({"auth":user_id, "users":ret});
+        return json.dumps({"code":ErrorCode.Success, "auth":user_id, "users":ret});
         
     def OPTIONS(self):
         enable_crossdomain();
@@ -336,18 +370,26 @@ class RESTDailyReport(object):
     build the sql query conditions.
     @return the builded sql.
     '''
-    def build_sql_conditions(self, sql, start_time, end_time, user_id, product_id, type_id):
+    def build_sql_conditions(self, start_time, end_time, user_id, product_id, type_id):
+        (names, params) = ("", []);
         if start_time != "":
-            sql += " and dr_report.work_date>='%s'"%(start_time);
+            names += " and dr_report.work_date>=%s";
+            params.append(start_time);
         if end_time!= "":
-            sql += " and dr_report.work_date<='%s'"%(end_time);
+            names += " and dr_report.work_date<=%s";
+            params.append(end_time);
         if product_id != "":
-            sql += " and dr_report.product_id=%s"%(product_id);
+            names += " and dr_report.product_id=%s";
+            params.append(product_id);
         if type_id != "":
-            sql += " and dr_report.type_id=%s"%(type_id);
+            names += " and dr_report.type_id=%s";
+            params.append(type_id);
         if user_id != "":
-            sql += " and dr_report.user_id=%s"%(user_id);
-        return sql;
+            names += " and dr_report.user_id=%s";
+            params.append(user_id);
+        if len(params) == 0:
+            return (names, None);
+        return (names, tuple(params));
     
     '''
     query summary work hours, all users without group
@@ -359,10 +401,13 @@ class RESTDailyReport(object):
             sql = "select %s from %s where %s"%("sum(work_hours) as work_hours", 
                 "dr_report,dr_user u",
                 "u.enabled = true and dr_report.user_id = u.user_id");
-        sql = self.build_sql_conditions(sql, start_time, end_time, user_id, product_id, type_id);
+        (names, params) = self.build_sql_conditions(start_time, end_time, user_id, product_id, type_id);
+        sql = "%s %s"%(sql, names);
 
-        records = sql_exec(sql);
-        ret = {"user_id":user_id, "product_id":product_id, "type_id":type_id, "work_hours":records[0]["work_hours"]};
+        records = sql_exec(sql, params);
+        ret = {"code":ErrorCode.Success, "data":{
+            "user_id":user_id, "product_id":product_id, "type_id":type_id, "work_hours":records[0]["work_hours"]
+        }};
         return json.dumps(ret);
         
     '''
@@ -378,10 +423,10 @@ class RESTDailyReport(object):
                 "report_id,product_id,u.user_id,type_id,bug_id,work_hours,report_content,work_date,insert_date,modify_date,priority", 
                 "dr_report,dr_user u",
                 "u.enabled = true and dr_report.user_id = u.user_id");
-        sql = self.build_sql_conditions(sql, start_time, end_time, user_id, product_id, type_id);
-        sql = "%s %s"%(sql, "order by dr_report.report_id asc");
+        (names, params) = self.build_sql_conditions(start_time, end_time, user_id, product_id, type_id);
+        sql = "%s %s %s"%(sql, names, "order by dr_report.report_id asc");
 
-        records = sql_exec(sql);
+        records = sql_exec(sql, params);
         ret = [];
         
         for record in records:
@@ -392,8 +437,8 @@ class RESTDailyReport(object):
                 "insert_date":str(record["insert_date"]), "modify_date":str(record["modify_date"]), 
                 "priority":record["priority"]
             });
-        
-        return json.dumps(ret);
+
+        return json.dumps({"code":ErrorCode.Success, "data":ret});
         
     '''
     query summary hours of specified group
@@ -407,10 +452,13 @@ class RESTDailyReport(object):
             sql = "select %s from %s where %s"%("sum(work_hours) as work_hours", 
                 "dr_report,dr_user u,dr_group g,dr_rs_group_user rs",
                 "u.enabled = true and dr_report.user_id = rs.user_id and rs.user_id = u.user_id and g.group_id = rs.group_id and g.group_id = %s"%(group));
-        sql = self.build_sql_conditions(sql, start_time, end_time, user_id, product_id, type_id);
+        (names, params) = self.build_sql_conditions(start_time, end_time, user_id, product_id, type_id);
+        sql = "%s %s"%(sql, names);
 
-        records = sql_exec(sql);
-        ret = {"user_id":user_id, "product_id":product_id, "type_id":type_id, "work_hours":records[0]["work_hours"]};
+        records = sql_exec(sql, params);
+        ret = {"code":ErrorCode.Success, "data": {
+            "user_id":user_id, "product_id":product_id, "type_id":type_id, "work_hours":records[0]["work_hours"]
+        }};
         return json.dumps(ret);
         
     '''
@@ -427,10 +475,10 @@ class RESTDailyReport(object):
                 "report_id,product_id,u.user_id,type_id,bug_id,work_hours,report_content,work_date,insert_date,modify_date,priority", 
                 "dr_report,dr_user u,dr_group g,dr_rs_group_user rs",
                 "u.enabled = true and dr_report.user_id = rs.user_id and rs.user_id = u.user_id and g.group_id = rs.group_id and g.group_id = %s"%(group));
-        sql = self.build_sql_conditions(sql, start_time, end_time, user_id, product_id, type_id);
-        sql = "%s %s"%(sql, "order by dr_report.report_id asc");
+        (names, params) = self.build_sql_conditions(start_time, end_time, user_id, product_id, type_id);
+        sql = "%s %s %s"%(sql, names, "order by dr_report.report_id asc");
 
-        records = sql_exec(sql);
+        records = sql_exec(sql, params);
         ret = [];
         
         for record in records:
@@ -441,20 +489,20 @@ class RESTDailyReport(object):
                 "insert_date":str(record["insert_date"]), "modify_date":str(record["modify_date"]), 
                 "priority":record["priority"]
             });
-        
-        return json.dumps(ret);
+
+        return json.dumps({"code":ErrorCode.Success, "data":ret});
         
     @require_auth()
     def GET(self, group="", start_time="", end_time="", summary="", user_id="", product_id="", type_id="", query_all="false"):
         enable_crossdomain();
         
-        if query_all == True or query_all == "true":
+        if query_all == True or query_all == "true" or str(query_all) == "1":
             query_all = True
         else:
             query_all = False
             
         # if not null, must be a digit.
-        if group != "" and not group.isdigit():
+        if group != "" and str(group) != "-1" and not str(group).isdigit():
             error("group must be digit, actual is %s"%(group));
             raise cherrypy.HTTPError(400, "group must be digit");
         
@@ -462,7 +510,7 @@ class RESTDailyReport(object):
         if user_id != "":
             authorize_user(user_id);
         
-        if group == "":
+        if group == "" or str(group) == "-1":
             if summary == "1":
                 return self.query_summary(start_time, end_time, user_id, product_id, type_id, query_all);
             else:
@@ -482,10 +530,10 @@ class RESTDailyReport(object):
             req_json = json.loads(req_json_str);
         except Exception,e:
             error(sys.exc_info);
-            return json.dumps({"error":ErrorCode.Failed, "error_description":"to json error"});
+            return json.dumps({"code":ErrorCode.Failed, "error":ErrorCode.Failed, "error_description":"to json error"});
         
-        user_id = sql_escape(req_json["user"]);
-        work_date = sql_escape(req_json["date"]);
+        user_id = req_json["user"];
+        work_date = req_json["date"];
         
         # check authorize.
         authorize_user(user_id);
@@ -493,32 +541,31 @@ class RESTDailyReport(object):
         # remove the removed reports
         exists_reports = [];
         for item in req_json["items"]:
-            report_id = sql_escape(item["report_id"]);
+            report_id = item["report_id"];
             if report_id != "" and report_id != 0:
-                exists_reports.append(report_id);
+                exists_reports.append(str(report_id));
         if len(exists_reports) > 0:
-            sql_exec("delete from dr_report where user_id=%s and work_date='%s' and report_id not in (%s)"%(user_id, work_date, ",".join(exists_reports)));
+            sql_exec("delete from dr_report where user_id=%s and work_date=%s and report_id not in (" + ",".join(exists_reports) + ")", (user_id, work_date));
         else:
-            sql_exec("delete from dr_report where user_id=%s and work_date='%s'"%(user_id, work_date));
+            sql_exec("delete from dr_report where user_id=%s and work_date=%s", (user_id, work_date));
         # update or insert new
         for item in req_json["items"]:
-            report_id = sql_escape(item["report_id"]);
-            product_id = sql_escape(item["product_id"]);
-            type_id = sql_escape(item["type_id"]);
-            bug_id = sql_escape(item["bug_id"]);
-            report_content = sql_escape(item["report_content"]);
-            work_hours = sql_escape(item["work_hours"]);
-            priority = sql_escape(item["priority"]);
+            report_id = item["report_id"];
+            product_id = item["product_id"];
+            type_id = item["type_id"];
+            bug_id = item["bug_id"];
+            report_content = item["report_content"];
+            work_hours = item["work_hours"];
+            priority = item["priority"];
             if report_id != "" and report_id != 0:
-                ret = sql_exec("update dr_report set product_id='%s', user_id='%s', type_id='%s', bug_id='%s', work_hours='%s', priority='%s', report_content='%s', work_date='%s', modify_date=%s where %s"
-                        %(product_id, user_id, type_id, bug_id, work_hours, priority, report_content, work_date, "now()", 
-                        "report_id='%s' and (product_id!='%s' or user_id!='%s' or type_id!='%s' or bug_id!='%s' or work_hours!='%s' or priority!='%s' or report_content!='%s' or work_date!='%s')"
-                            %(report_id, product_id, user_id, type_id, bug_id, work_hours, priority, report_content, work_date)));
+                ret = sql_exec("update dr_report set product_id=%s, user_id=%s, type_id=%s, bug_id=%s, work_hours=%s, priority=%s, report_content=%s, work_date=%s, modify_date=now() "
+                        "where report_id=%s and (product_id!=%s or user_id!=%s or type_id!=%s or bug_id!=%s or work_hours!=%s or priority!=%s or report_content!=%s or work_date!=%s)",
+                        (product_id, user_id, type_id, bug_id, work_hours, priority, report_content, work_date, report_id, product_id, user_id, type_id, bug_id, work_hours, priority, report_content, work_date));
             else:
-                ret = sql_exec("insert into dr_report (product_id, user_id, type_id, bug_id, work_hours, priority, report_content, work_date, insert_date, modify_date) values('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', %s, %s)"
-                        %(product_id, user_id, type_id, bug_id, work_hours, priority, report_content, work_date, "now()", "now()"));
+                ret = sql_exec("insert into dr_report (product_id, user_id, type_id, bug_id, work_hours, priority, report_content, work_date, insert_date, modify_date) values(%s, %s, %s, %s, %s, %s, %s, %s, now(), now())",
+                        (product_id, user_id, type_id, bug_id, work_hours, priority, report_content, work_date));
 
-        return json.dumps({"error":ErrorCode.Success, "desc":"success"});
+        return json.dumps({"code":ErrorCode.Success, "error":ErrorCode.Success, "desc":"success"});
         
     def OPTIONS(self):
         enable_crossdomain();
@@ -568,7 +615,7 @@ class Manager:
             return False;
         # query email to user list.
         records = sql_exec("select user_id,user_name,email from dr_user where enabled=true and user_id not in "
-            "(select distinct u.user_id from dr_user u, dr_report r where u.user_id = r.user_id and r.work_date='%s')"%(date));
+            "(select distinct u.user_id from dr_user u, dr_report r where u.user_id = r.user_id and r.work_date=%s)"%(date));
         if len(records) == 0:
             trace("all user reported, donot email");
             return False;
@@ -607,7 +654,7 @@ class Manager:
         # check only when someone has submitted report.
         if mail["strategy_check_only_someone_submited"]:
             records = sql_exec("select user_id,email from dr_user where enabled=true and user_id in "
-                "(select distinct u.user_id from dr_user u, dr_report r where u.user_id = r.user_id and r.work_date='%s')"%(date));
+                "(select distinct u.user_id from dr_user u, dr_report r where u.user_id = r.user_id and r.work_date=%s)"%(date));
             if len(records) < mail["strategy_check_only_someone_submited_count"]:
                 trace("strategy_check_only_someone_submited is checked, "
                     "bug only %s submited(<%s), ignore and donot email."%(len(records), mail["strategy_check_only_someone_submited_count"]));
@@ -643,6 +690,7 @@ root.reports = RESTDailyReport();
 root.users = RESTUser();
 root.products = RESTProduct();
 root.groups = RESTGroup();
+root.admins = RESTAdmin();
 root.work_types = RESTWorkType();
 root.auths = RESTAuth();
 

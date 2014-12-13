@@ -81,7 +81,12 @@ def _generate_js_config_node(nodes, _config):
         js_function = nodes[name];
         for name in js_function:
             js_functions += "function %s{\n"%(name);
-            bodies = js_function[name].replace("{system.port}", str(_config["system"]["port"])).split(";");
+            js_body = str(js_function[name])
+            js_body = js_body.replace("{system.port}", str(_config["system"]["port"]));
+            js_body = js_body.replace("{redmine.protocol}", str(_config["redmine"]["protocol"]));
+            js_body = js_body.replace("{redmine.host}", str(_config["redmine"]["host"]));
+            js_body = js_body.replace("{redmine.port}", str(_config["redmine"]["port"]));
+            bodies = js_body.split(";")
             for body in bodies:
                 if body == "":
                     continue;
@@ -153,11 +158,8 @@ def enable_crossdomain():
     # generate allow headers.
     allow_headers = ["Cache-Control", "X-Proxy-Authorization", "X-Requested-With", "Content-Type"];
     cherrypy.response.headers["Access-Control-Allow-Headers"] = ",".join(allow_headers);
-
-def sql_escape(sql):
-    return sql.replace("'", "\\'");
     
-def sql_exec(sql):
+def sql_exec(sql, params = None, get_inserted_id=False):
     (conn, cursor) = (None, None);
     
     try:
@@ -172,10 +174,16 @@ def sql_exec(sql):
         conn = MySQLdb.connect(host, user, passwd, db, charset='utf8');
         cursor = conn.cursor(MySQLdb.cursors.DictCursor);
         
-        trace("execute sql: %s"%(sql));
-        cursor.execute(sql);
-        
-        ret = cursor.fetchall();
+        trace("execute sql: %s params: %s"%(sql, params));
+        if params is not None:
+            cursor.execute(sql, params);
+        else:
+            cursor.execute(sql);
+
+        if get_inserted_id:
+            ret = conn.insert_id();
+        else:
+            ret = cursor.fetchall();
         
         # for windows mysql, commit changes.
         conn.commit();
