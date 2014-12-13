@@ -17,6 +17,8 @@
         </div>
         <div class="input-append" ng-show="true">
             <button class="btn" type="button" ng-click="on_query()">查询</button>
+        </div>
+        <div class="input-append" ng-show="true">
             <label class="checkbox inline">
                 <input type="checkbox" ng-model="query.all">包含离职同事
             </label>
@@ -46,8 +48,7 @@
                             </ol>
                             <div>
                                 总计: {{user.summary.total}}{{const_time_unit}},
-                                提交时间: {{user.summary.insert}},
-                                最后更新: {{user.summary.modify}}
+                                提交时间: {{user.summary.insert}}
                             </div>
                         </div>
                         <div class="span5">

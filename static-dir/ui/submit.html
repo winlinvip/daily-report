@@ -188,7 +188,7 @@
         // main function.
         $(function(){
             if (use_angularjs) {
-                window.location.href = "../angularjs/ng_index.html#/submit";
+                //window.location.href = "../angularjs/ng_index.html#/submit";
             }
 
             document.title = get_system_title();
@@ -362,13 +362,15 @@
             
             var url = generate_api_key("/reports?summary=0&query_all=1&"+"start_time=" + date + "&end_time=" + date + "&user_id=" + user_id);
             $.getJSON(get_service_url(url), function(user_data){
+                user_data = user_data.data;
+
                 if(user_data.length <= 0){
                     trace("用户" + user_name + "在" + date + "没有提交过日报");
                 }
                 
                 $.getJSON(get_service_url(generate_api_key("/products")), function(product_data){
                     $.getJSON(get_service_url(generate_api_key("/work_types")), function(work_type_data){
-                        render_user_data(user_data, product_data, work_type_data);
+                        render_user_data(user_data, product_data.data, work_type_data.data);
                     });
                 });
             });
@@ -425,6 +427,8 @@
             var obj = append_new_work_item_obj();
             
             $.getJSON(get_service_url(generate_api_key("/products")), function(data){
+                data = data.data;
+
                 for(var i = 0; i < data.length; i++){
                     var product = data[i];
                     
@@ -437,6 +441,8 @@
             });
             
             $.getJSON(get_service_url(generate_api_key("/work_types")), function(data){
+                data = data.data;
+
                 for(var i = 0; i < data.length; i++){
                     var work_type = data[i];
                     

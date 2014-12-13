@@ -323,6 +323,30 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
     $scope.types = {};
     // the report of query
     $scope.reports = {};
+    // when change date
+    $scope.on_change_date_previous = function() {
+        var date = YYYYmmdd_parse($scope.query.date);
+        date.setDate(date.getDate() - 1);
+        $scope.query.date = absolute_seconds_to_YYYYmmdd(date.getTime() / 1000);
+    };
+    $scope.on_change_date_next = function() {
+        var date = YYYYmmdd_parse($scope.query.date);
+        date.setDate(date.getDate() + 1);
+        $scope.query.date = absolute_seconds_to_YYYYmmdd(date.getTime() / 1000);
+    };
+    $scope.on_change_date_today = function() {
+        $scope.query.date = absolute_seconds_to_YYYYmmdd(new Date().getTime() / 1000);
+    };
+    $scope.on_change_date_yesterday = function() {
+        var date = new Date();
+        date.setDate(date.getDate() - 1);
+        $scope.query.date = absolute_seconds_to_YYYYmmdd(date.getTime() / 1000);
+    };
+    $scope.on_change_date_previous_friday = function() {
+        var date = new Date();
+        date.setDate(date.getDate() - 2 - date.getDay());
+        $scope.query.date = absolute_seconds_to_YYYYmmdd(date.getTime() / 1000);
+    };
     // query report info from server.
     $scope.on_query = function() {
         $scope.reports.user_data = [];
@@ -1003,8 +1027,8 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
                 }
             };
 
-            for(var i = 0; i < user_data.length; i++) {
-                var o = user_data[i];
+            for(var j = 0; j < user_data.length; j++) {
+                var o = user_data[j];
                 user.name = $scope.users.kv[o.user_id];
                 user.works.push({
                     bug: o.bug_id,
@@ -1018,12 +1042,12 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
             if(1){
                 var total_value = 0;
                 var products_merged = {};
-                for(var i = 0; i < user_data.length; i++){
-                    var o = user_data[i];
+                for(var j = 0; j < user_data.length; j++){
+                    var o = user_data[j];
                     products_merged[$scope.products.kv[o.product_id]] = 0;
                 }
-                for(var i = 0; i < user_data.length; i++){
-                    var o = user_data[i];
+                for(var j = 0; j < user_data.length; j++){
+                    var o = user_data[j];
                     total_value += o.work_hours;
                     products_merged[$scope.products.kv[o.product_id]] += o.work_hours;
                 }
@@ -1046,9 +1070,9 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
 
                 var values = [];
                 var labels = [];
-                for(var i = 0; i < products_merged_object_array.length; i++){
-                    var key = products_merged_object_array[i].name;
-                    var work_hours = products_merged_object_array[i].work_hours;
+                for(var j = 0; j < products_merged_object_array.length; j++){
+                    var key = products_merged_object_array[j].name;
+                    var work_hours = products_merged_object_array[j].work_hours;
 
                     labels.push(key);
                     var percent = work_hours * 100 / total_value;
@@ -1064,12 +1088,12 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
             if(1){
                 var total_value = 0;
                 var types_merged = {};
-                for(var i = 0; i < user_data.length; i++){
-                    var o = user_data[i];
+                for(var j = 0; j < user_data.length; j++){
+                    var o = user_data[j];
                     types_merged[$scope.types.kv[o.type_id]] = 0;
                 }
-                for(var i = 0; i < user_data.length; i++){
-                    var o = user_data[i];
+                for(var j = 0; j < user_data.length; j++){
+                    var o = user_data[j];
                     total_value += o.work_hours;
                     types_merged[$scope.types.kv[o.type_id]] += o.work_hours;
                 }
@@ -1083,9 +1107,9 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
 
                 var values = [];
                 var labels = [];
-                for(var i = 0; i < types_merged_object_array.length; i++){
-                    var key = types_merged_object_array[i].name;
-                    var work_hours = types_merged_object_array[i].work_hours;
+                for(var j = 0; j < types_merged_object_array.length; j++){
+                    var key = types_merged_object_array[j].name;
+                    var work_hours = types_merged_object_array[j].work_hours;
 
                     labels.push(key);
                     var percent = work_hours * 100 / total_value;
