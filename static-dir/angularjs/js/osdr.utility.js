@@ -310,7 +310,7 @@ function api_parse_reports_for_create(date, user, works) {
     };
 }
 
-function api_parse_users_for_mgmt(data) {
+function api_parse_users_for_mgmt(data, admins) {
     var users = [];
     data.data.sort(user_enabled_id_sort_desc);
     for (var i = 0; i < data.data.length; i++) {
@@ -321,6 +321,7 @@ function api_parse_users_for_mgmt(data) {
             email: user.email,
             enabled: user.enabled? true:false,
             editing: false,
+            admin: system_array_contains(admins, function(elem){return elem.user_id == user.user_id;}),
             index: i + 1
         });
     }
@@ -354,46 +355,39 @@ function object_is_empty(obj) {
 
 // sort: big to small, desc
 function work_hours_sort(a, b){
-    return b.work_hours - a.work_hours;
+    return array_sort_desc(a.work_hours, b.work_hours);
 }
 // sort: user id big to small, desc
 function user_id_sort(a, b){
     if(a.length > 0 && b.length > 0){
-        return b[0].user_id - a[0].user_id;
+        return array_sort_desc(a[0].user_id, b[0].user_id);
     }
     return 0;
 }
 // sort the user object by enabled, then by id, asc
 function user_enabled_id_sort_asc(a, b){
-    if (a.enabled && !b.enabled) {
-        return -1;
-    }
-    if (!a.enabled && b.enabled) {
-        return 1;
-    }
-    return a.user_id - b.user_id;
+    return array_sort_asc(a.user_id, b.user_id);
 }
 // sort the user object by enabled, then by id, desc
 function user_enabled_id_sort_desc(a, b){
-    if (a.enabled && !b.enabled) {
-        return -1;
-    }
-    if (!a.enabled && b.enabled) {
-        return 1;
-    }
-    return b.user_id - a.user_id;
+    var v = array_sort_desc(a.enabled, b.enabled);
+    return v? v:array_sort_desc(a.user_id, b.user_id);
 }
 // sort: user report id small to big, asc.
 function report_sort(a, b){
-    return a.report_id - b.report_id;
+    return array_sort_desc(a.report_id, b.report_id);
 }
 // sort: user report insert_date small to big, asc.
 function report_first_insert_sort(a, b){
-    return YYYYmmdd_parse(a.insert_date).getTime() - YYYYmmdd_parse(b.insert_date).getTime();
+    var da = YYYYmmdd_parse(a.insert_date);
+    var db = YYYYmmdd_parse(b.insert_date);
+    return array_sort_asc(da.getTime(), db.getTime());
 }
 // sort: user report modify_date small to big, asc.
 function report_modify_date_sort(a, b){
-    return YYYYmmdd_parse(b.modify_date).getTime() - YYYYmmdd_parse(a.modify_date).getTime();
+    var da = YYYYmmdd_parse(a.modify_date);
+    var db = YYYYmmdd_parse(b.modify_date);
+    return array_sort_asc(da.getTime(), db.getTime());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

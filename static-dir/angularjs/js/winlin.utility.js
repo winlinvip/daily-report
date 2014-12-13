@@ -5,7 +5,7 @@
  * depends: jquery1.10
  * https://code.csdn.net/snippets/147103
  * @see: http://blog.csdn.net/win_lin/article/details/17994347
- * v 1.0.6
+ * v 1.0.7
  */
 
 /**
@@ -48,6 +48,33 @@ function system_array_remove(arr, elem) {
             }
         }
     }
+}
+
+/**
+ * whether the array contains specified element.
+ * @param arr the array to find.
+ * @param elem_or_function the element value or compare function.
+ * @returns true contains elem; otherwise false.
+ * for example,
+ *      arr = [10, 15, 20, 30, 20, 40]
+ *      system_array_contains(arr, 10) // true
+ *      system_array_contains(arr, 11) // false
+ *      system_array_contains(arr, function(elem){return elem == 30;}); // true
+ *      system_array_contains(arr, function(elem){return elem == 60;}); // false
+ */
+function system_array_contains(arr, elem_or_function) {
+    for (var i = 0; i < arr.length; i++) {
+        if (typeof elem_or_function == "function") {
+            if (elem_or_function(arr[i])) {
+                return true;
+            }
+        } else {
+            if (elem_or_function == arr[i]) {
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 /**
@@ -424,8 +451,8 @@ AsyncRefresh2.prototype.request = function(timeout) {
  * [a, b] in [10, 11, 9]
  * then sort to: [9, 10, 11]
  * Usage, for example:
- obj.data.data.sort(function(a, b){
-            return array_sort_asc(parseInt(a.metadata.meta_id), parseInt(b.metadata.meta_id));
+        obj.data.data.sort(function(a, b){
+            return array_sort_asc(a.metadata.meta_id, b.metadata.meta_id);
         });
  * @see: http://blog.csdn.net/win_lin/article/details/17994347
  * @remark, if need desc, use -1*array_sort_asc(a,b)
@@ -435,6 +462,9 @@ function array_sort_asc(elem_a, elem_b) {
         return 1;
     }
     return (elem_a < elem_b)? -1 : 0;
+}
+function array_sort_desc(elem_a, elem_b) {
+    return -1 * array_sort_asc(elem_a, elem_b);
 }
 
 // other components.

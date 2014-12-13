@@ -26,6 +26,14 @@ var links = {
         mount: "/user", link: "#/user",
         page: "views/user.html", controller: "CUser", text: "用户管理"
     },
+    user_group: {
+        mount: "/user/:userId", link: "#/user/:userId",
+        page: "views/user_group.html", controller: "CUserGroup", text: "用户所属组管理"
+    },
+    group: {
+        mount: "/group", link: "#/group",
+        page: "views/group.html", controller: "CGroup", text: "组管理"
+    },
     submit: {
         mount: "/submit", link: "#/submit",
         page: "views/submit.html", controller: "CSubmit", text: "填写日报"
@@ -56,6 +64,12 @@ osdrApp.config(['$routeProvider', function($routeProvider) {
         .when(links.user.mount, {
             templateUrl: links.user.page, controller: links.user.controller
         })
+        .when(links.user_group.mount, {
+            templateUrl: links.user_group.page, controller: links.user_group.controller
+        })
+        .when(links.group.mount, {
+            templateUrl: links.group.page, controller: links.group.controller
+        })
         .otherwise({
             redirectTo: links.submit.mount
         });
@@ -73,7 +87,8 @@ osdrApp.config(['$routeProvider', function($routeProvider) {
     $scope.navs = {
         submit: {mount: links.submit.mount, url: links.submit.link, text: links.submit.text, target:"_self"},
         view: {mount: links.view.mount, url: links.view.link, text: links.view.text, target:"_self"},
-        user: {mount: links.user.mount, url: links.user.link, text: links.user.text, target:"_self"}
+        user: {mount: links.user.mount, url: links.user.link, text: links.user.text, target:"_self"},
+        group: {mount: links.group.mount, url: links.group.link, text: links.group.text, target:"_self"}
     };
     $scope.get_nav_active = function() {
         return $scope.__nav_active? $scope.__nav_active: $scope.navs.servers;
@@ -86,6 +101,9 @@ osdrApp.config(['$routeProvider', function($routeProvider) {
     };
     $scope.nav_active_user = function() {
         $scope.__nav_active = $scope.navs.user;
+    };
+    $scope.nav_active_group = function() {
+        $scope.__nav_active = $scope.navs.group;
     };
     $scope.is_nav_selected = function(nav_or_navs) {
         if ($scope.__nav_active == nav_or_navs) {
@@ -100,10 +118,86 @@ osdrApp.config(['$routeProvider', function($routeProvider) {
         return false;
     }
 }]);
+// controller: CGroup, for the view group.html.
+osdrControllers.controller('CGroup', ['$scope', '$routeParams', 'MAdmin', function($scope, $routeParams, MAdmin){
+    $scope.url = links.group.mount;
+    $scope.user = null;
+
+    $scope.$parent.nav_active_group();
+    logs.info("正在加载组信息");
+}]);
+// controller: CUserGroup, for the view user_group.html.
+osdrControllers.controller('CUserGroup', ['$scope', '$routeParams', 'MAdmin', function($scope, $routeParams, MAdmin){
+    $scope.group_url = links.group.link;
+    $scope.url = links.user_group.mount;
+    $scope.user = null;
+
+    $scope.on_change_group = function(group) {
+        MAdmin.admins_load({
+            action: "set_user_group",
+            in: group.in,
+            group_id: group.group_id,
+            user_id: $scope.user.user_id
+        }, function(data){
+            logs.info("更新用户组成功");
+        });
+    };
+
+    var init_user_groups = function(user, user_groups, groups){
+        user.groups = [];
+        for (var i = 0; i < groups.length; i++) {
+            var group = groups[i];
+            user.groups.push({
+                group_id: group.group_id,
+                group_name: group.group_name,
+                in: system_array_contains(user_groups, function(elem){
+                    return elem.group_id == group.group_id;
+                })
+            });
+        }
+        user.groups.sort(function(a,b){
+            var v = array_sort_desc(a.in, b.in);
+            return v? v: array_sort_desc(a.group_id, b.group_id);
+        });
+        $scope.user = user;
+    };
+
+    MAdmin.admins_load({
+        action: "get_user",
+        id: $routeParams.userId
+    }, function(user){
+        logs.info("用户信息加载成功");
+        MAdmin.admins_load({
+            action: "get_user_group",
+            id: $routeParams.userId
+        }, function(user_groups) {
+            logs.info("用户组信息加载成功");
+            MAdmin.admins_load({
+                action: "get_groups"
+            }, function(groups) {
+                logs.info("组信息加载成功");
+                init_user_groups(user.data, user_groups.data, groups.data);
+            });
+        });
+    });
+
+    $scope.$parent.nav_active_user();
+    logs.info("正在加载用户和组信息");
+}]);
 // controller: CUser, for the view user.html.
 osdrControllers.controller('CUser', ['$scope', '$routeParams', 'MAdmin', function($scope, $routeParams, MAdmin){
+    $scope.url = links.user.mount;
     $scope.users = [];
     // utility functions.
+    var update_user_admin = function(user) {
+        MAdmin.admins_load({
+            action: "set_admin",
+            admin: user.admin,
+            user_id: user.id
+        }, function(data){
+            logs.info("更新用户管理员身份成功");
+        });
+    };
     var update_user_info = function(user, callback) {
         if (!user.name) {
             logs.warn(0, "请输入用户名");
@@ -120,6 +214,7 @@ osdrControllers.controller('CUser', ['$scope', '$routeParams', 'MAdmin', functio
                 logs.info("创建用户成功, id=" + data.data);
                 user.id = parseInt(data.data);
                 if (callback) callback();
+                update_user_admin(user);
             });
             return;
         }
@@ -133,6 +228,7 @@ osdrControllers.controller('CUser', ['$scope', '$routeParams', 'MAdmin', functio
         }, function(data){
             logs.info("更新用户信息成功");
             if (callback) callback();
+            update_user_admin(user);
         });
     };
     // for user actions.
@@ -169,15 +265,18 @@ osdrControllers.controller('CUser', ['$scope', '$routeParams', 'MAdmin', functio
             user.editing = false;
         });
     };
-    $scope.on_group_user = function(user) {
-    };
 
     // loads all users
     MAdmin.admins_load({
         action: "get_users"
-    }, function(data){
-        logs.info("获取了" + data.data.length + "个用户");
-        $scope.users = api_parse_users_for_mgmt(data);
+    }, function(users){
+        logs.info("获取了" + users.data.length + "个用户");
+        MAdmin.admins_load({
+            action: "get_admins"
+        }, function(admins){
+            $scope.users = api_parse_users_for_mgmt(users, admins.data);
+            logs.info("加载管理员信息成功");
+        });
     });
 
     $scope.$parent.nav_active_user();
@@ -1094,12 +1193,15 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
                     delay_users.push({
                         name: $scope.users.kv[user_id],
                         submit_time: first_insert,
-                        last_modify: last_modify
+                        last_modify: last_modify,
+                        insert_date: first_insert,
+                        modify_date: last_modify
                     });
                 }
             }
         };
         get_delayied_report_summary();
+        delay_users.sort(report_first_insert_sort);
 
         var summary = {
             text: YYYYmmdd_parse($scope.query.date).getFullYear(),

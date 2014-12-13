@@ -5,6 +5,7 @@
             <th>ID</th>
             <th>用户名</th>
             <th>邮箱</th>
+            <th>管理员</th>
             <th>激活</th>
             <th>
                 <a href="javascript:void(0)" ng-click="add_user()">
@@ -24,6 +25,12 @@
             <td class="span4">
                 <span ng-show="!user.editing">{{user.email? user.email:"无邮箱"}}</span>
                 <input type="text" class="span3" ng-model="user.email" placeholder="请输入用户邮箱" ng-show="user.editing">
+            </td>
+            <td class="span1">
+                <span ng-show="!user.editing">{{user.admin? "管理员":"用户"}}</span>
+                <label class="checkbox inline" ng-show="user.editing">
+                    <input type="checkbox" ng-model="user.admin">
+                </label>
             </td>
             <td class="span1">
                 <span ng-show="!user.editing">{{user.enabled? "激活":"禁用"}}</span>
@@ -47,8 +54,8 @@
                 <a href="javascript:void(0)" ng-click="on_enable_user(user)" ng-show="!user.enabled && user.id" title="激活后用户才能登录系统">
                     <i class="icon-thumbs-up"></i>启用
                 </a>
-                <a href="javascript:void(0)" ng-click="on_group_user(user)" ng-show="user.id" title="设置用户的组属性">
-                    <i class="icon-wrench"></i>组设置
+                <a href="#{{url}}/{{user.id}}" ng-show="user.id" title="设置用户的组属性">
+                    <i class="icon-wrench"></i>所属组
                 </a>
             </td>
         </tr>
