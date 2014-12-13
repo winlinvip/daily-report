@@ -239,6 +239,37 @@ class RESTAdmin(object):
         elif req["action"] == "create_user":
             ret = sql_exec("insert into dr_user (user_name,email,enabled) values(%s,%s,%s)",
                 (req["name"], req["email"], req["enabled"]),True);
+        elif req["action"] == "get_user":
+            ret = sql_exec("select * from dr_user where user_id=%s", (req["id"]));
+            ret = ret[0];
+        elif req["action"] == "get_admins":
+            ret = sql_exec("select * from dr_authorize_admin");
+        elif req["action"] == "set_admin":
+            if req["admin"]:
+                ret = sql_exec("select * from dr_authorize_admin where user_id=%s",(req["user_id"]));
+                if len(ret) <= 0:
+                    ret = sql_exec("insert into dr_authorize_admin (user_id) values(%s)", (req["user_id"]));
+            else:
+                ret = sql_exec("delete from dr_authorize_admin where user_id=%s", (req["user_id"]));
+        elif req["action"] == "get_user_group":
+            ret = sql_exec("select g.* from dr_group g, dr_rs_group_user r where g.group_id = r.group_id and r.user_id=%s", (req["id"]));
+        elif req["action"] == "set_user_group":
+            if req["in"]:
+                ret = sql_exec("select * from dr_rs_group_user where group_id=%s and user_id=%s",(req["group_id"],req["user_id"]));
+                if len(ret) <= 0:
+                    ret = sql_exec("insert into dr_rs_group_user (group_id,user_id) values(%s,%s)", (req["group_id"],req["user_id"]));
+            else:
+                ret = sql_exec("delete from dr_rs_group_user where group_id=%s and user_id=%s", (req["group_id"],req["user_id"]));
+        elif req["action"] == "get_groups":
+            ret = sql_exec("select * from dr_group");
+        elif req["action"] == "create_group":
+            ret = sql_exec("insert into dr_group(group_name) values(%s)",(req["name"]), True);
+        elif req["action"] == "set_group":
+            ret = sql_exec("update dr_group set group_name=%s where group_id=%s",(req["name"],req["id"]));
+        elif req["action"] == "get_group":
+            ret = sql_exec("select * from dr_group where group_id=%s",(req["group_id"]))[0];
+        elif req["action"] == "get_group_user":
+            ret = sql_exec("select u.* from dr_user u, dr_rs_group_user r where u.user_id = r.user_id and r.group_id=%s", (req["group_id"]));
         else:
             error("invalid action for admin: %s, req=%s"%(req["action"], req_str));
             code = ErrorCode.Failed;

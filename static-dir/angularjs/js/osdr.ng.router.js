@@ -34,6 +34,10 @@ var links = {
         mount: "/group", link: "#/group",
         page: "views/group.html", controller: "CGroup", text: "组管理"
     },
+    group_user: {
+        mount: "/group/:groupId", link: "#/group/:groupId",
+        page: "views/group_user.html", controller: "CGroupUser", text: "组的用户管理"
+    },
     submit: {
         mount: "/submit", link: "#/submit",
         page: "views/submit.html", controller: "CSubmit", text: "填写日报"
@@ -66,6 +70,9 @@ osdrApp.config(['$routeProvider', function($routeProvider) {
         })
         .when(links.user_group.mount, {
             templateUrl: links.user_group.page, controller: links.user_group.controller
+        })
+        .when(links.group_user.mount, {
+            templateUrl: links.group_user.page, controller: links.group_user.controller
         })
         .when(links.group.mount, {
             templateUrl: links.group.page, controller: links.group.controller
@@ -179,6 +186,66 @@ osdrControllers.controller('CGroup', ['$scope', '$routeParams', 'MAdmin', functi
 
     $scope.$parent.nav_active_group();
     logs.info("正在加载组信息");
+}]);
+// controller: CGroupUser, for the view group_user.html.
+osdrControllers.controller('CGroupUser', ['$scope', '$routeParams', 'MAdmin', function($scope, $routeParams, MAdmin){
+    $scope.user_url = links.user.link;
+    $scope.url = links.group_user.mount;
+    $scope.group = null;
+
+    $scope.on_change_group = function(user){
+        MAdmin.admins_load({
+            action: "set_user_group",
+            in: user.in,
+            group_id: $scope.group.group_id,
+            user_id: user.id
+        }, function(data){
+            logs.info("更新用户组成功");
+        });
+    };
+
+    var init_group = function(group, group_users, users) {
+        group.users = [];
+        for (var i = 0; i < users.length; i++) {
+            var user = users[i];
+            group.users.push({
+                id: user.user_id,
+                name: user.user_name,
+                email: user.email,
+                enabled: user.enabled == 1? true: false,
+                in: system_array_contains(group_users, function(elem){return elem.user_id == user.user_id})
+            });
+        }
+        group.users.sort(function(a,b){
+            var v = system_array_sort_desc(a.in, b.in);
+            if (v) return v;
+            v = system_array_sort_desc(a.enabled, b.enabled);
+            return v? v : system_array_sort_desc(a.id, b.id);
+        });
+        $scope.group = group;
+    };
+
+    MAdmin.admins_load({
+        action: "get_group",
+        group_id: $routeParams.groupId
+    }, function(group){
+        logs.info("组信息加载成功");
+        MAdmin.admins_load({
+            action: "get_group_user",
+            group_id: $routeParams.groupId
+        }, function(group_users){
+            logs.info("组用户信息加载成功");
+            MAdmin.admins_load({
+                action: "get_users"
+            }, function(users){
+                logs.info("用户信息加载成功");
+                init_group(group.data, group_users.data, users.data);
+            });
+        });
+    });
+
+    $scope.$parent.nav_active_group();
+    logs.info("正在加载组和用户信息");
 }]);
 // controller: CUserGroup, for the view user_group.html.
 osdrControllers.controller('CUserGroup', ['$scope', '$routeParams', 'MAdmin', function($scope, $routeParams, MAdmin){
