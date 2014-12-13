@@ -82,6 +82,17 @@ CREATE TABLE `dr_authorize_admin`(
     PRIMARY KEY (`auth_id`) 
 ) AUTO_INCREMENT=900 DEFAULT CHARSET=utf8;
 
+-- 2.0.0, create index.
+ALTER TABLE `dr_report` ADD INDEX product_id_index (`product_id`);
+ALTER TABLE `dr_report` ADD INDEX user_id_index (`user_id`);
+ALTER TABLE `dr_report` ADD INDEX type_id_index (`type_id`);
+ALTER TABLE `dr_report` ADD INDEX bug_id_index (`bug_id`);
+ALTER TABLE `dr_report` ADD INDEX work_hours_index (`work_hours`);
+ALTER TABLE `dr_report` ADD INDEX priority_index (`work_hours`);
+ALTER TABLE `dr_report` ADD INDEX work_date_index (`work_date`);
+ALTER TABLE `dr_report` ADD INDEX insert_date_index (`insert_date`);
+ALTER TABLE `dr_report` ADD INDEX modify_date_index (`modify_date`);
+
 -- update history
 -- 2013-8-27
 -- ALTER TABLE dr_report add modify_date datetime NOT NULL;
@@ -98,3 +109,5 @@ CREATE TABLE `dr_authorize_admin`(
 -- ALTER TABLE dr_authenticate add qq_oauth_openid varchar(200);
 -- 2013-9-7
 -- rename TABLE dr_authorize_manger to dr_authorize_manager;
+-- 2014-12-13
+-- ALTER TABLE `dr_user` add column `enabled` boolean DEFAULT true;
