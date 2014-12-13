@@ -22,6 +22,10 @@ var links = {
         mount: "/login", link: "#/login",
         page: "views/login.html", controller: "CLogin", text: "登录"
     },
+    user: {
+        mount: "/user", link: "#/user",
+        page: "views/user.html", controller: "CUser", text: "用户管理"
+    },
     submit: {
         mount: "/submit", link: "#/submit",
         page: "views/submit.html", controller: "CSubmit", text: "填写日报"
@@ -49,6 +53,9 @@ osdrApp.config(['$routeProvider', function($routeProvider) {
         .when(links.view.mount, {
             templateUrl: links.view.page, controller: links.view.controller
         })
+        .when(links.user.mount, {
+            templateUrl: links.user.page, controller: links.user.controller
+        })
         .otherwise({
             redirectTo: links.submit.mount
         });
@@ -65,7 +72,8 @@ osdrApp.config(['$routeProvider', function($routeProvider) {
     // the navigator bind and update.
     $scope.navs = {
         submit: {mount: links.submit.mount, url: links.submit.link, text: links.submit.text, target:"_self"},
-        view: {mount: links.view.mount, url: links.view.link, text: links.view.text, target:"_self"}
+        view: {mount: links.view.mount, url: links.view.link, text: links.view.text, target:"_self"},
+        user: {mount: links.user.mount, url: links.user.link, text: links.user.text, target:"_self"}
     };
     $scope.get_nav_active = function() {
         return $scope.__nav_active? $scope.__nav_active: $scope.navs.servers;
@@ -75,6 +83,9 @@ osdrApp.config(['$routeProvider', function($routeProvider) {
     };
     $scope.nav_active_view = function() {
         $scope.__nav_active = $scope.navs.view;
+    };
+    $scope.nav_active_user = function() {
+        $scope.__nav_active = $scope.navs.user;
     };
     $scope.is_nav_selected = function(nav_or_navs) {
         if ($scope.__nav_active == nav_or_navs) {
@@ -88,6 +99,57 @@ osdrApp.config(['$routeProvider', function($routeProvider) {
         }
         return false;
     }
+}]);
+// controller: CUser, for the view user.html.
+osdrControllers.controller('CUser', ['$scope', '$routeParams', 'MAdmin', function($scope, $routeParams, MAdmin){
+    $scope.users = [];
+    // utility functions.
+    var update_user_info = function(user, callback) {
+        MAdmin.admins_load({
+            action: "set_user",
+            name: user.name,
+            email: user.email,
+            enabled: user.enabled,
+            id: user.id
+        }, function(data){
+            logs.info("更新用户信息成功");
+            if (callback) callback();
+        });
+    };
+    // for user actions.
+    $scope.on_modify_user = function(user) {
+        user.editing = true;
+    };
+    $scope.on_submit_user = function(user) {
+        update_user_info(user, function(){
+            user.editing = false;
+        });
+    };
+    $scope.on_disable_user = function(user) {
+        user.enabled = false;
+        update_user_info(user, function(){
+            user.editing = false;
+        });
+    };
+    $scope.on_enable_user = function(user) {
+        user.enabled = true;
+        update_user_info(user, function(){
+            user.editing = false;
+        });
+    };
+    $scope.on_group_user = function(user) {
+    };
+
+    // loads all users
+    MAdmin.admins_load({
+        action: "get_users"
+    }, function(data){
+        logs.info("获取了" + data.data.length + "个用户");
+        $scope.users = api_parse_users_for_mgmt(data);
+    });
+
+    $scope.$parent.nav_active_user();
+    logs.info("管理用户");
 }]);
 // controller: CLogin, for the view login.html.
 osdrControllers.controller('CLogin', ['$scope', '$routeParams', function($scope, $routeParams){
@@ -162,7 +224,7 @@ osdrControllers.controller('CSubmit', ['$scope', '$routeParams', 'MUser', 'MProd
             logs.warn("请输入填报日期，格式为：年-月-日");
             return false;
         }
-        if (object_is_empty(work.bug)) {
+        if (work.bug != 0 && object_is_empty(work.bug)) {
             logs.warn("请输入Issue号");
             return false;
         }
@@ -1233,6 +1295,11 @@ osdrFilters
         return v? "": "error";
     };
 })
+.filter('filter_div_empty_warn_class', function() {
+    return function(v) {
+        return v? "": "warning";
+    };
+})
 .filter('filter_div_null_class', function() {
     return function(v) {
         return (v == null || v == undefined)? "error": "";
@@ -1266,6 +1333,11 @@ osdrFilters
 osdrServices.factory('MUser', ['$resource', function($resource){
     return $resource('/users', {}, {
         users_load: {method: 'GET'}
+    });
+}]);
+osdrServices.factory('MAdmin', ['$resource', function($resource){
+    return $resource('/admins', {}, {
+        admins_load: {method: 'POST'}
     });
 }]);
 osdrServices.factory('MGroup', ['$resource', function($resource){

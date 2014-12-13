@@ -1,0 +1,46 @@
+<div class="container">
+    <table class="table table-bordered table-hover">
+        <tr>
+            <th>编号</th>
+            <th>ID</th>
+            <th>用户名</th>
+            <th>邮箱</th>
+            <th>激活</th>
+            <th>操作</th>
+        </tr>
+        <tr ng-repeat="user in users" class="{{user.enabled |filter_div_empty_class}}">
+            <td>{{user.index}}</td>
+            <td>{{user.id}}</td>
+            <td class="span2">
+                <span ng-show="!user.editing">{{user.name}}</span>
+                <div class="control-group {{user.name |filter_div_empty_class}}" ng-show="user.editing">
+                    <input type="text" class="span1" ng-model="user.name" placeholder="请输入用户名">
+                </div>
+            </td>
+            <td class="span4">
+                <span ng-show="!user.editing">{{user.email? user.email:"无邮箱"}}</span>
+                <div class="control-group {{user.email |filter_div_empty_class}}" ng-show="user.editing">
+                    <input type="text" class="span3" ng-model="user.email" placeholder="请输入用户邮箱">
+                </div>
+            </td>
+            <td>{{user.enabled? "激活":"禁用"}}</td>
+            <td>
+                <a href="javascript:void(0)" ng-click="on_modify_user(user)" ng-show="!user.editing" title="修改用户信息">
+                    <i class="icon-pencil"></i>修改
+                </a>
+                <a href="javascript:void(0)" ng-click="on_submit_user(user)" ng-show="user.editing" title="保存用户信息">
+                    <i class="icon-ok"></i>提交
+                </a>
+                <a href="javascript:void(0)" ng-click="on_disable_user(user)" ng-show="user.enabled" title="禁用后用户不能登录系统">
+                    <i class="icon-off"></i>禁用
+                </a>
+                <a href="javascript:void(0)" ng-click="on_enable_user(user)" ng-show="!user.enabled" title="激活后用户才能登录系统">
+                    <i class="icon-thumbs-up"></i>启用
+                </a>
+                <a href="javascript:void(0)" ng-click="on_group_user(user)" title="设置用户的组属性">
+                    <i class="icon-wrench"></i>组设置
+                </a>
+            </td>
+        </tr>
+    </table>
+</div>

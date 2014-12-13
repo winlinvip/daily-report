@@ -11,13 +11,8 @@ Errors.UINotFound = 10002;
 // resolve error code
 Errors.resolve = function(code, status, desc) {
     var err_map = {
-        100: '没有达到api要求的参数个数，请检查参数',
-        101: 'api要求参数必须指定，请检查参数',
-        102: 'api要求参数为非null，请检查参数',
-        103: 'api要求参数为非空，请检查参数',
-        104: 'api要求参数的类型为bool，请检查参数',
-        105: 'api要求参数的类型为数组，请检查参数',
-        106: 'api要求参数的类型为int，请检查参数'
+        0x100: '系统错误',
+        0x200: '用户未绑定'
     };
     err_map[Errors.UIUnAuthoriezed] = "您没有登录或者登录超时，请重新登录";
     err_map[Errors.UINotFound] = "访问的资源不存在";
@@ -315,6 +310,23 @@ function api_parse_reports_for_create(date, user, works) {
     };
 }
 
+function api_parse_users_for_mgmt(data) {
+    var users = [];
+    data.data.sort(user_enabled_id_sort_desc);
+    for (var i = 0; i < data.data.length; i++) {
+        var user = data.data[i];
+        users.push({
+            id: user.user_id,
+            name: user.user_name,
+            email: user.email,
+            enabled: user.enabled,
+            editing: false,
+            index: i + 1
+        });
+    }
+    return users;
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // application level data conversion
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -350,6 +362,26 @@ function user_id_sort(a, b){
         return b[0].user_id - a[0].user_id;
     }
     return 0;
+}
+// sort the user object by enabled, then by id, asc
+function user_enabled_id_sort_asc(a, b){
+    if (a.enabled && !b.enabled) {
+        return -1;
+    }
+    if (!a.enabled && b.enabled) {
+        return 1;
+    }
+    return a.user_id - b.user_id;
+}
+// sort the user object by enabled, then by id, desc
+function user_enabled_id_sort_desc(a, b){
+    if (a.enabled && !b.enabled) {
+        return -1;
+    }
+    if (!a.enabled && b.enabled) {
+        return 1;
+    }
+    return b.user_id - a.user_id;
 }
 // sort: user report id small to big, asc.
 function report_sort(a, b){
