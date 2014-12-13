@@ -440,8 +440,8 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
                     end_time: end_time,
                     product_id: product.name
                 }, function(data){
-                    if (data.work_hours != null) {
-                        $scope.reports.day_product_data.push(data);
+                    if (data.data.work_hours != null) {
+                        $scope.reports.day_product_data.push(data.data);
                     }
                     // if all data requested, request other messages.
                     if(++responsed_count == $scope.products.products.length){
@@ -475,8 +475,8 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
                     end_time: end_time,
                     type_id: type.name
                 }, function(data){
-                    if (data.work_hours != null) {
-                        $scope.reports.day_type_data.push(data);
+                    if (data.data.work_hours != null) {
+                        $scope.reports.day_type_data.push(data.data);
                     }
                     // if all data requested, request other messages.
                     if(++responsed_count == $scope.types.types.length){
@@ -513,8 +513,8 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
                     end_time: end_time,
                     product_id: product.name
                 }, function(data){
-                    if (data.work_hours != null) {
-                        $scope.reports.month_product_data.push(data);
+                    if (data.data.work_hours != null) {
+                        $scope.reports.month_product_data.push(data.data);
                     }
                     // if all data requested, request other messages.
                     if(++responsed_count == $scope.products.products.length){
@@ -550,8 +550,8 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
                     end_time: end_time,
                     type_id: type.name
                 }, function(data){
-                    if (data.work_hours != null) {
-                        $scope.reports.month_type_data.push(data);
+                    if (data.data.work_hours != null) {
+                        $scope.reports.month_type_data.push(data.data);
                     }
                     // if all data requested, request other messages.
                     if(++responsed_count == $scope.types.types.length){
@@ -589,8 +589,8 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
                     end_time: end_time,
                     product_id: product.name
                 }, function(data){
-                    if (data.work_hours != null) {
-                        $scope.reports.quarter_product_data.push(data);
+                    if (data.data.work_hours != null) {
+                        $scope.reports.quarter_product_data.push(data.data);
                     }
                     // if all data requested, request other messages.
                     if(++responsed_count == $scope.products.products.length){
@@ -627,8 +627,8 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
                     end_time: end_time,
                     type_id: type.name
                 }, function(data){
-                    if (data.work_hours != null) {
-                        $scope.reports.quarter_type_data.push(data);
+                    if (data.data.work_hours != null) {
+                        $scope.reports.quarter_type_data.push(data.data);
                     }
                     // if all data requested, request other messages.
                     if(++responsed_count == $scope.types.types.length){
@@ -667,8 +667,8 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
                     end_time: end_time,
                     product_id: product.name
                 }, function(data){
-                    if (data.work_hours != null) {
-                        $scope.reports.year_product_data.push(data);
+                    if (data.data.work_hours != null) {
+                        $scope.reports.year_product_data.push(data.data);
                     }
                     // if all data requested, request other messages.
                     if(++responsed_count == $scope.products.products.length){
@@ -706,8 +706,8 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
                     end_time: end_time,
                     type_id: type.name
                 }, function(data){
-                    if (data.work_hours != null) {
-                        $scope.reports.year_type_data.push(data);
+                    if (data.data.work_hours != null) {
+                        $scope.reports.year_type_data.push(data.data);
                     }
                     // if all data requested, request other messages.
                     if(++responsed_count == $scope.types.types.length){
