@@ -230,6 +230,46 @@ function api_parse_groups_for_mgmt(data) {
     return groups;
 }
 
+function api_parse_products_for_mgmt(data) {
+    var products = [];
+    for (var i = 0; i < data.data.length; i++) {
+        var product = data.data[i];
+        products.push({
+            id: product.product_id,
+            name: product.product_name,
+            editing: false
+        });
+    }
+    products.sort(function(a,b){
+        return system_array_sort_asc(a.name, b.name);
+    });
+    for (var i = 0; i < products.length; i++) {
+        var product = products[i];
+        product.index = i + 1;
+    }
+    return products;
+}
+
+function api_parse_types_for_mgmt(data) {
+    var types = [];
+    for (var i = 0; i < data.data.length; i++) {
+        var type = data.data[i];
+        types.push({
+            id: type.type_id,
+            name: type.type_name,
+            editing: false
+        });
+    }
+    types.sort(function(a,b){
+        return system_array_sort_asc(a.name, b.name);
+    });
+    for (var i = 0; i < types.length; i++) {
+        var type = types[i];
+        type.index = i + 1;
+    }
+    return types;
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // application level data conversion
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -1,0 +1,74 @@
+<div class="container">
+    <div class="row">
+        <div class="span6">
+            <table class="table table-bordered table-hover">
+                <tr>
+                    <th>编号</th>
+                    <th>ID</th>
+                    <th>名称</th>
+                    <th>
+                        <a href="javascript:void(0)" ng-click="add_product()">
+                            <li class="icon-plus"></li>添加
+                        </a>
+                    </th>
+                </tr>
+                <tr ng-repeat="product in products">
+                    <td class="span1">{{product.index}}</td>
+                    <td class="span1">{{product.id? product.id:"待定"}}</td>
+                    <td class="span3">
+                        <span ng-show="!product.editing">{{product.name}}</span>
+                        <div class="control-group {{product.name |filter_div_empty_class}}" ng-show="product.editing">
+                            <input type="text" class="span2" ng-model="product.name" placeholder="请输入名称">
+                        </div>
+                    </td>
+                    <td>
+                        <a href="javascript:void(0)" ng-click="on_modify_product(product)" ng-show="!product.editing" title="修改分类信息">
+                            <i class="icon-pencil"></i>修改
+                        </a>
+                        <a href="javascript:void(0)" ng-click="on_submit_product(product)" ng-show="product.editing" title="保存分类信息">
+                            <i class="icon-ok"></i>提交
+                        </a>
+                        <a href="javascript:void(0)" ng-click="on_cancel_product(product)" ng-show="!product.id" title="取消新建分类">
+                            <i class="icon-remove"></i>取消
+                        </a>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="span6">
+            <table class="table table-bordered table-hover">
+                <tr>
+                    <th>编号</th>
+                    <th>ID</th>
+                    <th>名称</th>
+                    <th>
+                        <a href="javascript:void(0)" ng-click="add_type()">
+                            <li class="icon-plus"></li>添加
+                        </a>
+                    </th>
+                </tr>
+                <tr ng-repeat="type in types">
+                    <td class="span1">{{type.index}}</td>
+                    <td class="span1">{{type.id? type.id:"待定"}}</td>
+                    <td class="span3">
+                        <span ng-show="!type.editing">{{type.name}}</span>
+                        <div class="control-group {{type.name |filter_div_empty_class}}" ng-show="type.editing">
+                            <input type="text" class="span2" ng-model="type.name" placeholder="请输入名称">
+                        </div>
+                    </td>
+                    <td>
+                        <a href="javascript:void(0)" ng-click="on_modify_type(type)" ng-show="!type.editing" title="修改分类信息">
+                            <i class="icon-pencil"></i>修改
+                        </a>
+                        <a href="javascript:void(0)" ng-click="on_submit_type(type)" ng-show="type.editing" title="保存分类信息">
+                            <i class="icon-ok"></i>提交
+                        </a>
+                        <a href="javascript:void(0)" ng-click="on_cancel_type(type)" ng-show="!type.id" title="取消新建分类">
+                            <i class="icon-remove"></i>取消
+                        </a>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>

@@ -14,7 +14,7 @@ assert sys.getdefaultencoding().lower() == "utf-8";
 from utility import error, trace, get_work_dir, reload_config, send_mail, enable_crossdomain, sql_exec, utility_init;
 from auth import SESSION_KEY, authorize_get_exception_user_id, authorize_user, check_auth, crossdomain_session, require_auth, require_admin, auth_init;
 
-version="2.0.0"
+version="2.0.1"
 
 class ErrorCode:
     Success = 0x00;
@@ -270,6 +270,18 @@ class RESTAdmin(object):
             ret = sql_exec("select * from dr_group where group_id=%s",(req["group_id"]))[0];
         elif req["action"] == "get_group_user":
             ret = sql_exec("select u.* from dr_user u, dr_rs_group_user r where u.user_id = r.user_id and r.group_id=%s", (req["group_id"]));
+        elif req["action"] == "get_products":
+            ret = sql_exec("select * from dr_product");
+        elif req["action"] == "create_product":
+            ret = sql_exec("insert into dr_product(product_name) values(%s)",(req["name"]), True);
+        elif req["action"] == "set_product":
+            ret = sql_exec("update dr_product set product_name=%s where product_id=%s",(req["name"],req["id"]));
+        elif req["action"] == "get_types":
+            ret = sql_exec("select * from dr_type");
+        elif req["action"] == "create_type":
+            ret = sql_exec("insert into dr_type(type_name) values(%s)",(req["name"]), True);
+        elif req["action"] == "set_type":
+            ret = sql_exec("update dr_type set type_name=%s where type_id=%s",(req["name"],req["id"]));
         else:
             error("invalid action for admin: %s, req=%s"%(req["action"], req_str));
             code = ErrorCode.Failed;

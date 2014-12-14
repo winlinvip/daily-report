@@ -53,6 +53,9 @@
                     <li ng-class='is_nav_selected(navs.group) |main_nav_active'>
                         <a ng-href="{{navs.group.url}}" target="{{navs.group.target}}" ng-bind="navs.group.text"></a>
                     </li>
+                    <li ng-class='is_nav_selected(navs.category) |main_nav_active'>
+                        <a ng-href="{{navs.category.url}}" target="{{navs.category.target}}" ng-bind="navs.category.text"></a>
+                    </li>
                 </ul>
             </div>
         </div>

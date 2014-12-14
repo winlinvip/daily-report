@@ -34,6 +34,10 @@ var links = {
         mount: "/group", link: "#/group",
         page: "views/group.html", controller: "CGroup", text: "组管理"
     },
+    category: {
+        mount: "/category", link: "#/category",
+        page: "views/category.html", controller: "CCategory", text: "分类管理"
+    },
     group_user: {
         mount: "/group/:groupId", link: "#/group/:groupId",
         page: "views/group_user.html", controller: "CGroupUser", text: "组的用户管理"
@@ -68,6 +72,9 @@ osdrApp.config(['$routeProvider', function($routeProvider) {
         .when(links.user.mount, {
             templateUrl: links.user.page, controller: links.user.controller
         })
+        .when(links.category.mount, {
+            templateUrl: links.category.page, controller: links.category.controller
+        })
         .when(links.user_group.mount, {
             templateUrl: links.user_group.page, controller: links.user_group.controller
         })
@@ -95,6 +102,7 @@ osdrApp.config(['$routeProvider', function($routeProvider) {
         submit: {mount: links.submit.mount, url: links.submit.link, text: links.submit.text, target:"_self"},
         view: {mount: links.view.mount, url: links.view.link, text: links.view.text, target:"_self"},
         user: {mount: links.user.mount, url: links.user.link, text: links.user.text, target:"_self"},
+        category: {mount: links.category.mount, url: links.category.link, text: links.category.text, target:"_self"},
         group: {mount: links.group.mount, url: links.group.link, text: links.group.text, target:"_self"}
     };
     $scope.get_nav_active = function() {
@@ -108,6 +116,9 @@ osdrApp.config(['$routeProvider', function($routeProvider) {
     };
     $scope.nav_active_user = function() {
         $scope.__nav_active = $scope.navs.user;
+    };
+    $scope.nav_active_category = function() {
+        $scope.__nav_active = $scope.navs.category;
     };
     $scope.nav_active_group = function() {
         $scope.__nav_active = $scope.navs.group;
@@ -124,6 +135,114 @@ osdrApp.config(['$routeProvider', function($routeProvider) {
         }
         return false;
     }
+}]);
+// controller: CCategory, for the view category.html.
+osdrControllers.controller('CCategory', ['$scope', '$routeParams', 'MAdmin', function($scope, $routeParams, MAdmin){
+    $scope.url = links.category.mount;
+    $scope.products = [];
+    $scope.types = [];
+    // user actions for products
+    $scope.add_product = function(){
+        logs.info("添加新分类");
+        $scope.products.splice(0, 0, {
+            editing: true,
+            name: null,
+            index: $scope.products.length + 1
+        });
+    };
+    $scope.on_modify_product = function(product) {
+        product.editing = true;
+    };
+    $scope.on_submit_product = function(product) {
+        if (!product.name) {
+            logs.warn(0, "请输入分类名称");
+            return;
+        }
+
+        if (!product.id) {
+            logs.info("添加新分类");
+            MAdmin.admins_load({
+                action: "create_product",
+                name: product.name
+            }, function(data){
+                product.id = parseInt(data.data);
+                product.editing = false;
+                logs.info("分类创建成功");
+            });
+            return;
+        }
+
+        logs.info("修改分类信息");
+        MAdmin.admins_load({
+            action: "set_product",
+            id: product.id,
+            name: product.name
+        }, function(data){
+            product.editing = false;
+            logs.info("修改分类信息成功");
+        });
+    };
+    $scope.on_cancel_product = function(product) {
+        system_array_remove($scope.products, product);
+    };
+    // user actions for types
+    $scope.add_type = function(){
+        logs.info("添加新分类");
+        $scope.types.splice(0, 0, {
+            editing: true,
+            name: null,
+            index: $scope.types.length + 1
+        });
+    };
+    $scope.on_modify_type = function(type) {
+        type.editing = true;
+    };
+    $scope.on_submit_type = function(type) {
+        if (!type.name) {
+            logs.warn(0, "请输入分类名称");
+            return;
+        }
+
+        if (!type.id) {
+            logs.info("添加新分类");
+            MAdmin.admins_load({
+                action: "create_type",
+                name: type.name
+            }, function(data){
+                type.id = parseInt(data.data);
+                type.editing = false;
+                logs.info("分类创建成功");
+            });
+            return;
+        }
+
+        logs.info("修改分类信息");
+        MAdmin.admins_load({
+            action: "set_type",
+            id: type.id,
+            name: type.name
+        }, function(data){
+            type.editing = false;
+            logs.info("修改分类信息成功");
+        });
+    };
+    $scope.on_cancel_type = function(type) {
+        system_array_remove($scope.types, type);
+    };
+
+    MAdmin.admins_load({
+        action: "get_products"
+    }, function(data) {
+        $scope.products = api_parse_products_for_mgmt(data);
+    });
+    MAdmin.admins_load({
+        action: "get_types"
+    }, function(data) {
+        $scope.types = api_parse_types_for_mgmt(data);
+    });
+
+    $scope.$parent.nav_active_category();
+    logs.info("正在加载分类信息");
 }]);
 // controller: CGroup, for the view group.html.
 osdrControllers.controller('CGroup', ['$scope', '$routeParams', 'MAdmin', function($scope, $routeParams, MAdmin){
@@ -181,6 +300,9 @@ osdrControllers.controller('CGroup', ['$scope', '$routeParams', 'MAdmin', functi
         action: "get_groups"
     }, function(data){
         $scope.groups = api_parse_groups_for_mgmt(data);
+        if ($routeParams.add) {
+            $scope.add_group();
+        }
         logs.info("组信息加载成功");
     });
 
@@ -189,7 +311,7 @@ osdrControllers.controller('CGroup', ['$scope', '$routeParams', 'MAdmin', functi
 }]);
 // controller: CGroupUser, for the view group_user.html.
 osdrControllers.controller('CGroupUser', ['$scope', '$routeParams', 'MAdmin', function($scope, $routeParams, MAdmin){
-    $scope.user_url = links.user.link;
+    $scope.user_url = links.user.link + "?add";
     $scope.url = links.group_user.mount;
     $scope.group = null;
 
@@ -249,7 +371,7 @@ osdrControllers.controller('CGroupUser', ['$scope', '$routeParams', 'MAdmin', fu
 }]);
 // controller: CUserGroup, for the view user_group.html.
 osdrControllers.controller('CUserGroup', ['$scope', '$routeParams', 'MAdmin', function($scope, $routeParams, MAdmin){
-    $scope.group_url = links.group.link;
+    $scope.group_url = links.group.link + "?add";
     $scope.url = links.user_group.mount;
     $scope.user = null;
 
@@ -397,6 +519,9 @@ osdrControllers.controller('CUser', ['$scope', '$routeParams', 'MAdmin', functio
         }, function(admins){
             $scope.users = api_parse_users_for_mgmt(users, admins.data);
             logs.info("加载管理员信息成功");
+            if ($routeParams.add) {
+                $scope.add_user();
+            }
         });
     });
 
