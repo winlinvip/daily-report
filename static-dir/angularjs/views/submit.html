@@ -19,7 +19,7 @@
     </div>
     <table class="table table-hover">
         <tr>
-            <th>Issue</th>
+            <th ng-show="{{enable_issue}}">Issue</th>
             <th>{{const_product}}</th>
             <th>{{const_type}}</th>
             <th>时间</th>
@@ -27,7 +27,7 @@
             <th>操作</th>
         </tr>
         <tr ng-repeat="work in report_reg.works">
-            <td class="span1">
+            <td class="span1" ng-show="{{enable_issue}}">
                 <div ng-show="!work.editing">
                     <div ng-show="!enabled_redmine">
                         {{work.bug}}

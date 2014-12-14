@@ -277,7 +277,7 @@ function create_empty_work_item(user_id) {
     return {
         id: null,
         user: user_id,
-        bug: null,
+        bug: (enable_bug_id()? null : 0),
         product: null,
         type: null,
         time: null,

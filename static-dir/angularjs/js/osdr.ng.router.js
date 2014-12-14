@@ -572,6 +572,7 @@ osdrControllers.controller('CSubmit', ['$scope', '$routeParams', 'MUser', 'MProd
     $scope.const_product = get_product_label();
     $scope.const_type = get_type_label();
     $scope.enabled_redmine = enable_redmine_retieve();
+    $scope.enable_issue = enable_bug_id();
     // the users return by server.
     $scope.users = {};
     // the products return by server.
