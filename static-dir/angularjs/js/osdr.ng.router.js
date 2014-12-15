@@ -559,8 +559,8 @@ osdrControllers.controller('CLogin', ['$scope', '$routeParams', function($scope,
     logs.info("请登录系统");
 }]);
 // controller: CSubmit, for the view submit.html.
-osdrControllers.controller('CSubmit', ['$scope', '$routeParams', 'MUser', 'MProduct', 'MType', 'MReport', 'MRedmine',
-    function($scope, $routeParams, MUser, MProduct, MType, MReport, MRedmine){
+osdrControllers.controller('CSubmit', ['$scope', '$routeParams', '$location', 'MUser', 'MProduct', 'MType', 'MReport', 'MRedmine',
+    function($scope, $routeParams, $location, MUser, MProduct, MType, MReport, MRedmine){
     // add new report object.
     $scope.report_reg = {
         user_id: null,
@@ -687,7 +687,18 @@ osdrControllers.controller('CSubmit', ['$scope', '$routeParams', 'MUser', 'MProd
         $scope.report_reg.modified = true;
         logs.info("完成编辑工作项" + (work.id? work.id:""));
     };
+    $scope.on_view_report = function() {
+        $location.path(links.view.mount).search("show");
+    };
     $scope.on_retrieve_work = function(work) {
+        if (!work.bug) {
+            logs.warn("请输入Issue号");
+            return;
+        }
+        if (work.bug == "0") {
+            logs.warn("无法获取Issue号为0的信息");
+            return;
+        }
         MRedmine.redmine_load({
             id: work.bug
         }, function(data){
@@ -780,7 +791,7 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
     // the query conditions.
     $scope.query = {
         group: null,
-        all: true,
+        all: false,
         date: absolute_seconds_to_YYYYmmdd(new Date().getTime() / 1000)
     };
     // consts
@@ -1603,6 +1614,11 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
         logs.info("加载用户组成功");
         $scope.groups = api_groups_for_select(data);
         $scope.query.group = $scope.groups.first;
+
+        // auto show.
+        if ($routeParams.show) {
+            $scope.on_query();
+        }
     });
 
     $scope.$parent.nav_active_view();
