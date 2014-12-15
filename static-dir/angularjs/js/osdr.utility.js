@@ -100,6 +100,9 @@ function api_products_for_select(data) {
         products.push({name:product.id, value:product.value});
         kvs[product.id] = product.value;
     }
+    products.sort(function(a,b){
+        return system_array_sort_asc(a.value, b.value);
+    });
     return {
         products: products,
         kv: kvs,
@@ -115,6 +118,9 @@ function api_types_for_select(data) {
         types.push({name:type.id, value:type.value});
         kvs[type.id] = type.value;
     }
+    types.sort(function(a,b){
+        return system_array_sort_asc(a.value, b.value);
+    });
     return {
         types: types,
         kv: kvs,
