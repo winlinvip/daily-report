@@ -845,12 +845,12 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
                 MType.types_load({}, function(data){
                     $scope.types = api_types_for_select(data);
                     logs.info("工作类别加载成功");
-                    $scope.query_report_user_detail();
+                    query_report_user_detail();
                 });
             });
         });
     };
-    $scope.query_report_user_detail = function(){
+    var query_report_user_detail = function(){
         if (!$scope.users.first) {
             logs.warn(0, "选择的组没有用户");
             return;
@@ -877,7 +877,7 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
                     // if all data requested, request other messages.
                     if(++responsed_count == $scope.users.users.length){
                         logs.info("加载用户日报成功");
-                        $scope.query_report_day_product_summary();
+                        query_report_day_product_summary();
                         return;
                     }
                 });
@@ -885,7 +885,7 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
             do_request(user);
         }
     };
-    $scope.query_report_day_product_summary = function() {
+    var query_report_day_product_summary = function() {
         logs.info("请求当天日报product汇总数据");
 
         var date = YYYYmmdd_parse($scope.query.date);
@@ -912,7 +912,7 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
                     // if all data requested, request other messages.
                     if(++responsed_count == $scope.products.products.length){
                         logs.info("加载当天日报product汇总数据成功");
-                        $scope.query_report_day_type_summary();
+                        query_report_day_type_summary();
                         return;
                     }
                 });
@@ -920,7 +920,7 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
             do_request(product);
         }
     };
-    $scope.query_report_day_type_summary = function() {
+    var query_report_day_type_summary = function() {
         logs.info("请求当天日报type汇总数据");
 
         var date = YYYYmmdd_parse($scope.query.date);
@@ -947,7 +947,7 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
                     // if all data requested, request other messages.
                     if(++responsed_count == $scope.types.types.length){
                         logs.info("加载当天日报type汇总数据成功");
-                        $scope.query_report_month_product_summary();
+                        query_report_month_product_summary();
                         return;
                     }
                 });
@@ -955,7 +955,7 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
             do_request(type);
         }
     };
-    $scope.query_report_month_product_summary = function() {
+    var query_report_month_product_summary = function() {
         logs.info("请求月度日报product汇总数据");
 
         var date = YYYYmmdd_parse($scope.query.date);
@@ -985,14 +985,14 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
                     // if all data requested, request other messages.
                     if(++responsed_count == $scope.products.products.length){
                         logs.info("加载月度日报product汇总数据成功");
-                        $scope.query_report_month_type_summary();
+                        query_report_month_type_summary();
                     }
                 });
             };
             do_request(product);
         }
     };
-    $scope.query_report_month_type_summary = function() {
+    var query_report_month_type_summary = function() {
         logs.info("请求月度日报type汇总数据");
 
         var date = YYYYmmdd_parse($scope.query.date);
@@ -1022,7 +1022,7 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
                     // if all data requested, request other messages.
                     if(++responsed_count == $scope.types.types.length){
                         logs.info("加载月度日报type汇总数据成功");
-                        $scope.query_report_quarter_product_summary();
+                        query_report_quarter_product_summary();
                         return;
                     }
                 });
@@ -1030,7 +1030,7 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
             do_request(type);
         }
     };
-    $scope.query_report_quarter_product_summary = function() {
+    var query_report_quarter_product_summary = function() {
         logs.info("请求季度日报product汇总数据");
 
         var date = YYYYmmdd_parse($scope.query.date);
@@ -1061,14 +1061,14 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
                     // if all data requested, request other messages.
                     if(++responsed_count == $scope.products.products.length){
                         logs.info("加载季度日报product汇总数据成功");
-                        $scope.query_report_quarter_type_summary();
+                        query_report_quarter_type_summary();
                     }
                 });
             };
             do_request(product);
         }
     };
-    $scope.query_report_quarter_type_summary = function() {
+    var query_report_quarter_type_summary = function() {
         logs.info("请求季度日报type汇总数据");
 
         var date = YYYYmmdd_parse($scope.query.date);
@@ -1099,7 +1099,7 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
                     // if all data requested, request other messages.
                     if(++responsed_count == $scope.types.types.length){
                         logs.info("加载季度日报type汇总数据成功");
-                        $scope.query_report_year_product_summary();
+                        query_report_year_product_summary();
                         return;
                     }
                 });
@@ -1107,7 +1107,7 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
             do_request(type);
         }
     };
-    $scope.query_report_year_product_summary = function() {
+    var query_report_year_product_summary = function() {
         logs.info("请求年度日报product汇总数据");
 
         var date = YYYYmmdd_parse($scope.query.date);
@@ -1139,14 +1139,14 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
                     // if all data requested, request other messages.
                     if(++responsed_count == $scope.products.products.length){
                         logs.info("加载年度日报product汇总数据成功");
-                        $scope.query_report_year_type_summary();
+                        query_report_year_type_summary();
                     }
                 });
             };
             do_request(product);
         }
     };
-    $scope.query_report_year_type_summary = function() {
+    var query_report_year_type_summary = function() {
         logs.info("请求年度日报type汇总数据");
 
         var date = YYYYmmdd_parse($scope.query.date);
@@ -1178,7 +1178,7 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
                     // if all data requested, request other messages.
                     if(++responsed_count == $scope.types.types.length){
                         logs.info("加载年度日报type汇总数据成功");
-                        $scope.render_report();
+                        render_report();
                         return;
                     }
                 });
@@ -1186,16 +1186,16 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
             do_request(type);
         }
     };
-    $scope.render_report = function() {
+    var render_report = function() {
         logs.info("数据查询完毕，展示日报");
-        $scope.render_year();
-        $scope.render_quarter();
-        $scope.render_month();
-        $scope.render_day();
-        $scope.render_summary();
-        $scope.render_user();
+       render_year();
+       render_quarter();
+       render_month();
+       render_day();
+       render_summary();
+       render_user();
     };
-    $scope.render_year = function() {
+    var render_year = function() {
         logs.info("展示年度汇总数据");
 
         $scope.reports.year_product_data.sort(work_hours_sort);
@@ -1209,7 +1209,6 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
         }
 
         var year = {
-            text: YYYYmmdd_parse($scope.query.date).getFullYear(),
             product: {
                 text: get_product_label(),
                 labels: [],
@@ -1243,7 +1242,7 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
         }
         $scope.reports.years.push(year);
     };
-    $scope.render_quarter = function() {
+    var render_quarter = function() {
         logs.info("展示季度汇总数据");
 
         $scope.reports.quarter_product_data.sort(work_hours_sort);
@@ -1257,7 +1256,6 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
         }
 
         var quarter = {
-            text: YYYYmmdd_parse($scope.query.date).getFullYear(),
             product: {
                 text: get_product_label(),
                 labels: [],
@@ -1291,7 +1289,7 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
         }
         $scope.reports.quarters.push(quarter);
     };
-    $scope.render_month = function() {
+    var render_month = function() {
         logs.info("展示月度汇总数据");
 
         $scope.reports.month_product_data.sort(work_hours_sort);
@@ -1305,7 +1303,6 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
         }
 
         var month = {
-            text: YYYYmmdd_parse($scope.query.date).getFullYear(),
             product: {
                 text: get_product_label(),
                 labels: [],
@@ -1339,7 +1336,7 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
         }
         $scope.reports.months.push(month);
     };
-    $scope.render_day = function() {
+    var render_day = function() {
         logs.info("展示当天汇总数据");
 
         $scope.reports.day_product_data.sort(work_hours_sort);
@@ -1353,7 +1350,7 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
         }
 
         var day = {
-            text: YYYYmmdd_parse($scope.query.date).getFullYear(),
+            text: $scope.query.date,
             product: {
                 text: get_product_label(),
                 labels: [],
@@ -1387,7 +1384,7 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
         }
         $scope.reports.days.push(day);
     };
-    $scope.render_summary = function() {
+    var render_summary = function() {
         logs.info("展示当天摘要数据");
 
         // generate the users array specified by submited or not submited.
@@ -1451,7 +1448,6 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
         delay_users.sort(report_first_insert_sort);
 
         var summary = {
-            text: YYYYmmdd_parse($scope.query.date).getFullYear(),
             total: $scope.users.users.length,
             ok: $scope.reports.user_data.length,
             ok_users: users_submited,
@@ -1462,7 +1458,7 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
         };
         $scope.reports.summaries.push(summary);
     };
-    $scope.render_user = function() {
+    var render_user = function() {
         logs.info("展示用户详细数据");
         $scope.reports.user_data.sort(user_id_sort);
 
@@ -1472,10 +1468,7 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
 
         for(var i = 0; i < $scope.reports.user_data.length; i++){
             var user_data = $scope.reports.user_data[i];
-            user_data.sort(report_sort);
-
             var user = {
-                text: YYYYmmdd_parse($scope.query.date).getFullYear(),
                 works: [],
                 summary: {
                     total: null,
@@ -1500,6 +1493,7 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
                 var o = user_data[j];
                 user.name = $scope.users.kv[o.user_id];
                 user.works.push({
+                    id: o.report_id,
                     bug: o.bug_id,
                     time: o.work_hours,
                     type: $scope.types.kv[o.type_id],
@@ -1507,6 +1501,9 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
                     content: o.report_content
                 });
             }
+            user.works.sort(function(a,b){
+                return system_array_sort_asc(a.id, b.id);
+            });
 
             if(1){
                 var total_value = 0;
@@ -1636,7 +1633,7 @@ osdrDirectives.directive('osdrPie', function(){ // bsm-popover
                 values = values[values_objs[i]];
             }
 
-            var id = "raphael_id_" + labels.length + "_" + values.length + "_" + Number(new Date().getTime() * 1000).toFixed(0);
+            var id = "raphael_id_" + labels.length + "_" + values.length + "_" + Number(Math.random() * 1000000).toFixed(0);
             element.attr("id", id);
             Raphael(id, 220, 220).pieChart(0.1/*hsb_start*/, 110, 110, 100, values, labels, "#fff");
         }
@@ -1700,6 +1697,24 @@ osdrFilters
 .filter('filter_redmine_url', function() {
     return function(bug_id) {
         return get_origin_redmine_url() + "/" + bug_id;
+    };
+})
+.filter('filter_view_month', function() {
+    return function(date) {
+        var d = YYYYmmdd_parse(date);
+        return d.getFullYear() + '年' + d.getMonth() + '月';
+    };
+})
+.filter('filter_view_quarter', function() {
+    return function(date) {
+        var d = YYYYmmdd_parse(date);
+        return d.getFullYear() + '年' + parseInt((d.getMonth() - 1) / 3 + 1) + '季度';
+    };
+})
+.filter('filter_view_year', function() {
+    return function(date) {
+        var d = YYYYmmdd_parse(date);
+        return d.getFullYear() + '年';
     };
 })
 .filter('filter_data_text', function() {

@@ -28,14 +28,14 @@
         <div class="accordion-group" ng-repeat="user in reports.users">
             <div class="accordion-heading text-center">
                 <a class="accordion-toggle" data-toggle="collapse" href="javascript:void(0)">
-                    <b>{{user.text}}-{{user.name}}日报</b>
+                    <b>{{query.date}}-{{user.name}}日报</b>
                 </a>
             </div>
             <div class="accordion-body collapse in">
                 <div class="accordion-inner">
                     <div class="row">
                         <div class="span6">
-                            <div>{{user.text}}-{{user.name}}日报</div>
+                            <div>{{query.date}}-{{user.name}}日报</div>
                             <ol>
                                 <li ng-repeat="work in user.works">
                                     <span ng-show="work.bug"><a href="{{work.bug |filter_redmine_url}}" target="_blank">refs #{{work.bug}}:</a></span>
@@ -63,7 +63,7 @@
         <div class="accordion-group" ng-repeat="summary in reports.summaries">
             <div class="accordion-heading text-center">
                 <a class="accordion-toggle" data-toggle="collapse" href="javascript:void(0)">
-                    <b>{{summary.text}}当天详细</b>
+                    <b>{{query.date}}当天详细</b>
                 </a>
             </div>
             <div class="accordion-body collapse in">
@@ -92,7 +92,7 @@
         <div class="accordion-group" ng-repeat="day in reports.days">
             <div class="accordion-heading text-center">
                 <a class="accordion-toggle" data-toggle="collapse" href="javascript:void(0)">
-                    <b>{{day.text}}当天汇总</b>
+                    <b>{{query.date}}当天汇总</b>
                 </a>
             </div>
             <div class="accordion-body collapse in">
@@ -119,7 +119,7 @@
         <div class="accordion-group" ng-repeat="month in reports.months">
             <div class="accordion-heading text-center">
                 <a class="accordion-toggle" data-toggle="collapse" href="javascript:void(0)">
-                    <b>{{month.text}}月度汇总</b>
+                    <b>{{query.date |filter_view_month}}-月度汇总</b>
                 </a>
             </div>
             <div class="accordion-body collapse in">
@@ -146,7 +146,7 @@
         <div class="accordion-group" ng-repeat="quarter in reports.quarters">
             <div class="accordion-heading text-center">
                 <a class="accordion-toggle" data-toggle="collapse" href="javascript:void(0)">
-                    <b>{{quarter.text}}季度汇总</b>
+                    <b>{{query.date |filter_view_quarter}}-季度汇总</b>
                 </a>
             </div>
             <div class="accordion-body collapse in">
@@ -173,7 +173,7 @@
         <div class="accordion-group" ng-repeat="year in reports.years">
             <div class="accordion-heading text-center">
                 <a class="accordion-toggle" data-toggle="collapse" href="javascript:void(0)">
-                    <b>{{year.text}}年度汇总</b>
+                    <b>{{query.date |filter_view_year}}-年度汇总</b>
                 </a>
             </div>
             <div class="accordion-body collapse in">
