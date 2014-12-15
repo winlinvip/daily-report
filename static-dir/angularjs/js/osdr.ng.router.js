@@ -757,7 +757,13 @@ osdrControllers.controller('CSubmit', ['$scope', '$routeParams', 'MUser', 'MProd
             // request users
             MUser.users_load({}, function(data){
                 $scope.users = api_users_for_select(data);
-                $scope.report_reg.user_id = $scope.users.first;
+                if (data.auth) {
+                    // the auth is the login user.
+                    $scope.report_reg.user_id = data.auth;
+                } else {
+                    // no login, use the first.
+                    $scope.report_reg.user_id = $scope.users.first;
+                }
                 logs.info("用户信息加载成功");
                 $scope.refresh_page(function(data){
                     logs.info("日报信息加载成功");
