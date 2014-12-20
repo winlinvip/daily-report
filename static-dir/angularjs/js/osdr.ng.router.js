@@ -700,6 +700,7 @@ osdrControllers.controller('CSubmit', ['$scope', '$routeParams', '$location', 'M
             return;
         }
         MRedmine.redmine_load({
+            r: Math.random(),
             id: work.bug
         }, function(data){
             var report_content = data.issue.subject;
@@ -740,6 +741,7 @@ osdrControllers.controller('CSubmit', ['$scope', '$routeParams', '$location', 'M
     };
     $scope.refresh_page = function(callback) {
         MReport.reports_load({
+            r: Math.random(),
             summary: 0,
             query_all: 1,
             start_time: $scope.report_reg.date,
@@ -758,15 +760,15 @@ osdrControllers.controller('CSubmit', ['$scope', '$routeParams', '$location', 'M
     $scope.$parent.nav_active_submit();
 
     // request products
-    MProduct.products_load({}, function(data){
+    MProduct.products_load({r: Math.random()}, function(data){
         $scope.products = api_products_for_select(data);
         logs.info("产品类型加载成功");
         // request types
-        MType.types_load({}, function(data){
+        MType.types_load({r: Math.random()}, function(data){
             $scope.types = api_types_for_select(data);
             logs.info("工作类别加载成功");
             // request users
-            MUser.users_load({}, function(data){
+            MUser.users_load({r: Math.random()}, function(data){
                 $scope.users = api_users_for_select(data);
                 if (data.auth) {
                     // the auth is the login user.
@@ -850,16 +852,17 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
         $scope.reports.users = [];
 
         MUser.users_load({
+            r: Math.random(),
             query_all: $scope.query.all,
             group: $scope.query.group
         }, function(data){
             $scope.users = api_users_for_select(data);
             logs.info("组用户加载成功");
-            MProduct.products_load({}, function(data){
+            MProduct.products_load({r: Math.random()}, function(data){
                 $scope.products = api_products_for_select(data);
                 logs.info("产品类型加载成功");
                 // request types
-                MType.types_load({}, function(data){
+                MType.types_load({r: Math.random()}, function(data){
                     $scope.types = api_types_for_select(data);
                     logs.info("工作类别加载成功");
                     query_report_user_detail();
@@ -880,6 +883,7 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
             logs.info("请求用户" + user.value + "在" + $scope.query.date + "的数据");
             var do_request = function(user){
                 MReport.reports_load({
+                    r: Math.random(),
                     summary: 0,
                     query_all: $scope.query.all,
                     group: $scope.query.group,
@@ -916,6 +920,7 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
             logs.info("请求产品" + product.value + "在" + $scope.query.date + "的数据");
             var do_request = function(product){
                 MReport.reports_load({
+                    r: Math.random(),
                     summary: 1,
                     query_all: $scope.query.all,
                     group: $scope.query.group,
@@ -951,6 +956,7 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
             logs.info("请求类型" + type.value + "在" + $scope.query.date + "的数据");
             var do_request = function(type){
                 MReport.reports_load({
+                    r: Math.random(),
                     summary: 1,
                     query_all: $scope.query.all,
                     group: $scope.query.group,
@@ -989,6 +995,7 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
             logs.info("请求产品" + product.value + "在" + start_time + "至" + end_time + "的数据");
             var do_request = function(product){
                 MReport.reports_load({
+                    r: Math.random(),
                     summary: 1,
                     query_all: $scope.query.all,
                     group: $scope.query.group,
@@ -1026,6 +1033,7 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
             logs.info("请求类型" + type.value + "在" + start_time + "至" + end_time + "的数据");
             var do_request = function(type){
                 MReport.reports_load({
+                    r: Math.random(),
                     summary: 1,
                     query_all: $scope.query.all,
                     group: $scope.query.group,
@@ -1065,6 +1073,7 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
             logs.info("请求产品" + product.value + "在" + start_time + "至" + end_time + "的数据");
             var do_request = function(product){
                 MReport.reports_load({
+                    r: Math.random(),
                     summary: 1,
                     query_all: $scope.query.all,
                     group: $scope.query.group,
@@ -1103,6 +1112,7 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
             logs.info("请求类型" + type.value + "在" + start_time + "至" + end_time + "的数据");
             var do_request = function(type){
                 MReport.reports_load({
+                    r: Math.random(),
                     summary: 1,
                     query_all: $scope.query.all,
                     group: $scope.query.group,
@@ -1143,6 +1153,7 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
             logs.info("请求产品" + product.value + "在" + start_time + "至" + end_time + "的数据");
             var do_request = function(product){
                 MReport.reports_load({
+                    r: Math.random(),
                     summary: 1,
                     query_all: $scope.query.all,
                     group: $scope.query.group,
@@ -1182,6 +1193,7 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
             logs.info("请求类型" + type.value + "在" + start_time + "至" + end_time + "的数据");
             var do_request = function(type){
                 MReport.reports_load({
+                    r: Math.random(),
                     summary: 1,
                     query_all: $scope.query.all,
                     group: $scope.query.group,
@@ -1610,7 +1622,7 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
     };
 
     // loads groups info.
-    MGroup.groups_load({}, function(data){
+    MGroup.groups_load({r: Math.random()}, function(data){
         logs.info("加载用户组成功");
         $scope.groups = api_groups_for_select(data);
         $scope.query.group = $scope.groups.first;

@@ -14,7 +14,7 @@ assert sys.getdefaultencoding().lower() == "utf-8";
 from utility import error, trace, get_work_dir, reload_config, send_mail, enable_crossdomain, sql_exec, utility_init;
 from auth import SESSION_KEY, authorize_get_exception_user_id, authorize_user, check_auth, crossdomain_session, require_auth, require_admin, auth_init;
 
-version="2.0.4"
+version="2.0.5"
 
 class ErrorCode:
     Success = 0x00;
@@ -162,7 +162,7 @@ class RESTAuth(object):
         qq_oauth_openid = qq_oauth_openid;
         return self.qq_oauth_cache_qq_oauth_openid(access_token, qq_oauth_openid);
         
-    def GET(self, access_token):
+    def GET(self, access_token, r=None):
         enable_crossdomain();
         
         auth = _config["auth"];
@@ -205,7 +205,7 @@ class RESTGroup(object):
     exposed = True;
 
     @require_auth()
-    def GET(self):
+    def GET(self, r=None):
         enable_crossdomain();
         records = sql_exec("select group_id,group_name from dr_group");
         ret = [];
@@ -295,7 +295,7 @@ class RESTProduct(object):
     exposed = True;
 
     @require_auth()
-    def GET(self):
+    def GET(self, r=None):
         enable_crossdomain();
         records = sql_exec("select product_id,product_name from dr_product");
         ret = [];
@@ -311,7 +311,7 @@ class RESTWorkType(object):
     exposed = True;
 
     @require_auth()
-    def GET(self):
+    def GET(self, r=None):
         enable_crossdomain();
         records = sql_exec("select type_id,type_name from dr_type");
         ret = [];
@@ -326,7 +326,7 @@ class RESTUser(object):
     exposed = True;
 
     @require_auth()
-    def GET(self, group="", query_all="false"):
+    def GET(self, group="", query_all="false", r=None):
         enable_crossdomain();
         
         if query_all == True or query_all == "true" or str(query_all) == "1":
@@ -386,7 +386,7 @@ class RESTRedmine(object):
     exposed = True;
 
     @require_auth()
-    def GET(self, issue_id):
+    def GET(self, issue_id, r=None):
         enable_crossdomain();
         # read config from file.
         redmine = _config["redmine"];
@@ -536,7 +536,7 @@ class RESTDailyReport(object):
         return json.dumps({"code":ErrorCode.Success, "data":ret});
         
     @require_auth()
-    def GET(self, group="", start_time="", end_time="", summary="", user_id="", product_id="", type_id="", query_all="false"):
+    def GET(self, group="", start_time="", end_time="", summary="", user_id="", product_id="", type_id="", query_all="false", r=None):
         enable_crossdomain();
         
         if query_all == True or query_all == "true" or str(query_all) == "1":
