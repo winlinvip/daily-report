@@ -1020,7 +1020,7 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
         var end_time = absolute_seconds_to_YYYYmmdd(date.getTime() / 1000);
 
         logs.info("请求月度日报type汇总数据" + "，" + start_time + "至" + end_time);
-        var responsed_count = 1;
+        var responsed_count = 0;
         for(var i = 0; i < $scope.types.types.length; i++){
             var type = $scope.types.types[i];
             logs.info("请求类型" + type.value + "在" + start_time + "至" + end_time + "的数据");
