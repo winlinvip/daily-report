@@ -1736,13 +1736,13 @@ osdrFilters
 .filter('filter_view_month', function() {
     return function(date) {
         var d = YYYYmmdd_parse(date);
-        return d.getFullYear() + '年' + d.getMonth() + '月';
+        return d.getFullYear() + '年' + String(d.getMonth() + 1) + '月';
     };
 })
 .filter('filter_view_quarter', function() {
     return function(date) {
         var d = YYYYmmdd_parse(date);
-        return d.getFullYear() + '年' + parseInt((d.getMonth() - 1) / 3 + 1) + '季度';
+        return d.getFullYear() + '年' + parseInt(d.getMonth() / 3 + 1) + '季度';
     };
 })
 .filter('filter_view_year', function() {
