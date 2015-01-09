@@ -42,6 +42,10 @@ var links = {
         mount: "/group/:groupId", link: "#/group/:groupId",
         page: "views/group_user.html", controller: "CGroupUser", text: "组的用户管理"
     },
+    lost: {
+        mount: "/lost", link: "#/lost",
+        page: "views/lost.html", controller: "CLost", text: "填写情况"
+    },
     submit: {
         mount: "/submit", link: "#/submit",
         page: "views/submit.html", controller: "CSubmit", text: "填写日报"
@@ -75,6 +79,9 @@ osdrApp.config(['$routeProvider', function($routeProvider) {
         .when(links.category.mount, {
             templateUrl: links.category.page, controller: links.category.controller
         })
+        .when(links.lost.mount, {
+            templateUrl: links.lost.page, controller: links.lost.controller
+        })
         .when(links.user_group.mount, {
             templateUrl: links.user_group.page, controller: links.user_group.controller
         })
@@ -103,6 +110,7 @@ osdrApp.config(['$routeProvider', function($routeProvider) {
         view: {mount: links.view.mount, url: links.view.link, text: links.view.text, target:"_self"},
         user: {mount: links.user.mount, url: links.user.link, text: links.user.text, target:"_self"},
         category: {mount: links.category.mount, url: links.category.link, text: links.category.text, target:"_self"},
+        lost: {mount: links.lost.mount, url: links.lost.link, text: links.lost.text, target:"_self"},
         group: {mount: links.group.mount, url: links.group.link, text: links.group.text, target:"_self"}
     };
     $scope.get_nav_active = function() {
@@ -122,6 +130,9 @@ osdrApp.config(['$routeProvider', function($routeProvider) {
     };
     $scope.nav_active_group = function() {
         $scope.__nav_active = $scope.navs.group;
+    };
+    $scope.nav_active_lost = function() {
+        $scope.__nav_active = $scope.navs.lost;
     };
     $scope.is_nav_selected = function(nav_or_navs) {
         if ($scope.__nav_active == nav_or_navs) {
@@ -368,6 +379,11 @@ osdrControllers.controller('CGroupUser', ['$scope', '$routeParams', 'MAdmin', fu
 
     $scope.$parent.nav_active_group();
     logs.info("正在加载组和用户信息");
+}]);
+// controller: CLost, for the view lost.html.
+osdrControllers.controller('CLost', ['$scope', '$routeParams', 'MAdmin', function($scope, $routeParams, MAdmin){
+    $scope.$parent.nav_active_lost();
+    logs.info("正在加载日报填写情况信息");
 }]);
 // controller: CUserGroup, for the view user_group.html.
 osdrControllers.controller('CUserGroup', ['$scope', '$routeParams', 'MAdmin', function($scope, $routeParams, MAdmin){
@@ -1639,7 +1655,7 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
 
 // directives.
 /**
- * bsmPopover(bsm-popover), the popover component
+ * osdrPie(osdr-pie), the pie chat
  * @see: http://v2.bootcss.com/javascript.html#popovers
  * @see: http://subliminalsources.com/9/building-angularjs-bootstrap-components-popover-directive-part-1/
  * use the expression of angularjs, the attr must use the osdr- prefixed:
