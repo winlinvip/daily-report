@@ -495,6 +495,7 @@ osdrControllers.controller('CUser', ['$scope', '$routeParams', 'MAdmin', functio
         $scope.users.splice(0, 0, {
             editing: true,
             enabled: true,
+            admin: false,
             email: null,
             name: null,
             index: $scope.users.length + 1
