@@ -16,3 +16,8 @@
 *.pyc
 .idea
 /static-dir/ui/conf.js
+
+3rdparty/CherryPy-3.2.2/
+3rdparty/MySQL-python-1.2.3c1/
+static-dir/dynamic-js/
+

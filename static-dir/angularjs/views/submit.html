@@ -84,8 +84,8 @@
                     <textarea class="work_content" rows="3" placeholder="请输入内容..." ng-model="work.content"></textarea>
                 </div>
                 <div ng-show="work.editing">
-                    <abbr title="完成编辑该工作项" class="initialism span1">
-                        <a ng-click="on_finish_work(work)" href="javascript:void(0)"><i class="icon-ok"></i>完成</a>
+                    <abbr title="完成编辑该工作项, 暂存到页面(未提交到服务器, 记得提交哦)" class="initialism span1">
+                        <a ng-click="on_finish_work(work)" href="javascript:void(0)"><i class="icon-ok"></i>暂存</a>
                     </abbr>
                     <abbr title="从Redmine获取IssueId对应的工作项内容" class="initialism" ng-show="enabled_redmine">
                         <a ng-click="on_retrieve_work(work)" href="javascript:void(0)"><i class="icon-refresh"></i>从Redmine获取Issue内容</a>
