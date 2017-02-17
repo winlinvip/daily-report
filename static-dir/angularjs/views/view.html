@@ -93,9 +93,9 @@
                         <div class="span6">
                             <div>{{query.date}}-{{user.name}}日报</div>
                             <ol>
-                                <li ng-repeat="work in user.works">
+                                <li ng-repeat="work in user.works" type="A">
                                     <span ng-show="work.bug"><a href="{{work.bug |filter_redmine_url}}" target="_blank">refs #{{work.bug}}:</a></span>
-                                    <span ng-show="!work.bug">refs #{{work.bug}}:</span>
+                                    <span ng-show="work.bug!=0">refs #{{work.bug}}:</span>
                                     <span ng-show="work.time>=3"><b>{{work.time}}小时</b></span>
                                     <span ng-show="work.time<3">{{work.time}}小时</span>
                                     ({{work.product}}/{{work.type}}), <br/>

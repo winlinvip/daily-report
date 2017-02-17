@@ -1,0 +1,82 @@
+<div class="container">
+    <div>
+        <div class="input-prepend" ng-show="groups.first">
+            <span class="add-on">分组</span>
+            <select class="span2" ng-model="query.group"
+                    ng-options="o.name as o.value for o in groups.groups">
+            </select>
+        </div>
+        <div class="input-prepend input-append" ng-show="true">
+            <span class="add-on">开始日期</span>
+            <input type="text" class="input-medium span2" placeholder="格式：2014-12-12" ng-model="query.sdate">
+            <span class="add-on">结束日期</span>
+            <input type="text" class="input-medium span2" placeholder="格式：2014-12-12" ng-model="query.edate">
+            <button class="btn" type="button" ng-click="on_change_previous_week()">前一周</button>
+            <button class="btn" type="button" ng-click="on_change_this_week()">本周</button>
+            <button class="btn" type="button" ng-click="on_change_next_week()">后一周</button>
+        </div>
+        <div class="input-append" ng-show="true">
+            <button class="btn" type="button" ng-click="on_query()">查询</button>
+        </div>
+        <div class="input-append" ng-show="true">
+            <label class="checkbox inline">
+                <input type="checkbox" ng-model="query.all">含离职
+            </label>
+        </div>
+    </div>
+    <style>
+        .work_item {
+            background-color:#E9E9E9;
+        }
+    </style>
+    <div class="accordion">
+        <div class="accordion-group" ng-repeat="user in reports.users">
+            <div class="accordion-heading text-center">
+                <a class="accordion-toggle" data-toggle="collapse" href="javascript:void(0)">
+                    <b>{{query.sdate |filter_view_week}}-{{user.name}}报表</b><br/>
+                    总时间: {{user.summary.total}}{{const_time_unit}}, 工作{{user.summary.view.days.length}}天,
+                    平均{{user.summary |filter_time_per_week}}
+                </a>
+            </div>
+            <div class="accordion-body collapse in">
+                <div class="accordion-inner">
+                    <div class="row">
+                        <div class="span1"></div>
+                        <div class="span5" title="按产品线分析">
+                            <div class="work_item"><strong>按产品线分析</strong></div>
+                            <div ng-repeat="product in user.works.view.products">
+                                <strong>{{product.name}} ({{product.percent}}%, {{product.total}}{{const_time_unit}})</strong>
+                                <ol>
+                                    <li ng-repeat="work in product.works" type="A">
+                                        <font color="{{work |filter_work_color}}">
+                                            <span ng-show="work.bug!=0">refs #{{work.bug}}:</span>
+                                            <span>{{work.time}}小时</span>
+                                            {{work.content}}
+                                        </font>
+                                    </li>
+                                </ol>
+                            </div>
+                            <div osdr-pie osdr-labels="user.product.labels" osdr-values="user.product.values"></div>
+                        </div>
+                        <div class="span5" title="按工作类型分析">
+                            <div class="work_item"><strong>按工作类型分析</strong></div>
+                            <div ng-repeat="type in user.works.view.types">
+                                <strong>{{type.name}} ({{type.percent}}%, {{type.total}}{{const_time_unit}})</strong>
+                                <ol>
+                                    <li ng-repeat="work in type.works" type="A">
+                                        <font color="{{work |filter_work_color}}">
+                                            <span ng-show="work.bug!=0">refs #{{work.bug}}:</span>
+                                            <span>{{work.time}}小时</span>
+                                            {{work.content}}
+                                        </font>
+                                    </li>
+                                </ol>
+                            </div>
+                            <div osdr-pie osdr-labels="user.type.labels" osdr-values="user.type.values"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

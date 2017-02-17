@@ -95,10 +95,12 @@ function api_users_for_select(data) {
 function api_products_for_select(data) {
     var products = [];
     var kvs = {};
+    var vks = {};
     for (var i = 0; i < data.data.length; i++){
         var product = data.data[i];
         products.push({name:product.id, value:product.value});
         kvs[product.id] = product.value;
+        vks[product.value] = product.id;
     }
     products.sort(function(a,b){
         return system_array_sort_asc(a.value, b.value);
@@ -106,6 +108,7 @@ function api_products_for_select(data) {
     return {
         products: products,
         kv: kvs,
+        vk: vks,
         first: (products.length > 0? products[0].name : null)
     };
 }
@@ -113,10 +116,12 @@ function api_products_for_select(data) {
 function api_types_for_select(data) {
     var types = [];
     var kvs = {};
+    var vks = {};
     for (var i = 0; i < data.data.length; i++){
         var type = data.data[i];
         types.push({name:type.id, value:type.value});
         kvs[type.id] = type.value;
+        vks[type.value] = type.id;
     }
     types.sort(function(a,b){
         return system_array_sort_asc(a.value, b.value);
@@ -124,6 +129,7 @@ function api_types_for_select(data) {
     return {
         types: types,
         kv: kvs,
+        vk: vks,
         first: (types.length > 0? types[0].name : null)
     };
 }
@@ -304,6 +310,15 @@ function object_is_empty(obj) {
 // sort: big to small, desc
 function work_hours_sort(a, b){
     return array_sort_desc(a.work_hours, b.work_hours);
+}
+function total_hours_sort(a, b){
+    return array_sort_desc(a.total, b.total);
+}
+function work_percent_sort(a, b){
+    return array_sort_desc(a.percent, b.percent);
+}
+function work_time_sort(a, b){
+    return array_sort_desc(a.time, b.time);
 }
 // sort: user id big to small, desc
 function user_id_sort(a, b){
