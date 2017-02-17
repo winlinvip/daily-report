@@ -840,6 +840,8 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
         $scope.reports.day_type_data = [];
         $scope.reports.month_product_data = [];
         $scope.reports.month_type_data = [];
+        $scope.reports.week_product_data = [];
+        $scope.reports.week_type_data = [];
         $scope.reports.quarter_product_data = [];
         $scope.reports.quarter_type_data = [];
         $scope.reports.year_product_data = [];
@@ -848,6 +850,7 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
         $scope.reports.years = [];
         $scope.reports.quarters = [];
         $scope.reports.months = [];
+        $scope.reports.weeks = [];
         $scope.reports.days = [];
         $scope.reports.summaries = [];
         $scope.reports.users = [];
@@ -971,6 +974,83 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
                     // if all data requested, request other messages.
                     if(++responsed_count == $scope.types.types.length){
                         logs.info("加载当天日报type汇总数据成功");
+                        query_report_week_product_summary();
+                        return;
+                    }
+                });
+            };
+            do_request(type);
+        }
+    };
+    var query_report_week_product_summary = function() {
+        logs.info("请求周日报product汇总数据");
+
+        var date = YYYYmmdd_parse($scope.query.date);
+        var dayFromMon = (date.getDay()? date.getDay():7); // Week starts from Monday.
+        date.setDate(date.getDate() - dayFromMon + 1);
+        var start_time = absolute_seconds_to_YYYYmmdd(date.getTime() / 1000);
+        date.setDate(date.getDate() + 6);
+        var end_time = absolute_seconds_to_YYYYmmdd(date.getTime() / 1000);
+
+        logs.info("请求周日报product汇总数据" + "，" + start_time + "至" + end_time);
+        var responsed_count = 0;
+        for(var i = 0; i < $scope.products.products.length; i++){
+            var product = $scope.products.products[i];
+            logs.info("请求产品" + product.value + "在" + start_time + "至" + end_time + "的数据");
+            var do_request = function(product){
+                MReport.reports_load({
+                    r: Math.random(),
+                    summary: 1,
+                    query_all: $scope.query.all,
+                    group: $scope.query.group,
+                    start_time: start_time,
+                    end_time: end_time,
+                    product_id: product.name
+                }, function(data){
+                    if (data.data.work_hours != null) {
+                        $scope.reports.week_product_data.push(data.data);
+                    }
+                    // if all data requested, request other messages.
+                    if(++responsed_count == $scope.products.products.length){
+                        logs.info("加载周日报product汇总数据成功");
+                        query_report_week_type_summary();
+                    }
+                });
+            };
+            do_request(product);
+        }
+    };
+    var query_report_week_type_summary = function() {
+        logs.info("请求周日报type汇总数据");
+
+        var date = YYYYmmdd_parse($scope.query.date);
+        var dayFromMon = (date.getDay()? date.getDay():7); // Week starts from Monday.
+        date.setDate(date.getDate() - dayFromMon + 1);
+        var start_time = absolute_seconds_to_YYYYmmdd(date.getTime() / 1000);
+        date.setDate(date.getDate() + 6);
+        var end_time = absolute_seconds_to_YYYYmmdd(date.getTime() / 1000);
+
+        logs.info("请求周日报type汇总数据" + "，" + start_time + "至" + end_time);
+        var responsed_count = 0;
+        for(var i = 0; i < $scope.types.types.length; i++){
+            var type = $scope.types.types[i];
+            logs.info("请求类型" + type.value + "在" + start_time + "至" + end_time + "的数据");
+            var do_request = function(type){
+                MReport.reports_load({
+                    r: Math.random(),
+                    summary: 1,
+                    query_all: $scope.query.all,
+                    group: $scope.query.group,
+                    start_time: start_time,
+                    end_time: end_time,
+                    type_id: type.name
+                }, function(data){
+                    if (data.data.work_hours != null) {
+                        $scope.reports.week_type_data.push(data.data);
+                    }
+                    // if all data requested, request other messages.
+                    if(++responsed_count == $scope.types.types.length){
+                        logs.info("加载周日报type汇总数据成功");
                         query_report_month_product_summary();
                         return;
                     }
@@ -1218,12 +1298,13 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
     };
     var render_report = function() {
         logs.info("数据查询完毕，展示日报");
-       render_year();
-       render_quarter();
-       render_month();
-       render_day();
-       render_summary();
-       render_user();
+        render_summary();
+        render_day();
+        render_week();
+        render_month();
+        render_quarter();
+        render_year();
+        render_user();
     };
     var render_year = function() {
         logs.info("展示年度汇总数据");
@@ -1318,6 +1399,53 @@ osdrControllers.controller('CView', ['$scope', '$routeParams', '$location', 'MGr
             quarter.type.values.push(percent);
         }
         $scope.reports.quarters.push(quarter);
+    };
+    var render_week = function() {
+        logs.info("展示周汇总数据");
+
+        $scope.reports.week_product_data.sort(work_hours_sort);
+        if($scope.reports.week_product_data.length <= 0){
+            return;
+        }
+
+        $scope.reports.week_type_data.sort(work_hours_sort);
+        if($scope.reports.week_type_data.length <= 0){
+            return;
+        }
+
+        var week = {
+            product: {
+                text: get_product_label(),
+                labels: [],
+                values: [],
+                total_value: 0
+            },
+            type: {
+                text: get_type_label(),
+                labels: [],
+                values: [],
+                total_value: 0
+            }
+        };
+        for(var i = 0; i < $scope.reports.week_product_data.length; i++){
+            week.product.labels.push($scope.products.kv[$scope.reports.week_product_data[i].product_id]);
+            week.product.total_value += $scope.reports.week_product_data[i].work_hours;
+        }
+        for(var i = 0; i < $scope.reports.week_product_data.length; i++){
+            var percent = $scope.reports.week_product_data[i].work_hours * 100 / week.product.total_value;
+            percent = Number(Number(percent).toFixed(1));
+            week.product.values.push(percent);
+        }
+        for(var i = 0; i < $scope.reports.week_type_data.length; i++){
+            week.type.labels.push($scope.types.kv[$scope.reports.week_type_data[i].type_id]);
+            week.type.total_value += $scope.reports.week_type_data[i].work_hours;
+        }
+        for(var i = 0; i < $scope.reports.week_type_data.length; i++){
+            var percent = $scope.reports.week_type_data[i].work_hours * 100 / week.type.total_value;
+            percent = Number(Number(percent).toFixed(1));
+            week.type.values.push(percent);
+        }
+        $scope.reports.weeks.push(week);
     };
     var render_month = function() {
         logs.info("展示月度汇总数据");
@@ -1732,6 +1860,24 @@ osdrFilters
 .filter('filter_redmine_url', function() {
     return function(bug_id) {
         return get_origin_redmine_url() + "/" + bug_id;
+    };
+})
+.filter('filter_view_week', function() {
+    return function(date) {
+        var d = YYYYmmdd_parse(date);
+        // @param weekStart, 0: Sunday, 1:Monday...
+        var getWeekOfYear = function(date, weekStart){
+            weekStart = (weekStart || 0) - 0;
+            if(isNaN(weekStart) || weekStart > 6)
+                weekStart = 0;
+
+            var year = date.getFullYear();
+            var firstDay = new Date(year, 0, 1);
+            var firstWeekDays = (7 - firstDay.getDay() + weekStart)%7;
+            var dayOfYear = (((new Date(year, date.getMonth(), date.getDate())) - firstDay) / (24 * 3600 * 1000)) + 1;
+            return Math.ceil((dayOfYear - firstWeekDays) / 7) + 1;
+        };
+        return d.getFullYear() + '年第' + String(getWeekOfYear(d, 1)) + '周';
     };
 })
 .filter('filter_view_month', function() {

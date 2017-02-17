@@ -116,6 +116,33 @@
                 </div>
             </div>
         </div>
+        <div class="accordion-group" ng-repeat="week in reports.weeks">
+            <div class="accordion-heading text-center">
+                <a class="accordion-toggle" data-toggle="collapse" href="javascript:void(0)">
+                    <b>{{query.date |filter_view_week}}-本周汇总</b>
+                </a>
+            </div>
+            <div class="accordion-body collapse in">
+                <div class="accordion-inner">
+                    <div class="row">
+                        <div class="span5">
+                            <div class="row">
+                                <div class="span5 text-center"><b>{{week.product.text}}</b></div>
+                                <div class="span3"><div osdr-pie osdr-labels="week.product.labels" osdr-values="week.product.values"></div></div>
+                                <div class="span2" ng-bind-html="week.product |filter_data_text |brjoin |unsafe"></div>
+                            </div>
+                        </div>
+                        <div class="span5">
+                            <div class="row">
+                                <div class="span5 text-center"><b>{{week.type.text}}</b></div>
+                                <div class="span3"><div osdr-pie osdr-labels="week.type.labels" osdr-values="week.type.values"></div></div>
+                                <div class="span2" ng-bind-html="week.type |filter_data_text |brjoin |unsafe"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="accordion-group" ng-repeat="month in reports.months">
             <div class="accordion-heading text-center">
                 <a class="accordion-toggle" data-toggle="collapse" href="javascript:void(0)">
