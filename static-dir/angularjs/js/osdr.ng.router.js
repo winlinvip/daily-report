@@ -1971,14 +1971,38 @@ osdrControllers.controller('CReport', ['$scope', '$routeParams', '$location', 'M
                 var product = user.works.products[o.product_id] || {
                     id: o.product_id, name: $scope.products.kv[o.product_id], works:[]
                 };
-                product.works.push(item);
                 user.works.products[o.product_id] = product;
+
+                var skip = false;
+                for (var k = 0; k < product.works.length; k++) {
+                    var work = product.works[k];
+                    if (work.content == item.content) {
+                        work.time += item.time;
+                        skip = true;
+                        break;
+                    }
+                }
+                if (!skip) {
+                    product.works.push(object_copy(item));
+                }
 
                 var type = user.works.types[o.type_id] || {
                     id: o.type_id, name: $scope.types.kv[o.type_id], works: []
                 };
-                type.works.push(item);
                 user.works.types[o.type_id] = type;
+
+                skip = false;
+                for (var k = 0; k < type.works.length; k++) {
+                    var work = type.works[k];
+                    if (work.content == item.content) {
+                        work.time += item.time;
+                        skip = true;
+                        break;
+                    }
+                }
+                if (!skip) {
+                    type.works.push(object_copy(item));
+                }
 
                 user.works.view.mixed.push(item);
             }
@@ -2241,7 +2265,7 @@ osdrFilters
 })
 .filter('filter_work_color', function() {
     return function(work) {
-        return (work.time>=2.5)? "#15BB15":"#000000";
+        return (work.time>=5)? "#15BB15":"#000000";
     };
 })
 .filter('filter_time_per_week', function() {

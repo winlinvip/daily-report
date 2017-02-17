@@ -306,6 +306,13 @@ function reset_report_work_item(works) {
 function object_is_empty(obj) {
     return obj == null || obj == undefined || obj == "";
 }
+function object_copy(obj) {
+    var cp = {};
+    for (var key in obj) {
+        cp[key] = obj[key];
+    }
+    return cp;
+}
 
 // sort: big to small, desc
 function work_hours_sort(a, b){
