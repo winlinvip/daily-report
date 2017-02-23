@@ -62,7 +62,7 @@
             </td>
             <td>
                 <div ng-show="!work.editing">
-                    {{work.time}}小时 ({{work |filter_work_duration}})
+                    {{work.time}}小时 {{work |filter_work_duration}}
                 </div>
                 <div class="control-group {{work.time |filter_div_empty_class}}" ng-show="work.editing">
                     <input type="text" class="input-mini" placeholder="所花时间" ng-model="work.time">

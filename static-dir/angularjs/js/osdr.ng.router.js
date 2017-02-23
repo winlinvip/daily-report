@@ -2270,10 +2270,14 @@ osdrFilters
 })
 .filter('filter_work_duration', function() {
     return function(work) {
+        if (!work.insert) {
+            return;
+        }
+
         var d = new Date(work.insert);
-        var s = d.getHours() + ':' + d.getMinutes();
+        var s = '(' + padding(d.getHours(),2,'0') + ':' + padding(d.getMinutes(),2,'0');
         d.setMinutes(d.getMinutes() + work.time * 60);
-        s += '至' + d.getHours() + ':' + d.getMinutes();
+        s += '至' + padding(d.getHours(),2,'0') + ':' + padding(d.getMinutes(),2,'0') + ')';
         return s;
     };
 })
