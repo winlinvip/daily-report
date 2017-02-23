@@ -168,6 +168,7 @@ function api_reports_for_reg(products, types, data) {
             product: report.product_id,
             type: report.type_id,
             time: report.work_hours,
+            insert: report.insert_date,
             content: report.report_content,
             editing: false
         });

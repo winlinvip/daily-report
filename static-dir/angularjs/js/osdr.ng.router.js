@@ -2268,6 +2268,15 @@ osdrFilters
         return (work.time>=5)? "#15BB15":"#000000";
     };
 })
+.filter('filter_work_duration', function() {
+    return function(work) {
+        var d = new Date(work.insert);
+        var s = d.getHours() + ':' + d.getMinutes();
+        d.setMinutes(d.getMinutes() + work.time * 60);
+        s += '至' + d.getHours() + ':' + d.getMinutes();
+        return s;
+    };
+})
 .filter('filter_time_per_week', function() {
     return function(summary) {
         return Number(summary.total/summary.view.days.length).toFixed(2) + "小时/天";
