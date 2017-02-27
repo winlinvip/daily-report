@@ -578,6 +578,7 @@ osdrControllers.controller('CSubmit', ['$scope', '$routeParams', '$location', 'M
         user_id: null,
         date: absolute_seconds_to_YYYYmmdd(new Date().getTime() / 1000),
         modified: false,
+        total_time: 0,
         works: []
     };
     // consts
@@ -594,6 +595,14 @@ osdrControllers.controller('CSubmit', ['$scope', '$routeParams', '$location', 'M
     // when select user.
     $scope.on_change_user = function() {
         $scope.refresh_page(null);
+    };
+    // stat
+    var update_total_times = function(works){
+        $scope.report_reg.total_time = 0;
+        for (var i = 0; i < works.length; i++) {
+            var work = works[i];
+            $scope.report_reg.total_time += Number(work.time);
+        }
     };
     // check
     $scope.check_for_change_date = function() {
@@ -687,6 +696,8 @@ osdrControllers.controller('CSubmit', ['$scope', '$routeParams', '$location', 'M
         $scope.report_reg.modified = true;
         system_array_remove($scope.report_reg.works, work);
         logs.info("删除工作项" + (work.id? work.id:""));
+
+        update_total_times($scope.report_reg.works);
     };
     $scope.on_modify_work = function(work) {
         work.editing = true;
@@ -698,6 +709,8 @@ osdrControllers.controller('CSubmit', ['$scope', '$routeParams', '$location', 'M
         work.editing = false;
         $scope.report_reg.modified = true;
         logs.info("完成编辑工作项" + (work.id? work.id:""));
+
+        update_total_times($scope.report_reg.works);
     };
     $scope.on_view_report = function() {
         $location.path(links.view.mount).search("show");
@@ -750,6 +763,7 @@ osdrControllers.controller('CSubmit', ['$scope', '$routeParams', '$location', 'M
             alert("日报填写成功");
             logs.info("日报填写成功");
         });
+        update_total_times($scope.report_reg.works);
     };
     $scope.refresh_page = function(callback) {
         MReport.reports_load({
@@ -762,6 +776,7 @@ osdrControllers.controller('CSubmit', ['$scope', '$routeParams', '$location', 'M
         }, function(data) {
             // parse the daily reports.
             $scope.report_reg.works = api_reports_for_reg($scope.products, $scope.types, data);
+            update_total_times($scope.report_reg.works);
             // call the callback handler.
             if (callback) {
                 callback(data);
