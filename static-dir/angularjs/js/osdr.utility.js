@@ -295,6 +295,7 @@ function create_empty_work_item(user_id) {
         type: null,
         time: null,
         content: null,
+        insert: new Date(),
         editing: true
     };
 }
