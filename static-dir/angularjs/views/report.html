@@ -45,7 +45,7 @@
                         <div class="span5" title="按产品线分析">
                             <div class="work_item"><strong>按产品线分析</strong></div>
                             <div ng-repeat="product in user.works.view.products">
-                                <strong>{{product.name}} ({{product.percent}}%, {{product.total}}{{const_time_unit}})</strong>
+                                <strong>{{product.name}} ({{product.percent}}%, {{product.total |filter_n1}}{{const_time_unit}})</strong>
                                 <ol>
                                     <li ng-repeat="work in product.works" type="A">
                                         <font color="{{work |filter_work_color}}">
@@ -61,7 +61,7 @@
                         <div class="span5" title="按工作类型分析">
                             <div class="work_item"><strong>按工作类型分析</strong></div>
                             <div ng-repeat="type in user.works.view.types">
-                                <strong>{{type.name}} ({{type.percent}}%, {{type.total}}{{const_time_unit}})</strong>
+                                <strong>{{type.name}} ({{type.percent}}%, {{type.total |filter_n1}}{{const_time_unit}})</strong>
                                 <ol>
                                     <li ng-repeat="work in type.works" type="A">
                                         <font color="{{work |filter_work_color}}">
@@ -82,7 +82,7 @@
                         <div class="span1"></div>
                         <div class="span5">
                             <div ng-repeat="product in user.works.view.products">
-                                1. {{product.name}} ({{product.percent}}%, {{product.total}}{{const_time_unit}})<br/>
+                                1. {{product.name}} ({{product.percent}}%, {{product.total |filter_n1}}{{const_time_unit}})<br/>
                                     <span ng-repeat="work in product.works">
                                         &nbsp;&nbsp;* {{work.time}}小时 {{work.content}} <br/>
                                     </span>
@@ -90,7 +90,7 @@
                         </div>
                         <div class="span5">
                             <div ng-repeat="type in user.works.view.types">
-                                1. {{type.name}} ({{type.percent}}%, {{type.total}}{{const_time_unit}})<br/>
+                                1. {{type.name}} ({{type.percent}}%, {{type.total |filter_n1}}{{const_time_unit}})<br/>
                                     <span ng-repeat="work in type.works">
                                         &nbsp;&nbsp;* {{work.time}}小时 {{work.content}} <br/>
                                     </span>

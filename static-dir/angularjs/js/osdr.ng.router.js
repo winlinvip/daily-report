@@ -2301,6 +2301,16 @@ osdrFilters
         return Number(summary.total/summary.view.days.length).toFixed(2) + "小时/天";
     };
 })
+.filter('filter_n2', function() {
+    return function(v) {
+        return Number(v).toFixed(2);
+    };
+})
+.filter('filter_n1', function() {
+    return function(v) {
+        return Number(v).toFixed(1);
+    };
+})
 .filter('filter_view_week', function() {
     return function(date) {
         var d = YYYYmmdd_parse(date);
