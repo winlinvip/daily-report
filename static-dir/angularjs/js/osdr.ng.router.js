@@ -1824,7 +1824,7 @@ osdrControllers.controller('CReport', ['$scope', '$routeParams', '$location', 'M
         toMonday(d);
         $scope.query.sdate = absolute_seconds_to_YYYYmmdd(d.getTime() / 1000);
 
-        d.setDate(d.getDate() + 7);
+        d.setDate(d.getDate() + 6);
         $scope.query.edate = absolute_seconds_to_YYYYmmdd(d.getTime() / 1000);
     };
     $scope.on_change_previous_week = function() {
@@ -1834,7 +1834,7 @@ osdrControllers.controller('CReport', ['$scope', '$routeParams', '$location', 'M
         toMonday(d);
         $scope.query.sdate = absolute_seconds_to_YYYYmmdd(d.getTime() / 1000);
 
-        d.setDate(d.getDate() + 7);
+        d.setDate(d.getDate() + 6);
         $scope.query.edate = absolute_seconds_to_YYYYmmdd(d.getTime() / 1000);
     };
     $scope.on_change_next_week = function() {
@@ -1843,7 +1843,7 @@ osdrControllers.controller('CReport', ['$scope', '$routeParams', '$location', 'M
         d.setDate(d.getDate() + 7);
         $scope.query.sdate = absolute_seconds_to_YYYYmmdd(d.getTime() / 1000);
 
-        d.setDate(d.getDate() + 7);
+        d.setDate(d.getDate() + 6);
         $scope.query.edate = absolute_seconds_to_YYYYmmdd(d.getTime() / 1000);
     };
     // query report info from server.
