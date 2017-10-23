@@ -23,8 +23,8 @@ cd CherryPy-3.2.2 &&
 python setup.py install --user &&
 echo "install mysql-python" &&
 cd $dir &&
-rm -rf MySQL-python-1.2.3c1 &&
-unzip -q MySQL-python-1.2.3c1.zip &&
-cd MySQL-python-1.2.3c1 &&
+rm -rf mysqlclient-python-1.3.12 &&
+tar xf mysqlclient-python-1.3.12.tar.gz &&
+cd mysqlclient-python-1.3.12 &&
 python setup.py install --user
 ret=$? && if [[ $ret -ne 0 ]]; then echo "cherrypy+mysql error $ret"; exit $ret; fi

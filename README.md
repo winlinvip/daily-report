@@ -29,7 +29,7 @@ cd daily-report
 **Step 2:** 然后在本机安装MySQl(MariaDB):
 
 ```
-brew install -y mariadb
+brew install -y mariadb && brew services start mariadb
 ```
 
 可以看到Brew安装了服务, 会在每次启动时自动启动MySQL数据库:

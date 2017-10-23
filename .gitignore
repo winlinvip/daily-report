@@ -19,5 +19,6 @@
 
 3rdparty/CherryPy-3.2.2/
 3rdparty/MySQL-python-1.2.3c1/
+3rdparty/mysqlclient-python-1.3.12/
 static-dir/dynamic-js/
 
