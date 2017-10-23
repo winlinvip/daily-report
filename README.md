@@ -32,6 +32,8 @@ cd daily-report
 brew install -y mariadb && brew services start mariadb
 ```
 
+> Remark: `brew`安装参考[HomeBrew](https://brew.sh/), 执行一个命令就可以安装.
+
 可以看到Brew安装了服务, 会在每次启动时自动启动MySQL数据库:
 
 ```
