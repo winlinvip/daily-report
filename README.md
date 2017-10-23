@@ -14,6 +14,61 @@ echo "Please modify the config.conf then start daily-report" && ./daily-report.p
 echo "Success: http://yourserver:3001"
 ```
 
+## MacOS
+
+下面是在MacOS安装单机版.
+
+**Step 1:** 先获取代码:
+
+```
+git clone https://github.com/winlinvip/daily-report.git &&
+cd daily-report
+```
+
+
+**Step 2:** 然后在本机安装MySQl(MariaDB):
+
+```
+brew install -y mariadb
+```
+
+可以看到Brew安装了服务, 会在每次启动时自动启动MySQL数据库:
+
+```
+Mac:winlin$ brew services list
+Name    Status  User        Plist
+mariadb started chengli.ycl /Users/winlin/Library/LaunchAgents/homebrew.mxcl.mariadb.plist
+```
+
+**Step 3:** 执行数据库脚本, 创建数据库(默认root没有密码), 创建默认数据:
+
+```
+mysql -uroot < daily-report.sql &&
+mysql -uroot < default-values.sql
+```
+
+> Remark: 默认MySQL的root没有密码, 如果有密码用`-pPassword`指定, 注意没有空格.
+
+> Remark: 如果MySQL需要指定用户和密码, 修改配置文件`config.conf`的`mysql`配置信息.
+
+> Remark: 默认的用户, 产品和类型, 都可以在启动后后台页面修改.
+
+**Step 4:** 安装依赖的Python库:
+
+```
+(cd 3rdparty && bash install.sh)
+```
+
+**Step 5:** 启动服务:
+
+```
+nohup python daily-report.py >/dev/null 2>&1 &
+```
+
+> Remark: MacOS不知道怎么添加系统服务, 每次登陆后需要手动执行上面的脚本.
+
+访问页面就可以填日报和管理系统: http://localhost:3001
+
 ## Show
 
 我的研发团队在2013年和2014使用这个产品后的分析结果。
