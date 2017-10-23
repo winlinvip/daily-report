@@ -35,9 +35,9 @@ brew install -y mariadb && brew services start mariadb
 可以看到Brew安装了服务, 会在每次启动时自动启动MySQL数据库:
 
 ```
-Mac:winlin$ brew services list
-Name    Status  User        Plist
-mariadb started chengli.ycl /Users/winlin/Library/LaunchAgents/homebrew.mxcl.mariadb.plist
+#Mac:winlin$ brew services list
+#Name    Status  User        Plist
+#mariadb started chengli.ycl /Users/winlin/Library/LaunchAgents/homebrew.mxcl.mariadb.plist
 ```
 
 **Step 3:** 执行数据库脚本, 创建数据库(默认root没有密码), 创建默认数据:
