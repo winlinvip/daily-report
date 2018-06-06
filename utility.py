@@ -174,7 +174,7 @@ def sql_exec(sql, params = None, get_inserted_id=False):
         conn = MySQLdb.connect(host, user, passwd, db, charset='utf8');
         cursor = conn.cursor(MySQLdb.cursors.DictCursor);
         
-        trace("execute sql: %s params: %s"%(sql, params));
+        trace("execute sql: %s params(%s): %s"%(sql, type(params), params));
         if params is not None:
             cursor.execute(sql, params);
         else:
