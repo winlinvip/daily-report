@@ -20,7 +20,7 @@ cd $dir &&
 rm -rf CherryPy-3.2.2 &&
 unzip -q CherryPy-3.2.2.zip &&
 cd CherryPy-3.2.2 &&
-python setup.py install --user &&
+python setup.py install --user --prefix= &&
 echo "install mysql-python" &&
 cd $dir &&
 rm -rf mysqlclient-python-1.3.12 &&
