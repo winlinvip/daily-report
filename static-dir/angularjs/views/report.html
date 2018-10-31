@@ -44,6 +44,7 @@
                         <div class="span1"></div>
                         <div class="span5" title="按产品线分析">
                             <div class="work_item"><strong>按产品线分析</strong></div>
+                            <div osdr-pie osdr-labels="user.product.labels" osdr-values="user.product.values"></div>
                             <div ng-repeat="product in user.works.view.products">
                                 <strong>{{product.name}} ({{product.percent}}%, {{product.total |filter_n1}}{{const_time_unit}})</strong>
                                 <ol>
@@ -56,10 +57,10 @@
                                     </li>
                                 </ol>
                             </div>
-                            <div osdr-pie osdr-labels="user.product.labels" osdr-values="user.product.values"></div>
                         </div>
                         <div class="span5" title="按工作类型分析">
                             <div class="work_item"><strong>按工作类型分析</strong></div>
+                            <div osdr-pie osdr-labels="user.type.labels" osdr-values="user.type.values"></div>
                             <div ng-repeat="type in user.works.view.types">
                                 <strong>{{type.name}} ({{type.percent}}%, {{type.total |filter_n1}}{{const_time_unit}})</strong>
                                 <ol>
@@ -72,7 +73,6 @@
                                     </li>
                                 </ol>
                             </div>
-                            <div osdr-pie osdr-labels="user.type.labels" osdr-values="user.type.values"></div>
                         </div>
                     </div>
                     <div align="center">
