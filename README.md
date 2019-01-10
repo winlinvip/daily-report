@@ -58,7 +58,7 @@ mysql -uroot < default-values.sql
 **Step 4:** 安装依赖的Python库:
 
 ```
-(cd 3rdparty && bash install.sh)
+(cd 3rdparty && bash install.sh && cd ..)
 ```
 
 **Step 5:** 启动服务:
